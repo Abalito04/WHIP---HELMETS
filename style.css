@@ -1,0 +1,276 @@
+/* Importa la fuente 'Bangers' de Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Bangers&display=swap');
+
+body {
+    font-family: 'Bangers', cursive;
+    margin: 0;
+    padding: 0;
+    background: linear-gradient(to bottom, #000000, #f3b927de); 
+    color: #fff; 
+    line-height: 1.6;
+    font-size: 1.125em; /* Aumenta el tamaño base de la fuente */
+}
+
+main {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 2em;
+}
+
+/* ------------------------------------- */
+/* ESTILOS DEL ENCABEZADO */
+/* ------------------------------------- */
+.main-header {
+    padding: 1em 2em;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.header-left, .header-right {
+    flex-basis: 20%;
+}
+
+.header-center {
+    flex-grow: 1; 
+    display: flex;
+    justify-content: center;
+    font-size: 1.5em;
+}
+
+.main-nav ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+}
+
+.main-nav li {
+    margin: 0 15px;
+}
+
+.main-nav a {
+    color: #f0ad4e;
+    text-decoration: none;
+    font-size: 1.2em;
+}
+
+.logo {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+}
+
+.logo-img {
+    height: 150px;
+    margin-right: 15px;
+}
+
+.logo h1 {
+    margin: 0;
+    font-size: 3em; /* Más grande */
+    color: #f0ad4e;
+}
+
+.user-actions a {
+    color: #fff;
+    text-decoration: none;
+    margin-left: 20px;
+    font-size: 1.1em;
+}
+
+/* ------------------------------------- */
+/* ESTILOS DEL BANNER PRINCIPAL */
+/* ------------------------------------- */
+.hero-banner {
+    text-align: center;
+    padding: 5em 2em;
+    background-image: url('css img/fondo\ 1.jpg');
+    background-size: cover; /* Hace que la imagen cubra todo el espacio sin distorsionarse */
+    background-position: center; /* Centra la imagen en el contenedor */
+    background-repeat: no-repeat; /* Evita que la imagen se repita */
+    min-height: 100px; /* Asegura que la sección tenga una altura mínima */
+    color: white; /* Asegura que el texto sea visible */
+}
+.hero-banner h2 {
+    font-size: 3em; /* Más grande */
+    margin-bottom: 0.5em;
+}
+
+.hero-banner .cta-button {
+    display: inline-block;
+    background-color: #f0ad4e;
+    color: #000;
+    padding: 1em 2em;
+    text-decoration: none;
+    border-radius: 5px;
+    margin-top: 1em;
+    font-weight: bold;
+}
+
+/* ------------------------------------- */
+/* ESTILOS DE LA CUADRÍCULA DE PRODUCTOS */
+/* ------------------------------------- */
+.product-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    padding: 20px;
+    gap: 20px;
+}
+
+#destacados h2 {
+    font-size: 3.5em; /* Título de sección más grande */
+    text-align: center;
+    width: 100%;
+    margin: 0 auto 20px;
+}
+
+/* ------------------------------------- */
+/* ESTILOS DE LA TARJETA DEL PRODUCTO */
+/* ------------------------------------- */
+.product-card {
+    position: relative;
+    background-color: rgba(0, 0, 0, 0.7);
+    border-radius: 10px;
+    overflow: hidden;
+    padding: 0;
+    text-align: center;
+    transition: transform 0.3s ease;
+}
+
+.product-card h3 {
+    font-size: 1.5em; /* Más grande */
+    margin-top: 0;
+}
+
+.product-card:hover {
+    transform: translateY(-5px);
+}
+
+.product-images-container {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.product-image {
+    max-width: 150%;
+    max-height: 150%;
+    object-fit: contain;
+    transition: opacity 0.5s ease-in-out;
+}
+
+.product-image.hover-view {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    opacity: 0;
+}
+
+.product-info-overlay {
+    position: absolute;
+    bottom: 5px;
+    left: 0;
+    width: 100%;
+    text-align: center;
+    color: #fff;
+    padding: 10px;
+}
+
+.product-name-overlay {
+    font-size: 1.2em;
+    margin-bottom: 5px;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+.product-size-overlay {
+    font-size: 1em;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+.product-card .price {
+    color: #f0ad4e;
+    font-weight: bold;
+    font-size: 1.2em;
+    margin-bottom: 10px;
+    padding: 0 10px;
+}
+
+.product-card button {
+    background-color: #f0ad4e;
+    color: #000;
+    border: none;
+    padding: 0.8em 1.5em;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 1em;
+}
+
+.product-card:hover .main-view {
+    opacity: 0;
+}
+
+.product-card:hover .hover-view {
+    opacity: 1;
+}
+
+/* ------------------------------------- */
+/* OTROS ESTILOS (sin cambios mayores) */
+/* ------------------------------------- */
+.newsletter-signup {
+    text-align: center;
+    padding: 4em 2em;
+    background-color: rgba(0, 0, 0, 0.7);
+}
+
+.newsletter-signup h2 {
+    margin-bottom: 0.5em;
+}
+
+.newsletter-signup input {
+    padding: 0.8em;
+    border: none;
+    border-radius: 5px 0 0 5px;
+    width: 60%;
+    max-width: 300px;
+}
+
+.newsletter-signup button {
+    padding: 0.8em 1.2em;
+    background-color: #f0ad4e;
+    color: #000;
+    border: none;
+    border-radius: 0 5px 5px 0;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.main-footer {
+    background-color: #333;
+    color: #eee;
+    text-align: center;
+    padding: 1em;
+    font-size: 0.9em;
+}
+
+.footer-links {
+    list-style: none;
+    padding: 0;
+    margin-top: 0.5em;
+}
+
+.footer-links li {
+    display: inline;
+    margin: 0 10px;
+}
+
+.footer-links a {
+    color: #eee;
+    text-decoration: none;
+}

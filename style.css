@@ -92,7 +92,7 @@ main {
 .hero-banner {
     text-align: center;
     padding: 5em 2em;
-    background: url('https://raw.githubusercontent.com/Abalito04/WHIP---HELMETS/refs/heads/main/fondo%201.jpg') center/cover no-repeat;
+    background: url('css img/fondo1.jpg') center/cover no-repeat;
     min-height: 100px;
     color: white;
 }
@@ -127,7 +127,7 @@ main {
     font-size: 3.5em;
     text-align: center;
     margin: 50px auto 20px;
-    color: #f0ad4e;
+    color: #ffffff;
 }
 
 #destacados h2 {
@@ -308,6 +308,17 @@ main {
     color: #eee;
     text-decoration: none;
 }
+
+.footer-links a {
+    color: #ffffff;         /* color inicial (blanco, por ejemplo) */
+    text-decoration: none;  /* sin subrayado */
+    transition: color 0.3s; /* animación suave */
+}
+
+.footer-links a:hover {
+    color: #f0ad4e; /* color al pasar el mouse (amarillo dorado de ejemplo) */
+}
+
 
 /* ================================================== */
 /*                  FORMULARIO DE CONTACTO          */

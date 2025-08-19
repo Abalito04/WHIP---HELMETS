@@ -455,3 +455,55 @@ footer.legal-footer a {
 footer.legal-footer a:hover {
     text-decoration: underline;
 }
+
+/* ================= Carrito Modal ================= */
+/* ================= Carrito Modal ================= */
+.cart-modal {
+    display: none; /* Oculto por defecto */
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.3); /* Fondo semitransparente, deja ver la página */
+    display: flex;             /* Flex para centrar */
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.cart-content {
+    background-color: #333; /* Gris oscuro */
+    color: #f0a946; /* Dorado */
+    padding: 20px;
+    border-radius: 10px;
+    max-width: 500px;
+    width: 90%;
+    max-height: 80%;
+    overflow-y: auto;
+    box-shadow: 0 4px 10px rgba(255, 255, 255, 0.3);
+    position: relative;
+}
+.cart-content h2 {
+    margin-top: 0;
+    text-align: center;
+}
+
+.cart-content button {
+    background-color: #f0ad4e;
+    color: #b8b5b5;
+    border: none;
+    padding: 5px 10px;
+    margin-top: 5px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.close-cart {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: #f0ad4e;
+}

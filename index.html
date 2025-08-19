@@ -10,7 +10,7 @@
 </head>
 <body>
 
-    <header class="main-header">
+<header class="main-header">
     <div class="header-left">
         <a href="index.html" class="logo">
             <img src="css img/logo.png" alt="Logo WHIP-HELMETS" class="logo-img">
@@ -19,348 +19,355 @@
     </div>
     <div class="header-center">
         <nav class="main-nav">
-    <ul>
-        <li><a href="#destacados">Cascos</a></li>
-        <li><a href="#accesorios">Accesorios</a></li>
-        <li><a href="#contacto">Contacto</a></li>
-    </ul>
-</nav>
+            <ul>
+                <li><a href="#destacados">Cascos</a></li>
+                <li><a href="#accesorios">Accesorios</a></li>
+                <li><a href="#contacto">Contacto</a></li>
+            </ul>
+        </nav>
     </div>
+    
     <div class="header-right">
         <div class="user-actions">
             <a href="/login" class="login">Iniciar Sesión</a>
-            <a href="/cart" class="cart">🛒 Carrito (0)</a>
-        </div>
+            <a href="#" class="cart">🛒 Carrito (0)</a></div>
+            
     </div>
+    <div id="cart-modal" class="cart-modal">
+    <div class="cart-content">
+        <span class="close-cart">&times;</span>
+        <h2>Carrito</h2>
+        <div id="cart-items"></div>
+        <p id="cart-total">Total: $0</p>
+    </div>
+</div>
 </header>
 
-    <main>
-        <section class="hero-banner">
-
-            <h2>En Whip Helmets vivimos la pasión por las motos y bicicletas.</h2>
-            <p>Ofrecemos cascos nuevos y usados, todos homologados, cómodos y con estilo, para que manejes con total confianza.</p>          
-            <a href="#destacados" class="cta-button">Ver Productos Destacados</a>
-        </section>
-    
-        <section id="destacados" class="product-grid">
-              <div class="product-card" data-brand="Fox">
-    <div class="product-images-container">
-        <img src="css img/Fox V3 Frontal.png" alt="Casco Fox V3, vista frontal" class="product-image hover-view">
-        <img src="css img/Fox V3 lateral.png" alt="Casco Fox V3, vista lateral" class="product-image main-view">
-    </div>
-    
-    <h3>Casco FOX V3</h3>
-    <p class="price">$895.000</p>
-    
-    <div class="product-options">
-        <label for="talles-v3">Talle:</label>
-        <select id="talles-v3" class="size-selector">
-            <option value="S">S</option>
-            <option value="M">M</option>
-            <option value="L">L</option>
-            <option value="XL">XL</option>
-        </select>
-    </div>
-
-    <button>Añadir al Carrito</button>
-</div>
-
-           <div class="product-card" data-brand="Fox">
-    <div class="product-images-container">
-        <img src="css img/Fox V3 RS MC lateral.png" alt="Casco Fox V3, vista frontal" class="product-image main-view">
-        <img src="css img/Fox V3 RS MC frontal.png" alt="Casco Fox V3, vista lateral" class="product-image hover-view">
-    </div>
-    
-    <h3>Casco FOX V3 RS</h3>
-    <p class="price">$000.000</p>
-    
-    <div class="product-options">
-        <label for="talles-v3">Talle:</label>
-        <select id="talles-v3" class="size-selector">
-            <option value="S">S</option>
-            <option value="M">M</option>
-            <option value="L">L</option>
-            <option value="XL">XL</option>
-        </select>
-    </div>
-
-    <button>Añadir al Carrito</button>
-</div><div class="product-card" data-brand="Fox">
-    <div class="product-images-container">
-        <img src="css img/Fox V1 frontal.png" alt="Casco Fox V1, vista frontal" class="product-image hover-view">
-        <img src="css img/Fox V1 lateral.png" alt="Casco Fox V1, vista lateral" class="product-image main-view">
-    </div>
-    
-    <h3>Casco FOX V1</h3>
-    <p class="price">$000.000</p>
-    
-    <div class="product-options">
-        <label for="talles-v3">Talle:</label>
-        <select id="talles-v3" class="size-selector">
-            <option value="S">S</option>
-            <option value="M">M</option>
-            <option value="L">L</option>
-            <option value="XL">XL</option>
-        </select>
-    </div>
-
-    <button>Añadir al Carrito</button>
-</div><div class="product-card" data-brand="Fox">
-    <div class="product-images-container">
-        <img src="css img/Fly Racing F2 frontal.png" alt="Casco Fly, vista frontal" class="product-image hover-view">
-        <img src="css img/Fly Racing F2 lateral.png" alt="Casco Fly, vista lateral" class="product-image main-view">
-    </div>
-    
-    <h3>Casco FLY Racing F2</h3>
-    <p class="price">$000.000</p>
-    
-    <div class="product-options">
-        <label for="talles-v3">Talle:</label>
-        <select id="talles-v3" class="size-selector">
-            <option value="S">S</option>
-            <option value="M">M</option>
-            <option value="L">L</option>
-            <option value="XL">XL</option>
-        </select>
-    </div>
-
-    <button>Añadir al Carrito</button>
-</div><div class="product-card" data-brand="Fox">
-    <div class="product-images-container">
-        <img src="css img/Bell Moto-9 Flex frontal.png" alt="Casco Bell, vista frontal" class="product-image hover-view">
-        <img src="css img/Bell Moto-9 Flex lateral.png" alt="Casco Bell, vista lateral" class="product-image main-view">
-    </div>
-    
-    <h3>Casco Bell Moto-9 Flex</h3>
-    <p class="price">$000.000</p>
-    
-    <div class="product-options">
-        <label for="talles-v3">Talle:</label>
-        <select id="talles-v3" class="size-selector">
-            <option value="S">S</option>
-            <option value="M">M</option>
-            <option value="L">L</option>
-            <option value="XL">XL</option>
-        </select>
-    </div>
-
-    <button>Añadir al Carrito</button>
-</div><div class="product-card" data-brand="Fox">
-    <div class="product-images-container">
-        <img src="css img/Alpinestars SM5 frontal.png" alt="Casco Alpinestars, vista frontal" class="product-image hover-view">
-        <img src="css img/Alpinestars SM5 lateral.png" alt="Casco Alpinestars, vista lateral" class="product-image main-view">
-    </div>
-    
-    <h3>Casco Alpinestars SM5</h3>
-    <p class="price">$000.000</p>
-    
-    <div class="product-options">
-        <label for="talles-v3">Talle:</label>
-        <select id="talles-v3" class="size-selector">
-            <option value="S">S</option>
-            <option value="M">M</option>
-            <option value="L">L</option>
-            <option value="XL">XL</option>
-        </select>
-    </div>
-
-    <button>Añadir al Carrito</button>
-</div><div class="product-card" data-brand="Fox">
-    <div class="product-images-container">
-        <img src="css img/" alt="Casco Bell, vista frontal" class="product-image hover-view">
-        <img src="css img/Bell Moto-9 Flex 2.png" alt="Casco Bell, vista lateral" class="product-image main-view">
-    </div>
-    
-    <h3>Casco Bell Moto-9 Flex</h3>
-    <p class="price">$000.000</p>
-    
-    <div class="product-options">
-        <label for="talles-v3">Talle:</label>
-        <select id="talles-v3" class="size-selector">
-            <option value="S">S</option>
-            <option value="M">M</option>
-            <option value="L">L</option>
-            <option value="XL">XL</option>
-        </select>
-    </div>
-
-    <button>Añadir al Carrito</button>
-</div><div class="product-card" data-brand="Fox">
-    <div class="product-images-container">
-        <img src="css img/" alt="Casco Aircraft, vista frontal" class="product-image hover-view">
-        <img src="css img/Aircraft 2 Carbono.png" alt="Casco Aircraft, vista 3lateral" class="product-image main-view">
-    </div>
-    
-    <h3>Casco Aircraft 2 Carbono</h3>
-    <p class="price">$000.000</p>
-    
-    <div class="product-options">
-        <label for="talles-v3">Talle:</label>
-        <select id="talles-v3" class="size-selector">
-            <option value="S">S</option>
-            <option value="M">M</option>
-            <option value="L">L</option>
-            <option value="XL">XL</option>
-        </select>
-    </div>
-
-    <button>Añadir al Carrito</button>
-</div><div class="product-card" data-brand="Fox">
-    <div class="product-images-container">
-        <img src="css img/" alt="Casco Bell, vista frontal" class="product-image hover-view">
-        <img src="css img/Bell MX-9 Mips.png" alt="Casco Bell, vista lateral" class="product-image main-view">
-    </div>
-    
-    <h3>Casco Bell MX-9 Mips</h3>
-    <p class="price">$000.000</p>
-    
-    <div class="product-options">
-        <label for="talles-v3">Talle:</label>
-        <select id="talles-v3" class="size-selector">
-            <option value="S">S</option>
-            <option value="M">M</option>
-            <option value="L">L</option>
-            <option value="XL">XL</option>
-        </select>
-    </div>
-
-    <button>Añadir al Carrito</button>
-</div><div class="product-card" data-brand="Fox">
-    <div class="product-images-container">
-        <img src="css img/" alt="Casco Fox V1, vista frontal" class="product-image hover-view">
-        <img src="css img/Fox V1 Interfere.png" alt="Casco Fox V1, vista lateral" class="product-image main-view">
-    </div>
-    
-    <h3>Casco FOX V1 Interfere</h3>
-    <p class="price">$000.000</p>
-    
-    <div class="product-options">
-        <label for="talles-v3">Talle:</label>
-        <select id="talles-v3" class="size-selector">
-            <option value="S">S</option>
-            <option value="M">M</option>
-            <option value="L">L</option>
-            <option value="XL">XL</option>
-        </select>
-    </div>
-
-    <button>Añadir al Carrito</button>
-</div><div class="product-card" data-brand="Fox">
-    <div class="product-images-container">
-        <img src="css img/" alt="Casco Troy Lee, vista frontal" class="product-image hover-view">
-        <img src="css img/Troy Lee Design D4 lateral.png" alt="Casco Troy Lee, vista lateral" class="product-image main-view">
-    </div>
-    
-    <h3>Casco Troy Lee Design D4</h3>
-    <p class="price">$000.000</p>
-    
-    <div class="product-options">
-        <label for="talles-v3">Talle:</label>
-        <select id="talles-v3" class="size-selector">
-            <option value="S">S</option>
-            <option value="M">M</option>
-            <option value="L">L</option>
-            <option value="XL">XL</option>
-        </select>
-    </div>
-
-    <button>Añadir al Carrito</button>
-</div><div class="product-card" data-brand="Fox">
-    <div class="product-images-container">
-        <img src="css img/" alt="Casco Fox V3, vista frontal" class="product-image hover-view">
-        <img src="css img/Fox V3 Moth LE Copper.png" alt="Casco Fox V3, vista lateral" class="product-image main-view">
-    </div>
-    
-    <h3>Casco FOX V3 Moth LE Copper</h3>
-    <p class="price">$895.000</p>
-    
-    <div class="product-options">
-        <label for="talles-v3">Talle:</label>
-        <select id="talles-v3" class="size-selector">
-            <option value="S">S</option>
-            <option value="M">M</option>
-            <option value="L">L</option>
-            <option value="XL">XL</option>
-        </select>
-    </div>
-
-    <button>Añadir al Carrito</button>
-</div><div class="product-card" data-brand="Fox">
-    <div class="product-images-container">
-        <img src="css img/" alt="Casco Fox V1, vista frontal" class="product-image hover-view">
-        <img src="css img/FOX V1 MATTE.png" alt="Casco Fox V1, vista lateral" class="product-image main-view">
-    </div>
-    
-    <h3>Casco FOX V1 MATTE</h3>
-    <p class="price">$000.000</p>
-    
-    <div class="product-options">
-        <label for="talles-v3">Talle:</label>
-        <select id="talles-v3" class="size-selector">
-            <option value="S">S</option>
-            <option value="M">M</option>
-            <option value="L">L</option>
-            <option value="XL">XL</option>
-        </select>
-    </div>
-
-    <button>Añadir al Carrito</button>
-</div><div class="product-card" data-brand="Fox">
-    <div class="product-images-container">
-        <img src="css img/" alt="Casco Alpinestars, vista frontal" class="product-image hover-view">
-        <img src="css img/Alpinestars SM5 amarillo lateral.png" alt="Casco Alpinestars, vista lateral" class="product-image main-view">
-    </div>
-    
-    <h3>Casco Alpinestars SM5</h3>
-    <p class="price">$000.000</p>
-    
-    <div class="product-options">
-        <label for="talles-v3">Talle:</label>
-        <select id="talles-v3" class="size-selector">
-            <option value="S">S</option>
-            <option value="M">M</option>
-            <option value="L">L</option>
-            <option value="XL">XL</option>
-        </select>
-    </div>
-
-    <button>Añadir al Carrito</button>
-</div>
-        </section>
-
-         <h2 class="section-title">Accesorios</h2>
-<section id="accesorios" class="product-grid">
-    <div class="product-card">
-        <div class="product-images-container">
-            <img src="css img/" alt="Guantes de Motocross" class="product-image hover-view">
-            <img src="css img/Guantes FOX.png" alt="Guantes de Motocross" class="product-image main-view">
-        </div>
-        <h3>Guantes CROSS</h3>
-        <p class="price">$50.00</p>
-        <button>Añadir al Carrito</button>
-    </div>
-    <div class="product-card">
-        <div class="product-images-container">
-            <img src="css img/antiparras 2.png" alt="Antiparras de Motocross" class="product-image main-view">
-            <img src="img/" alt="Antiparras de Motocross" class="product-image hover-view">
-        </div>
-        <h3>Antiparras CROSS</h3>
-        <p class="price">$80.00</p>
-        <button>Añadir al Carrito</button>
-    </div>
+<main>
+    <section class="hero-banner">
+        <h2>En Whip Helmets vivimos la pasión por las motos y bicicletas.</h2>
+        <p>Ofrecemos cascos nuevos y usados, todos homologados, cómodos y con estilo, para que manejes con total confianza.</p>          
+        <a href="#destacados" class="cta-button">Ver Productos Destacados</a>
     </section>
 
-        <section class="newsletter-signup">
-            <h2>Mantente al Día</h2>
-            <p>Suscríbete a nuestro boletín para recibir ofertas exclusivas.</p>
-            <form action="#" method="post">
-                <input type="email" placeholder="Tu correo electrónico" required>
-                <button type="submit">Suscribirme</button>
-            </form>
-        </section>
-    </main>
+    <section id="destacados" class="product-grid">
+        <!-- Casco FOX V3 -->
+        <div class="product-card" data-brand="Fox">
+            <div class="product-images-container">
+                <img src="css img/Fox V3 Frontal.png" alt="Casco Fox V3, vista frontal" class="product-image hover-view">
+                <img src="css img/Fox V3 lateral.png" alt="Casco Fox V3, vista lateral" class="product-image main-view">
+            </div>
+            <h3>Casco FOX V3</h3>
+            <p class="price">$895.000</p>
+            <div class="product-options">
+                <label for="talles-fox-v3">Talle:</label>
+                <select id="talles-fox-v3" class="size-selector" data-product="FoxV3">
+                    <option value="S">S</option>
+                    <option value="M">M</option>
+                    <option value="L">L</option>
+                    <option value="XL">XL</option>
+                </select>
+            </div>
+            <button>Añadir al Carrito</button>
+        </div>
 
-    <section id="contacto">
+        <!-- Casco FOX V3 RS -->
+        <div class="product-card" data-brand="Fox">
+            <div class="product-images-container">
+                <img src="css img/Fox V3 RS MC lateral.png" alt="Casco Fox V3 RS, vista lateral" class="product-image main-view">
+                <img src="css img/Fox V3 RS MC frontal.png" alt="Casco Fox V3 RS, vista frontal" class="product-image hover-view">
+            </div>
+            <h3>Casco FOX V3 RS</h3>
+            <p class="price">$000.000</p>
+            <div class="product-options">
+                <label for="talles-fox-v3-rs">Talle:</label>
+                <select id="talles-fox-v3-rs" class="size-selector" data-product="FoxV3RS">
+                    <option value="S">S</option>
+                    <option value="M">M</option>
+                    <option value="L">L</option>
+                    <option value="XL">XL</option>
+                </select>
+            </div>
+            <button>Añadir al Carrito</button>
+        </div>
+
+        <!-- Casco FOX V1 -->
+        <div class="product-card" data-brand="Fox">
+            <div class="product-images-container">
+                <img src="css img/Fox V1 frontal.png" alt="Casco Fox V1, vista frontal" class="product-image hover-view">
+                <img src="css img/Fox V1 lateral.png" alt="Casco Fox V1, vista lateral" class="product-image main-view">
+            </div>
+            <h3>Casco FOX V1</h3>
+            <p class="price">$000.000</p>
+            <div class="product-options">
+                <label for="talles-fox-v1">Talle:</label>
+                <select id="talles-fox-v1" class="size-selector" data-product="FoxV1">
+                    <option value="S">S</option>
+                    <option value="M">M</option>
+                    <option value="L">L</option>
+                    <option value="XL">XL</option>
+                </select>
+            </div>
+            <button>Añadir al Carrito</button>
+        </div>
+
+        <!-- Casco FLY Racing F2 -->
+        <div class="product-card" data-brand="Fly">
+            <div class="product-images-container">
+                <img src="css img/Fly Racing F2 frontal.png" alt="Casco Fly, vista frontal" class="product-image hover-view">
+                <img src="css img/Fly Racing F2 lateral.png" alt="Casco Fly, vista lateral" class="product-image main-view">
+            </div>
+            <h3>Casco FLY Racing F2</h3>
+            <p class="price">$000.000</p>
+            <div class="product-options">
+                <label for="talles-fly-f2">Talle:</label>
+                <select id="talles-fly-f2" class="size-selector" data-product="FlyF2">
+                    <option value="S">S</option>
+                    <option value="M">M</option>
+                    <option value="L">L</option>
+                    <option value="XL">XL</option>
+                </select>
+            </div>
+            <button>Añadir al Carrito</button>
+        </div>
+
+        <!-- Casco Bell Moto-9 Flex -->
+        <div class="product-card" data-brand="Bell">
+            <div class="product-images-container">
+                <img src="css img/Bell Moto-9 Flex frontal.png" alt="Casco Bell, vista frontal" class="product-image hover-view">
+                <img src="css img/Bell Moto-9 Flex lateral.png" alt="Casco Bell, vista lateral" class="product-image main-view">
+            </div>
+            <h3>Casco Bell Moto-9 Flex</h3>
+            <p class="price">$000.000</p>
+            <div class="product-options">
+                <label for="talles-bell-flex">Talle:</label>
+                <select id="talles-bell-flex" class="size-selector" data-product="BellFlex">
+                    <option value="S">S</option>
+                    <option value="M">M</option>
+                    <option value="L">L</option>
+                    <option value="XL">XL</option>
+                </select>
+            </div>
+            <button>Añadir al Carrito</button>
+        </div>
+
+         <!-- Casco Bell Moto-9 Flex -->
+        <div class="product-card" data-brand="Bell">
+            <div class="product-images-container">
+                <img src="css img/" alt="Casco Bell, vista frontal" class="product-image hover-view">
+                <img src="css img/Bell Moto-9 Flex 2.png" alt="Casco Bell, vista lateral" class="product-image main-view">
+            </div>
+            <h3>Casco Bell Moto-9 Flex</h3>
+            <p class="price">$000.000</p>
+            <div class="product-options">
+                <label for="talles-bell-flex">Talle:</label>
+                <select id="talles-bell-flex" class="size-selector" data-product="BellFlex">
+                    <option value="S">S</option>
+                    <option value="M">M</option>
+                    <option value="L">L</option>
+                    <option value="XL">XL</option>
+                </select>
+            </div>
+            <button>Añadir al Carrito</button>
+        </div>
+
+
+        <!-- Casco Alpinestars SM5 -->
+        <div class="product-card" data-brand="Alpinestars">
+            <div class="product-images-container">
+                <img src="css img/Alpinestars SM5 frontal.png" alt="Casco Alpinestars, vista frontal" class="product-image hover-view">
+                <img src="css img/Alpinestars SM5 lateral.png" alt="Casco Alpinestars, vista lateral" class="product-image main-view">
+            </div>
+            <h3>Casco Alpinestars SM5</h3>
+            <p class="price">$000.000</p>
+            <div class="product-options">
+                <label for="talles-alpinestars-sm5">Talle:</label>
+                <select id="talles-alpinestars-sm5" class="size-selector" data-product="AlpinestarsSM5">
+                    <option value="S">S</option>
+                    <option value="M">M</option>
+                    <option value="L">L</option>
+                    <option value="XL">XL</option>
+                </select>
+            </div>
+            <button>Añadir al Carrito</button>
+        </div>
+
+        <!-- Casco Aircraft 2 Carbono -->
+        <div class="product-card" data-brand="Aircraft">
+            <div class="product-images-container">
+                <img src="css img/" alt="Casco Aircraft, vista frontal" class="product-image hover-view">
+                <img src="css img/Aircraft 2 Carbono.png" alt="Casco Aircraft, vista lateral" class="product-image main-view">
+            </div>
+            <h3>Casco Aircraft 2 Carbono</h3>
+            <p class="price">$000.000</p>
+            <div class="product-options">
+                <label for="talles-aircraft-2">Talle:</label>
+                <select id="talles-aircraft-2" class="size-selector" data-product="Aircraft2">
+                    <option value="S">S</option>
+                    <option value="M">M</option>
+                    <option value="L">L</option>
+                    <option value="XL">XL</option>
+                </select>
+            </div>
+            <button>Añadir al Carrito</button>
+        </div>
+
+        <!-- Casco Bell MX-9 Mips -->
+        <div class="product-card" data-brand="Bell">
+            <div class="product-images-container">
+                <img src="css img/" alt="Casco Bell, vista frontal" class="product-image hover-view">
+                <img src="css img/Bell MX-9 Mips.png" alt="Casco Bell, vista lateral" class="product-image main-view">
+            </div>
+            <h3>Casco Bell MX-9 Mips</h3>
+            <p class="price">$000.000</p>
+            <div class="product-options">
+                <label for="talles-bell-mx9">Talle:</label>
+                <select id="talles-bell-mx9" class="size-selector" data-product="BellMX9">
+                    <option value="S">S</option>
+                    <option value="M">M</option>
+                    <option value="L">L</option>
+                    <option value="XL">XL</option>
+                </select>
+            </div>
+            <button>Añadir al Carrito</button>
+        </div>
+
+        <!-- Casco FOX V1 Interfere -->
+        <div class="product-card" data-brand="Fox">
+            <div class="product-images-container">
+                <img src="css img/" alt="Casco Fox V1, vista frontal" class="product-image hover-view">
+                <img src="css img/Fox V1 Interfere.png" alt="Casco Fox V1, vista lateral" class="product-image main-view">
+            </div>
+            <h3>Casco FOX V1 Interfere</h3>
+            <p class="price">$000.000</p>
+            <div class="product-options">
+                <label for="talles-fox-v1-interfere">Talle:</label>
+                <select id="talles-fox-v1-interfere" class="size-selector" data-product="FoxV1Interfere">
+                    <option value="S">S</option>
+                    <option value="M">M</option>
+                    <option value="L">L</option>
+                    <option value="XL">XL</option>
+                </select>
+            </div>
+            <button>Añadir al Carrito</button>
+        </div>
+
+        <!-- Casco Troy Lee Design D4 -->
+        <div class="product-card" data-brand="TroyLee">
+            <div class="product-images-container">
+                <img src="css img/" alt="Casco Troy Lee, vista frontal" class="product-image hover-view">
+                <img src="css img/Troy Lee Design D4 lateral.png" alt="Casco Troy Lee, vista lateral" class="product-image main-view">
+            </div>
+            <h3>Casco Troy Lee Design D4</h3>
+            <p class="price">$000.000</p>
+            <div class="product-options">
+                <label for="talles-troy-d4">Talle:</label>
+                <select id="talles-troy-d4" class="size-selector" data-product="TroyD4">
+                    <option value="S">S</option>
+                    <option value="M">M</option>
+                    <option value="L">L</option>
+                    <option value="XL">XL</option>
+                </select>
+            </div>
+            <button>Añadir al Carrito</button>
+        </div>
+
+        <!-- Casco FOX V3 Moth LE Copper -->
+        <div class="product-card" data-brand="Fox">
+            <div class="product-images-container">
+                <img src="css img/" alt="Casco Fox V3, vista frontal" class="product-image hover-view">
+                <img src="css img/Fox V3 Moth LE Copper.png" alt="Casco Fox V3, vista lateral" class="product-image main-view">
+            </div>
+            <h3>Casco FOX V3 Moth LE Copper</h3>
+            <p class="price">$895.000</p>
+            <div class="product-options">
+                <label for="talles-fox-v3-moth">Talle:</label>
+                <select id="talles-fox-v3-moth" class="size-selector" data-product="FoxV3Moth">
+                    <option value="S">S</option>
+                    <option value="M">M</option>
+                    <option value="L">L</option>
+                    <option value="XL">XL</option>
+                </select>
+            </div>
+            <button>Añadir al Carrito</button>
+        </div>
+
+        <!-- Casco FOX V1 MATTE -->
+        <div class="product-card" data-brand="Fox">
+            <div class="product-images-container">
+                <img src="css img/" alt="Casco Fox V1, vista frontal" class="product-image hover-view">
+                <img src="css img/FOX V1 MATTE.png" alt="Casco Fox V1, vista lateral" class="product-image main-view">
+            </div>
+            <h3>Casco FOX V1 MATTE</h3>
+            <p class="price">$000.000</p>
+            <div class="product-options">
+                <label for="talles-fox-v1-matte">Talle:</label>
+                <select id="talles-fox-v1-matte" class="size-selector" data-product="FoxV1Matte">
+                    <option value="S">S</option>
+                    <option value="M">M</option>
+                    <option value="L">L</option>
+                    <option value="XL">XL</option>
+                </select>
+            </div>
+            <button>Añadir al Carrito</button>
+        </div>
+
+        <!-- Casco Alpinestars SM5 amarillo -->
+        <div class="product-card" data-brand="Alpinestars">
+            <div class="product-images-container">
+                <img src="css img/" alt="Casco Alpinestars, vista frontal" class="product-image hover-view">
+                <img src="css img/Alpinestars SM5 amarillo lateral.png" alt="Casco Alpinestars, vista lateral" class="product-image main-view">
+            </div>
+            <h3>Casco Alpinestars SM5</h3>
+            <p class="price">$000.000</p>
+            <div class="product-options">
+                <label for="talles-alpinestars-sm5-yellow">Talle:</label>
+                <select id="talles-alpinestars-sm5-yellow" class="size-selector" data-product="AlpinestarsSM5Yellow">
+                    <option value="S">S</option>
+                    <option value="M">M</option>
+                    <option value="L">L</option>
+                    <option value="XL">XL</option>
+                </select>
+            </div>
+            <button>Añadir al Carrito</button>
+        </div>
+
+    </section>
+
+    <!-- Sección Accesorios -->
+    <h2 class="section-title">Accesorios</h2>
+    <section id="accesorios" class="product-grid">
+        <div class="product-card">
+            <div class="product-images-container">
+                <img src="css img/" alt="Guantes de Motocross" class="product-image hover-view">
+                <img src="css img/Guantes FOX.png" alt="Guantes de Motocross" class="product-image main-view">
+            </div>
+            <h3>Guantes CROSS</h3>
+            <p class="price">$50.00</p>
+            <button>Añadir al Carrito</button>
+        </div>
+        <div class="product-card">
+            <div class="product-images-container">
+                <img src="css img/antiparras 2.png" alt="Antiparras de Motocross" class="product-image main-view">
+                <img src="img/" alt="Antiparras de Motocross" class="product-image hover-view">
+            </div>
+            <h3>Antiparras CROSS</h3>
+            <p class="price">$80.00</p>
+            <button>Añadir al Carrito</button>
+        </div>
+    </section>
+<section class="newsletter-signup">
+        <h2>Mantente al Día</h2>
+        <p>Suscríbete a nuestro boletín para recibir ofertas exclusivas.</p>
+        <form action="#" method="post">
+            <input type="email" placeholder="Tu correo electrónico" required>
+            <button type="submit">Suscribirme</button>
+        </form>
+    </section>
+
+</main>
+
+<section id="contacto">
   <h2>Contacto</h2>
   <p>Podés comunicarte con nosotros a través de los siguientes medios:</p>
   <div class="contact-options">
@@ -376,14 +383,13 @@
   </div>
 </section>
 
-
-    <footer class="main-footer">
-        <p>&copy; 2025 WHIP-HELMETS. Todos los derechos reservados.</p>
-        <ul class="footer-links">
-            <li><a href="html/politica-de-privacidad.html" target="_blank" rel="noopener noreferrer">Política de Privacidad </a></li>
-            <li><a href="html/terminos-y-condiciones.html" target="_blank" rel="noopener noreferrer">Términos y Condiciones</a></li>
-        </ul>
-    </footer>
+<footer class="main-footer">
+    <p>&copy; 2025 WHIP-HELMETS. Todos los derechos reservados.</p>
+    <ul class="footer-links">
+        <li><a href="html/politica-de-privacidad.html" target="_blank" rel="noopener noreferrer">Política de Privacidad</a></li>
+        <li><a href="html/terminos-y-condiciones.html" target="_blank" rel="noopener noreferrer">Términos y Condiciones</a></li>
+    </ul>
+</footer>
 
 </body>
 </html>

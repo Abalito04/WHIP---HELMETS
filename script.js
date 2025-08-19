@@ -8,9 +8,18 @@ document.addEventListener("DOMContentLoaded", () => {
   const cartClose = cartModal.querySelector(".close-cart");
   let cart = JSON.parse(localStorage.getItem("cart_v1")) || [];
 
+  // Mini Carrito variables
+  const miniCart = document.getElementById("mini-cart");
+  const miniCartCount = document.getElementById("mini-cart-count");
+  const miniCartDropdown = document.getElementById("mini-cart-dropdown");
+  const miniCartItems = document.getElementById("mini-cart-items");
+  const miniCartTotal = document.getElementById("mini-cart-total");
+  const miniCartClear = document.getElementById("mini-cart-clear");
+
   // ==================== FUNCIONES ====================
-   const updateCartCount = () => {
+  const updateCartCount = () => {
     cartCountEl.textContent = `🛒 Carrito (${cart.length})`;
+    miniCartCount.textContent = cart.length; // Actualizar el mini carrito
   };
 
   const formatPrice = (price) => {
@@ -62,7 +71,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const total = cart.reduce((sum, item) => sum + item.price, 0);
     cartTotalEl.textContent = `Total: ${formatPrice(total)}`;
 
-
     // Botón "Eliminar todo"
     const existingClearBtn = cartModal.querySelector(".clear-cart-btn");
     if (existingClearBtn) existingClearBtn.remove();
@@ -76,8 +84,41 @@ document.addEventListener("DOMContentLoaded", () => {
       localStorage.setItem("cart_v1", JSON.stringify(cart));
       updateCartCount();
       renderCartItems();
+      updateMiniCart();
     });
     cartItemsContainer.appendChild(clearBtn);
+  };
+
+  const updateMiniCart = () => {
+    // Actualizar el contador
+    miniCartCount.textContent = cart.length;
+    
+    // Actualizar el dropdown
+    miniCartItems.innerHTML = "";
+    if (!cart.length) {
+      miniCartItems.innerHTML = "<p style='text-align:center; padding:10px;'>Carrito vacío</p>";
+      miniCartTotal.textContent = "Total: $0";
+      return;
+    }
+    
+    let total = 0;
+    cart.forEach((item, index) => {
+      total += item.price;
+      
+      const itemEl = document.createElement("div");
+      itemEl.className = "mini-cart-item";
+      itemEl.innerHTML = `
+        <div class="mini-cart-item-details">
+          <div class="mini-cart-item-name">${item.productName}</div>
+          <div class="mini-cart-item-size">Talle: ${item.size}</div>
+          <div class="mini-cart-item-price">${formatPrice(item.price)}</div>
+        </div>
+        <button class="remove-item" data-index="${index}">X</button>
+      `;
+      miniCartItems.appendChild(itemEl);
+    });
+    
+    miniCartTotal.textContent = `Total: ${formatPrice(total)}`;
   };
 
   const showMiniNotification = msg => {
@@ -94,7 +135,7 @@ document.addEventListener("DOMContentLoaded", () => {
     setTimeout(() => { notif.style.opacity = "0"; setTimeout(() => notif.remove(), 300); }, 1500);
   };
 
-   const parsePrice = (priceString) => {
+  const parsePrice = (priceString) => {
     // Eliminar símbolo $ y puntos de separación de miles
     const cleanString = priceString.replace('$', '').replace(/\./g, '');
     // Convertir a número (reemplazar coma decimal por punto si es necesario)
@@ -107,6 +148,7 @@ document.addEventListener("DOMContentLoaded", () => {
     localStorage.setItem("cart_v1", JSON.stringify(cart));
     updateCartCount();
     renderCartItems();
+    updateMiniCart();
     showMiniNotification(`${productName} (${size}) agregado al carrito`);
   };
 
@@ -114,6 +156,7 @@ document.addEventListener("DOMContentLoaded", () => {
   cartCountEl.addEventListener("click", () => {
     renderCartItems();
     cartModal.style.display = "flex";
+    miniCartDropdown.classList.remove("active"); // Cerrar mini carrito si se abre el modal
   });
 
   cartClose.addEventListener("click", () => cartModal.style.display = "none");
@@ -121,6 +164,41 @@ document.addEventListener("DOMContentLoaded", () => {
     if (e.target === cartModal) cartModal.style.display = "none"; 
   });
 
+  // Eventos para el mini carrito
+  miniCart.addEventListener("click", (e) => {
+    e.stopPropagation();
+    miniCartDropdown.classList.toggle("active");
+  });
+
+  // Cerrar el mini carrito al hacer clic fuera
+  document.addEventListener("click", (e) => {
+    if (!miniCart.contains(e.target) && !miniCartDropdown.contains(e.target)) {
+      miniCartDropdown.classList.remove("active");
+    }
+  });
+
+  // Eliminar items desde el mini carrito
+  miniCartItems.addEventListener("click", e => {
+    if (e.target.classList.contains("remove-item")) {
+      const index = e.target.dataset.index;
+      cart.splice(index, 1);
+      localStorage.setItem("cart_v1", JSON.stringify(cart));
+      updateCartCount();
+      renderCartItems();
+      updateMiniCart();
+    }
+  });
+
+  // Vaciar carrito desde el mini carrito
+  miniCartClear.addEventListener("click", () => {
+    cart = [];
+    localStorage.setItem("cart_v1", JSON.stringify(cart));
+    updateCartCount();
+    renderCartItems();
+    updateMiniCart();
+  });
+
+  // Eliminar items desde el modal del carrito
   cartItemsContainer.addEventListener("click", e => {
     if (e.target.classList.contains("remove-item")) {
       const index = e.target.dataset.index;
@@ -128,6 +206,7 @@ document.addEventListener("DOMContentLoaded", () => {
       localStorage.setItem("cart_v1", JSON.stringify(cart));
       updateCartCount();
       renderCartItems();
+      updateMiniCart();
     }
   });
 
@@ -238,66 +317,65 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
+  // ==================== MODAL LOGIN ====================
+  const loginLink = document.querySelector(".login");
+
+  // Crear modal
+  const loginModal = document.createElement("div");
+  loginModal.id = "login-modal";
+  loginModal.style.display = "none"; // aseguramos que esté oculto
+  loginModal.innerHTML = `
+    <div class="login-content">
+      <span class="close-login">&times;</span>
+      <h2>Iniciar Sesión</h2>
+      <form id="login-form" style="width:100%; display:flex; flex-direction:column; gap:10px;">
+        <input type="text" placeholder="Usuario" required>
+        <input type="password" placeholder="Contraseña" required>
+        <button type="submit" id="login-submit">Entrar</button>
+        <button type="button" id="register-btn">Registrarse</button>
+      </form>
+    </div>
+  `;
+  document.body.appendChild(loginModal);
+
+  // Abrir modal solo al hacer click
+  if (loginLink) {
+    loginLink.addEventListener("click", e => {
+      e.preventDefault();
+      loginModal.style.display = "flex";
+    });
+  }
+
+  // Cerrar modal al hacer click en la X
+  const closeLogin = loginModal.querySelector(".close-login");
+  closeLogin.addEventListener("click", () => {
+    loginModal.style.display = "none";
+  });
+
+  // Cerrar modal al hacer click fuera del contenido
+  loginModal.addEventListener("click", e => {
+    if (e.target === loginModal) {
+      loginModal.style.display = "none";
+    }
+  });
+
+  // Evento login (solo simulación)
+  const loginForm = document.getElementById("login-form");
+  loginForm.addEventListener("submit", e => {
+    e.preventDefault();
+    alert("¡Login exitoso!");
+    loginModal.style.display = "none";
+  });
+
+  // Botón registrarse
+  const registerBtn = document.getElementById("register-btn");
+  registerBtn.addEventListener("click", () => {
+    alert("Redirigiendo al formulario de registro...");
+  });
+
   // ==================== INICIALIZAR ====================
   cartModal.style.display = "none";
   updateCartCount();
   renderCartItems();
-
-  // ==================== MODAL LOGIN ====================
-  // ==================== MODAL LOGIN ====================
-const loginLink = document.querySelector(".login");
-
-// Crear modal
-const loginModal = document.createElement("div");
-loginModal.id = "login-modal";
-loginModal.style.display = "none"; // aseguramos que esté oculto
-loginModal.innerHTML = `
-  <div class="login-content">
-    <span class="close-login">&times;</span>
-    <h2>Iniciar Sesión</h2>
-    <form id="login-form" style="width:100%; display:flex; flex-direction:column; gap:10px;">
-      <input type="text" placeholder="Usuario" required>
-      <input type="password" placeholder="Contraseña" required>
-      <button type="submit" id="login-submit">Entrar</button>
-      <button type="button" id="register-btn">Registrarse</button>
-    </form>
-  </div>
-`;
-document.body.appendChild(loginModal);
-
-// Abrir modal solo al hacer click
-if (loginLink) {
-  loginLink.addEventListener("click", e => {
-    e.preventDefault();
-    loginModal.style.display = "flex";
-  });
-}
-
-// Cerrar modal al hacer click en la X
-const closeLogin = loginModal.querySelector(".close-login");
-closeLogin.addEventListener("click", () => {
-  loginModal.style.display = "none";
-});
-
-// Cerrar modal al hacer click fuera del contenido
-loginModal.addEventListener("click", e => {
-  if (e.target === loginModal) {
-    loginModal.style.display = "none";
-  }
-});
-
-// Evento login (solo simulación)
-const loginForm = document.getElementById("login-form");
-loginForm.addEventListener("submit", e => {
-  e.preventDefault();
-  alert("¡Login exitoso!");
-  loginModal.style.display = "none";
-});
-
-// Botón registrarse
-const registerBtn = document.getElementById("register-btn");
-registerBtn.addEventListener("click", () => {
-  alert("Redirigiendo al formulario de registro...");
-});
-
+  updateMiniCart(); // Inicializar el mini carrito
 });

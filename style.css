@@ -594,3 +594,92 @@ footer.legal-footer a:hover {
   box-shadow: 0 4px 10px rgba(0,0,0,0.25);
 }
 
+/* ======================= */
+/*    RESPONSIVE MOBILE     */
+/* ======================= */
+@media (max-width: 768px) {
+
+  /* HEADER */
+  .main-header {
+    flex-direction: column;
+    align-items: center;
+    padding: 1em;
+  }
+  .header-left, .header-center, .header-right {
+    flex-basis: 100%;
+    text-align: center;
+    margin-bottom: 10px;
+  }
+  .main-nav ul {
+    flex-direction: column;
+    gap: 10px;
+  }
+  .main-nav li {
+    margin: 5px 0;
+  }
+  .user-actions a {
+    margin: 5px 10px;
+  }
+
+  /* HERO BANNER */
+  .hero-banner {
+    padding: 3em 1em;
+  }
+  .hero-banner h2 {
+    font-size: 2em;
+  }
+  .hero-banner .cta-button {
+    padding: 0.8em 1.5em;
+    font-size: 0.9em;
+  }
+
+  /* PRODUCT GRID */
+  .product-grid {
+    grid-template-columns: 1fr; /* 1 columna en móvil */
+    gap: 15px;
+    padding: 10px;
+  }
+  .product-card {
+    padding: 10px;
+  }
+  .product-card h3 {
+    font-size: 1.3em;
+  }
+  .product-card .price {
+    font-size: 1.1em;
+  }
+  .product-card button {
+    font-size: 0.9em;
+    padding: 0.6em 1em;
+  }
+
+  /* NEWSLETTER */
+  .newsletter-signup input {
+    width: 80%;
+    max-width: none;
+  }
+
+  /* CONTACTO */
+  .contact-options {
+    flex-direction: column;
+    gap: 15px;
+  }
+  .contact-form input, .contact-form textarea {
+    width: 100%;
+  }
+
+  /* MODALES */
+  .cart-content, .login-content, #modal-content {
+    width: 95%;
+    max-width: 400px;
+    padding: 15px;
+  }
+  #product-modal #modal-main-image {
+    max-height: 250px;
+  }
+  #product-modal #modal-thumbnails img {
+    width: 60px;
+    height: 60px;
+  }
+
+}

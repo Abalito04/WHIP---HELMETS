@@ -605,20 +605,36 @@ footer.legal-footer a:hover {
     align-items: center;
     padding: 1em;
   }
+  
   .header-left, .header-center, .header-right {
-    flex-basis: 100%;
-    text-align: center;
-    margin-bottom: 10px;
+      flex-basis: auto;   /* quitar 100% */
+      width: 100%;
+      text-align: center;
+      margin: 5px 0;
   }
   .main-nav ul {
-    flex-direction: column;
-    gap: 10px;
+      flex-direction: column;  /* menú vertical */
+      align-items: center;     /* centrar los links */
+      gap: 8px;
   }
+
   .main-nav li {
-    margin: 5px 0;
+      margin: 5px 0;
   }
-  .user-actions a {
-    margin: 5px 10px;
+
+  .user-actions {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 5px;
+  }
+  .logo h1 {
+      font-size: 2em;
+  }
+
+  .logo-img {
+      height: 100px;
+      margin: 0 auto;
   }
 
   /* HERO BANNER */

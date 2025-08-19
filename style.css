@@ -569,3 +569,28 @@ footer.legal-footer a:hover {
     color: #fa00008f;
 }
 
+/* Imagen principal del modal */
+#product-modal #modal-main-image {
+  background-color: #3b3b3b;   /* gris claro detrás del PNG */
+  border-radius: 12px;
+  padding: 10px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+/* Miniaturas */
+#product-modal #modal-thumbnails img {
+  background-color: #3b3b3b;
+  border-radius: 8px;
+  padding: 6px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+  cursor: pointer;
+}
+
+/* Hover miniaturas */
+#product-modal #modal-thumbnails img:hover {
+  transform: scale(1.05);
+  background-color: #3b3b3b;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.25);
+}
+

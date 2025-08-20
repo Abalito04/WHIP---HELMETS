@@ -372,10 +372,97 @@ document.addEventListener("DOMContentLoaded", () => {
   registerBtn.addEventListener("click", () => {
     alert("Redirigiendo al formulario de registro...");
   });
+// Agregar al final del archivo script.js
+
+// ==================== SISTEMA DE ACCESO AL ADMIN ====================
+function setupAdminAccess() {
+    // Verificar si ya está logueado
+    if (localStorage.getItem('admin_logged_in') === 'true') {
+        // Si ya está logueado, redirigir al admin
+        window.location.href = '../backend/admin.html';
+        return;
+    }
+    
+    // Crear modal de acceso admin
+    const adminAccessModal = document.createElement('div');
+    adminAccessModal.id = 'admin-access-modal';
+    adminAccessModal.style.cssText = `
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0,0,0,0.7);
+        justify-content: center;
+        align-items: center;
+        z-index: 2000;
+    `;
+    
+    adminAccessModal.innerHTML = `
+        <div style="background: #222; padding: 20px; border-radius: 10px; width: 300px; text-align: center;">
+            <h2 style="color: #f0ad4e; margin-top: 0;">Acceso Administrador</h2>
+            <input type="password" id="admin-password" placeholder="Contraseña de administrador" 
+                   style="width: 100%; padding: 10px; margin: 10px 0; border-radius: 5px; border: none;">
+            <div style="display: flex; justify-content: space-between;">
+                <button id="admin-login-btn" style="background: #f0ad4e; color: #000; border: none; padding: 10px 20px; 
+                        border-radius: 5px; cursor: pointer;">Acceder</button>
+                <button id="admin-cancel-btn" style="background: #666; color: #fff; border: none; padding: 10px 20px; 
+                        border-radius: 5px; cursor: pointer;">Cancelar</button>
+            </div>
+            <p id="admin-login-message" style="color: #ff4444; margin: 10px 0 0; font-size: 14px;"></p>
+        </div>
+    `;
+    
+    document.body.appendChild(adminAccessModal);
+    
+    // Mostrar modal al hacer clic en el logo 5 veces
+    let clickCount = 0;
+    let clickTimeout;
+    
+    document.querySelector('.logo').addEventListener('click', function() {
+        clearTimeout(clickTimeout);
+        clickCount++;
+        
+        if (clickCount === 5) {
+            adminAccessModal.style.display = 'flex';
+            clickCount = 0;
+        }
+        
+        clickTimeout = setTimeout(() => {
+            clickCount = 0;
+        }, 2000);
+    });
+    
+    // Eventos para los botones del modal
+    document.getElementById('admin-login-btn').addEventListener('click', function() {
+        const password = document.getElementById('admin-password').value;
+        
+        // Verificar contraseña (en producción esto debería ser más seguro)
+        if (password === 'admin123') {
+            localStorage.setItem('admin_logged_in', 'true');
+            window.location.href = '../backend/admin.html';
+        } else {
+            document.getElementById('admin-login-message').textContent = 'Contraseña incorrecta';
+        }
+    });
+    
+    document.getElementById('admin-cancel-btn').addEventListener('click', function() {
+        adminAccessModal.style.display = 'none';
+        document.getElementById('admin-password').value = '';
+        document.getElementById('admin-login-message').textContent = '';
+    });
+}
+
+// Inicializar el sistema de acceso al admin
+document.addEventListener('DOMContentLoaded', function() {
+    // Tu código existente aquí...
 
   // ==================== INICIALIZAR ====================
   cartModal.style.display = "none";
   updateCartCount();
   renderCartItems();
   updateMiniCart(); // Inicializar el mini carrito
+  setupAdminAccess();
+});
 });

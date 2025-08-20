@@ -1,350 +1,267 @@
-// Datos de ejemplo - En una aplicación real, estos datos vendrían de una base de datos
-const productsData = [
-    {
-        id: 1,
-        name: "Casco FOX V3",
-        brand: "fox",
-        price: 895000,
-        category: "cascos",
-        sizes: ["S", "M", "L", "XL"],
-        image: "css img/Fox V3 Frontal.png",
-        status: "active"
-    },
-    {
-        id: 2,
-        name: "Casco FOX V3 RS",
-        brand: "fox",
-        price: 925000,
-        category: "cascos",
-        sizes: ["S", "M", "L", "XL"],
-        image: "css img/Fox V3 RS MC frontal.png",
-        status: "active"
-    },
-    {
-        id: 3,
-        name: "Casco FOX V1",
-        brand: "fox",
-        price: 495000,
-        category: "cascos",
-        sizes: ["S", "M", "L", "XL"],
-        image: "css img/Fox V1 frontal.png",
-        status: "active"
-    },
-    {
-        id: 4,
-        name: "Casco FLY Racing F2",
-        brand: "fly",
-        price: 455000,
-        category: "cascos",
-        sizes: ["S", "M", "L", "XL"],
-        image: "css img/Fly Racing F2 frontal.png",
-        status: "active"
-    },
-    {
-        id: 5,
-        name: "Casco Bell Moto-9 Flex",
-        brand: "bell",
-        price: 750000,
-        category: "cascos",
-        sizes: ["S", "M", "L", "XL"],
-        image: "css img/Bell Moto-9 Flex frontal.png",
-        status: "active"
-    },
-    {
-        id: 6,
-        name: "Casco Alpinestars SM5",
-        brand: "alpinestars",
-        price: 650000,
-        category: "cascos",
-        sizes: ["S", "M", "L", "XL"],
-        image: "css img/Alpinestars SM5 frontal.png",
-        status: "active"
-    },
-    {
-        id: 7,
-        name: "Casco Aircraft 2 Carbono",
-        brand: "aircraft",
-        price: 820000,
-        category: "cascos",
-        sizes: ["S", "M", "L", "XL"],
-        image: "css img/Aircraft 2 Carbono.png",
-        status: "active"
-    },
-    {
-        id: 8,
-        name: "Casco Troy Lee Design D4",
-        brand: "troylee",
-        price: 780000,
-        category: "cascos",
-        sizes: ["S", "M", "L", "XL"],
-        image: "css img/Troy Lee Design D4 lateral.png",
-        status: "active"
-    },
-    {
-        id: 9,
-        name: "Guantes CROSS",
-        brand: "fox",
-        price: 50000,
-        category: "accesorios",
-        sizes: ["S", "M", "L", "XL"],
-        image: "css img/Guantes FOX.png",
-        status: "active"
-    },
-    {
-        id: 10,
-        name: "Antiparras CROSS",
-        brand: "fox",
-        price: 80000,
-        category: "accesorios",
-        sizes: ["Único"],
-        image: "css img/antiparras 2.png",
-        status: "active"
-    }
-];
+// ==================== CONFIG ====================
+const API_BASE = "http://127.0.0.1:5000";
 
-// Variables globales
+// ==================== VARIABLES GLOBALES ====================
+let productsData = [];
+let filteredProducts = [];
 let currentPage = 1;
 const productsPerPage = 5;
-let filteredProducts = [...productsData];
 
-// Elementos del DOM
-const productsBody = document.getElementById('products-body');
-const paginationElement = document.getElementById('pagination');
-const notificationElement = document.getElementById('notification');
+// ==================== ELEMENTOS DEL DOM ====================
+const productsBody = document.getElementById("products-body");
+const paginationElement = document.getElementById("pagination");
+const notificationElement = document.getElementById("notification");
 
-// Inicializar la aplicación
-function init() {
-    renderProducts();
-    setupEventListeners();
-}
-
-// Renderizar productos en la tabla
-function renderProducts() {
-    productsBody.innerHTML = '';
+// ==================== API CALLS ====================
+async function fetchProducts() {
+  try {
+    console.log("Intentando conectar con la API...");
+    const res = await fetch(`${API_BASE}/api/products`);
     
-    const startIndex = (currentPage - 1) * productsPerPage;
-    const endIndex = startIndex + productsPerPage;
-    const productsToRender = filteredProducts.slice(startIndex, endIndex);
-    
-    if (productsToRender.length === 0) {
-        productsBody.innerHTML = '<tr><td colspan="8" style="text-align: center;">No se encontraron productos</td></tr>';
-        return;
+    if (!res.ok) {
+      throw new Error(`Error HTTP: ${res.status} ${res.statusText}`);
     }
     
-    productsToRender.forEach(product => {
-        const row = document.createElement('tr');
-        
-        row.innerHTML = `
-            <td class="product-image-cell">
-                <img src="${product.image}" alt="${product.name}" class="product-image" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjYwIiBoZWlnaHQ9IjYwIiBmaWxsPSIjRUVFRUVFIi8+CjxwYXRoIGQ9Ik0zMCAzNUwzNSA0MEg0MFYzNUgzNVYzMEgzNVYyNUgzMFYzMFIMjVWMzVIMzBWMzVaIiBmaWxsPSIjOTk5OTk5Ii8+Cjwvc3ZnPgo='">
-            </td>
-            <td>
-                <input type="text" value="${product.name}" data-field="name" data-id="${product.id}">
-            </td>
-            <td>
-                <select data-field="brand" data-id="${product.id}">
-                    <option value="fox" ${product.brand === 'fox' ? 'selected' : ''}>Fox</option>
-                    <option value="bell" ${product.brand === 'bell' ? 'selected' : ''}>Bell</option>
-                    <option value="fly" ${product.brand === 'fly' ? 'selected' : ''}>Fly Racing</option>
-                    <option value="alpinestars" ${product.brand === 'alpinestars' ? 'selected' : ''}>Alpinestars</option>
-                    <option value="aircraft" ${product.brand === 'aircraft' ? 'selected' : ''}>Aircraft</option>
-                    <option value="troylee" ${product.brand === 'troylee' ? 'selected' : ''}>Troy Lee Design</option>
-                </select>
-            </td>
-            <td>
-                <input type="number" value="${product.price}" data-field="price" data-id="${product.id}">
-            </td>
-            <td>
-                <select data-field="category" data-id="${product.id}">
-                    <option value="cascos" ${product.category === 'cascos' ? 'selected' : ''}>Cascos</option>
-                    <option value="accesorios" ${product.category === 'accesorios' ? 'selected' : ''}>Accesorios</option>
-                </select>
-            </td>
-            <td>
-                <select multiple data-field="sizes" data-id="${product.id}" style="height: 80px;">
-                    <option value="S" ${product.sizes.includes('S') ? 'selected' : ''}>S</option>
-                    <option value="M" ${product.sizes.includes('M') ? 'selected' : ''}>M</option>
-                    <option value="L" ${product.sizes.includes('L') ? 'selected' : ''}>L</option>
-                    <option value="XL" ${product.sizes.includes('XL') ? 'selected' : ''}>XL</option>
-                    <option value="Único" ${product.sizes.includes('Único') ? 'selected' : ''}>Único</option>
-                </select>
-            </td>
-            <td>
-                <select data-field="status" data-id="${product.id}">
-                    <option value="active" ${product.status === 'active' ? 'selected' : ''}>Activo</option>
-                    <option value="inactive" ${product.status === 'inactive' ? 'selected' : ''}>Inactivo</option>
-                </select>
-            </td>
-            <td>
-                <div class="action-buttons">
-                    <button class="action-btn save-btn" data-id="${product.id}">💾</button>
-                    <button class="action-btn cancel-btn" data-id="${product.id}">❌</button>
-                </div>
-            </td>
-        `;
-        
-        productsBody.appendChild(row);
-    });
+    const data = await res.json();
+    console.log("Datos recibidos:", data);
     
-    renderPagination();
-}
-
-// Renderizar controles de paginación
-function renderPagination() {
-    const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
-    
-    paginationElement.innerHTML = '';
-    
-    if (totalPages <= 1) return;
-    
-    // Botón Anterior
-    const prevButton = document.createElement('button');
-    prevButton.className = 'page-btn';
-    prevButton.textContent = '←';
-    prevButton.disabled = currentPage === 1;
-    prevButton.addEventListener('click', () => {
-        if (currentPage > 1) {
-            currentPage--;
-            renderProducts();
-        }
-    });
-    paginationElement.appendChild(prevButton);
-    
-    // Números de página
-    for (let i = 1; i <= totalPages; i++) {
-        const pageButton = document.createElement('button');
-        pageButton.className = `page-btn ${i === currentPage ? 'active' : ''}`;
-        pageButton.textContent = i;
-        pageButton.addEventListener('click', () => {
-            currentPage = i;
-            renderProducts();
-        });
-        paginationElement.appendChild(pageButton);
-    }
-    
-    // Botón Siguiente
-    const nextButton = document.createElement('button');
-    nextButton.className = 'page-btn';
-    nextButton.textContent = '→';
-    nextButton.disabled = currentPage === totalPages;
-    nextButton.addEventListener('click', () => {
-        if (currentPage < totalPages) {
-            currentPage++;
-            renderProducts();
-        }
-    });
-    paginationElement.appendChild(nextButton);
-}
-
-// Configurar event listeners
-function setupEventListeners() {
-    // Filtros
-    document.getElementById('apply-filters').addEventListener('click', applyFilters);
-    document.getElementById('reset-filters').addEventListener('click', resetFilters);
-    
-    // Guardar todos los cambios
-    document.getElementById('save-all').addEventListener('click', saveAllChanges);
-    
-    // Exportar datos
-    document.getElementById('export-data').addEventListener('click', exportData);
-    
-    // Cerrar sesión
-    document.getElementById('logout').addEventListener('click', () => {
-        alert('Función de cerrar sesión implementada en sistema real');
-    });
-    
-    // Rango de precios
-    const priceRange = document.getElementById('price-range');
-    const priceOutput = document.getElementById('price-output');
-    
-    priceRange.addEventListener('input', () => {
-        if (priceRange.value === priceRange.max) {
-            priceOutput.textContent = 'Todos los precios';
-        } else {
-            priceOutput.textContent = `Hasta $${parseInt(priceRange.value).toLocaleString()}`;
-        }
-    });
-}
-
-// Aplicar filtros
-function applyFilters() {
-    const searchTerm = document.getElementById('search').value.toLowerCase();
-    const categoryFilter = document.getElementById('category').value;
-    const brandFilter = document.getElementById('brand').value;
-    const priceFilter = document.getElementById('price-range').value;
-    
-    filteredProducts = productsData.filter(product => {
-        // Filtro de búsqueda
-        if (searchTerm && !product.name.toLowerCase().includes(searchTerm)) {
-            return false;
-        }
-        
-        // Filtro de categoría
-        if (categoryFilter !== 'all' && product.category !== categoryFilter) {
-            return false;
-        }
-        
-        // Filtro de marca
-        if (brandFilter !== 'all' && product.brand !== brandFilter) {
-            return false;
-        }
-        
-        // Filtro de precio
-        if (priceFilter < productsData.reduce((max, p) => Math.max(max, p.price), 0) && 
-            product.price > parseInt(priceFilter)) {
-            return false;
-        }
-        
-        return true;
-    });
-    
-    currentPage = 1;
-    renderProducts();
-}
-
-// Restablecer filtros
-function resetFilters() {
-    document.getElementById('search').value = '';
-    document.getElementById('category').value = 'all';
-    document.getElementById('brand').value = 'all';
-    document.getElementById('price-range').value = document.getElementById('price-range').max;
-    document.getElementById('price-output').textContent = 'Todos los precios';
-    
+    productsData = data;
     filteredProducts = [...productsData];
-    currentPage = 1;
     renderProducts();
+  } catch (err) {
+    console.error("Error al cargar productos:", err);
+    showNotification(`Error al cargar productos: ${err.message}`, "error");
+    
+    // Mostrar datos de ejemplo si la API no está disponible
+    productsBody.innerHTML = `
+      <tr>
+        <td colspan="8" style="text-align: center; color: red;">
+          Error al conectar con el servidor. Verifica que el servidor esté ejecutándose en ${API_BASE}
+          <br><br>
+          <button onclick="location.reload()" style="padding: 5px 10px;">Reintentar</button>
+        </td>
+      </tr>
+    `;
+  }
 }
 
-// Guardar todos los cambios
-function saveAllChanges() {
-    // En una aplicación real, aquí se enviarían los cambios al servidor
-    showNotification('Todos los cambios han sido guardados correctamente', 'success');
+async function updateProduct(id, updates) {
+  try {
+    const res = await fetch(`${API_BASE}/api/products/${id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(updates),
+    });
+    if (!res.ok) throw new Error("Error al actualizar");
+    showNotification("Producto actualizado", "success");
+    fetchProducts();
+  } catch (err) {
+    showNotification("Error al actualizar producto", "error");
+  }
 }
 
-// Exportar datos
-function exportData() {
-    const dataStr = JSON.stringify(productsData, null, 2);
-    const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
-    
-    const exportFileDefaultName = 'whip-helmets-products.json';
-    
-    const linkElement = document.createElement('a');
-    linkElement.setAttribute('href', dataUri);
-    linkElement.setAttribute('download', exportFileDefaultName);
-    linkElement.click();
-    
-    showNotification('Datos exportados correctamente', 'success');
+async function deleteProduct(id) {
+  try {
+    const res = await fetch(`${API_BASE}/api/products/${id}`, {
+      method: "DELETE",
+    });
+    if (!res.ok) throw new Error("Error al eliminar");
+    showNotification("Producto eliminado", "success");
+    fetchProducts();
+  } catch (err) {
+    showNotification("Error al eliminar producto", "error");
+  }
 }
 
-// Mostrar notificación
-function showNotification(message, type) {
-    notificationElement.textContent = message;
-    notificationElement.className = `notification ${type}`;
-    
-    setTimeout(() => {
-        notificationElement.className = 'notification';
-    }, 3000);
+async function createProduct(product) {
+  try {
+    const res = await fetch(`${API_BASE}/api/products`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(product),
+    });
+    if (!res.ok) throw new Error("Error al crear");
+    showNotification("Producto creado", "success");
+    fetchProducts();
+  } catch (err) {
+    showNotification("Error al crear producto", "error");
+  }
 }
 
-// Inicializar la aplicación cuando el DOM esté listo
-document.addEventListener('DOMContentLoaded', init);
+// ==================== RENDER ====================
+function renderProducts() {
+  productsBody.innerHTML = "";
+
+  const startIndex = (currentPage - 1) * productsPerPage;
+  const endIndex = startIndex + productsPerPage;
+  const productsToRender = filteredProducts.slice(startIndex, endIndex);
+
+  if (productsToRender.length === 0) {
+    productsBody.innerHTML =
+      '<tr><td colspan="8" style="text-align: center;">No se encontraron productos</td></tr>';
+    return;
+  }
+
+  productsToRender.forEach((product) => {
+    const row = document.createElement("tr");
+
+    row.innerHTML = `
+      <td class="product-image-cell">
+        <img src="${product.image}" alt="${product.name}" class="product-image"
+          onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIGZpbGw9IiNFRUVFRUUiLz48cGF0aCBkPSJNMTUgMzBINjBWNDBIMzVWMzBIMjVWMTVIMjBWMzBIMTVaIiBmaWxsPSIjOTk5Ii8+PC9zdmc+'">
+      </td>
+      <td><input type="text" value="${product.name}" data-field="name" data-id="${product.id}"></td>
+      <td><input type="text" value="${product.brand}" data-field="brand" data-id="${product.id}"></td>
+      <td><input type="number" value="${product.price}" data-field="price" data-id="${product.id}"></td>
+      <td><input type="text" value="${product.category}" data-field="category" data-id="${product.id}"></td>
+      <td><input type="text" value="${product.sizes ? product.sizes.join(",") : ""}" data-field="sizes" data-id="${product.id}"></td>
+      <td>
+        <select data-field="status" data-id="${product.id}">
+          <option value="Activo" ${product.status === "Activo" ? "selected" : ""}>Activo</option>
+          <option value="Inactivo" ${product.status === "Inactivo" ? "selected" : ""}>Inactivo</option>
+        </select>
+      </td>
+      <td>
+        <div class="action-buttons">
+          <button class="action-btn save-btn" data-id="${product.id}">💾</button>
+          <button class="action-btn delete-btn" data-id="${product.id}">🗑</button>
+        </div>
+      </td>
+    `;
+
+    productsBody.appendChild(row);
+  });
+
+  renderPagination();
+}
+
+function renderPagination() {
+  const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
+  paginationElement.innerHTML = "";
+
+  if (totalPages <= 1) return;
+
+  for (let i = 1; i <= totalPages; i++) {
+    const pageButton = document.createElement("button");
+    pageButton.className = `page-btn ${i === currentPage ? "active" : ""}`;
+    pageButton.textContent = i;
+    pageButton.addEventListener("click", () => {
+      currentPage = i;
+      renderProducts();
+    });
+    paginationElement.appendChild(pageButton);
+  }
+}
+
+// ==================== FILTROS ====================
+function applyFilters() {
+  const searchTerm = document.getElementById("search").value.toLowerCase();
+  const categoryFilter = document.getElementById("category").value.toLowerCase();
+  const brandFilter = document.getElementById("brand").value.toLowerCase();
+  const priceFilter = parseInt(document.getElementById("price-range").value);
+
+  filteredProducts = productsData.filter((product) => {
+    if (searchTerm && !product.name.toLowerCase().includes(searchTerm)) return false;
+    if (categoryFilter !== "all" && product.category.toLowerCase() !== categoryFilter) return false;
+    if (brandFilter !== "all" && product.brand.toLowerCase() !== brandFilter) return false;
+    if (priceFilter && product.price > priceFilter) return false;
+    return true;
+  });
+
+  currentPage = 1;
+  renderProducts();
+}
+
+function resetFilters() {
+  document.getElementById("search").value = "";
+  document.getElementById("category").value = "all";
+  document.getElementById("brand").value = "all";
+  document.getElementById("price-range").value = document.getElementById("price-range").max;
+  filteredProducts = [...productsData];
+  currentPage = 1;
+  renderProducts();
+}
+
+// ==================== EVENTOS ====================
+function setupEventListeners() {
+  document.getElementById("apply-filters").addEventListener("click", applyFilters);
+  document.getElementById("reset-filters").addEventListener("click", resetFilters);
+
+  // Guardar cambios individuales
+  productsBody.addEventListener("click", (e) => {
+    if (e.target.classList.contains("save-btn")) {
+      const id = e.target.dataset.id;
+      const rowInputs = document.querySelectorAll(`[data-id="${id}"]`);
+      const updates = {};
+      rowInputs.forEach((input) => {
+        if (input.dataset.field === "sizes") {
+          updates["sizes"] = input.value.split(",").map((s) => s.trim());
+        } else {
+          updates[input.dataset.field] = input.value;
+        }
+      });
+      updateProduct(id, updates);
+    }
+
+    if (e.target.classList.contains("delete-btn")) {
+      const id = e.target.dataset.id;
+      if (confirm("¿Seguro que deseas eliminar este producto?")) {
+        deleteProduct(id);
+      }
+    }
+  });
+
+  // Rango de precios
+  const priceRange = document.getElementById("price-range");
+  const priceOutput = document.getElementById("price-output");
+  priceRange.addEventListener("input", () => {
+    if (priceRange.value === priceRange.max) {
+      priceOutput.textContent = "Todos los precios";
+    } else {
+      priceOutput.textContent = `Hasta $${parseInt(priceRange.value).toLocaleString()}`;
+    }
+  });
+}
+
+// ==================== NOTIFICACIONES ====================
+function showNotification(message, type = "success") {
+  notificationElement.textContent = message;
+  notificationElement.className = `notification ${type}`;
+  setTimeout(() => {
+    notificationElement.className = "notification";
+    notificationElement.textContent = "";
+  }, 2500);
+}
+
+// ==================== INIT ====================
+function init() {
+  console.log("Inicializando panel de administración...");
+  
+  // Verificar conectividad antes de cargar productos
+  checkConnectivity().then(isConnected => {
+    if (isConnected) {
+      fetchProducts();
+      setupEventListeners();
+    } else {
+      showNotification("No se puede conectar al servidor. Verifica que esté ejecutándose.", "error");
+    }
+  });
+}
+
+// Función para verificar conectividad
+async function checkConnectivity() {
+  try {
+    const response = await fetch(`${API_BASE}/api/health`, { 
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+      },
+    });
+    return response.ok;
+  } catch (error) {
+    console.error("Error de conectividad:", error);
+    return false;
+  }
+}
+
+document.addEventListener("DOMContentLoaded", init);

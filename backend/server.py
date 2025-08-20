@@ -27,6 +27,7 @@ def init_db():
                 price REAL NOT NULL DEFAULT 0,
                 category TEXT,
                 sizes TEXT,           -- CSV ej: "S,M,L,XL"
+                stock INTEGER DEFAULT 0,  -- Nuevo campo: cantidad en stock
                 image TEXT,           -- URL o ruta de imagen
                 status TEXT           -- ej: "Activo", "Agotado", "Oculto"
             );
@@ -40,28 +41,28 @@ def init_db():
         
         if count == 0:
             sample_products = [
-                ("Casco FOX V3", "Fox", 895000, "Cascos", "S,M,L,XL", "css img/Fox V3 lateral.png", "Activo"),
-                ("Casco FOX V3 RS", "Fox", 950000, "Cascos", "S,M,L,XL", "css img/Fox V3 RS MC lateral.png", "Activo"),
-                ("Casco FOX V1", "Fox", 500000, "Cascos", "S,M,L,XL", "css img/Fox V1 lateral.png", "Activo"),
-                ("Casco FLY Racing F2", "Fly Racing", 450000, "Cascos", "S,M,L,XL", "css img/Fly Racing F2 lateral.png", "Activo"),
-                ("Casco Bell Moto-9 Flex", "Bell", 650000, "Cascos", "M,L", "css img/Bell Moto-9 Flex lateral.png", "Activo"),
-                ("Casco Bell Moto-9 Flex 2", "Bell", 700000, "Cascos", "S,M,L,XL", "css img/Bell Moto-9 Flex 2.png", "Activo"),
-                ("Casco Alpinestars SM5", "Alpinestars", 550000, "Cascos", "S,M,L,XL", "css img/Alpinestars SM5 lateral.png", "Activo"),
-                ("Casco Aircraft 2 Carbono", "Aircraft", 1200000, "Cascos", "S,M,L", "css img/Aircraft 2 Carbono.png", "Activo"),
-                ("Casco Bell MX-9 Mips", "Bell", 480000, "Cascos", "S,M,L,XL", "css img/Bell MX-9 Mips.png", "Activo"),
-                ("Casco FOX V1 Interfere", "Fox", 520000, "Cascos", "S,M,L,XL", "css img/Fox V1 Interfere.png", "Activo"),
-                ("Casco Troy Lee Design D4", "Troy Lee Design", 850000, "Cascos", "S,M,L", "css img/Troy Lee Design D4 lateral.png", "Activo"),
-                ("Casco FOX V3 Moth LE Copper", "Fox", 1000000, "Cascos", "S,M,L,XL", "css img/Fox V3 Moth LE Copper.png", "Activo"),
-                ("Casco FOX V1 MATTE", "Fox", 530000, "Cascos", "S,M,L,XL", "css img/FOX V1 MATTE.png", "Activo"),
-                ("Casco Alpinestars SM5 amarillo", "Alpinestars", 560000, "Cascos", "S,M,L", "css img/Alpinestars SM5 amarillo lateral.png", "Activo"),
-                ("Guantes CROSS", "Fox", 50000, "Accesorios", "S,M,L", "css img/Guantes FOX.png", "Activo"),
-                ("Antiparras CROSS", "Fox", 80000, "Accesorios", "Único", "css img/antiparras 2.png", "Activo")
+                ("Casco FOX V3", "Fox", 895000, "Cascos", "S,M,L,XL", 15, "css img/Fox V3 lateral.png", "Activo"),
+                ("Casco FOX V3 RS", "Fox", 950000, "Cascos", "S,M,L,XL", 8, "css img/Fox V3 RS MC lateral.png", "Activo"),
+                ("Casco FOX V1", "Fox", 500000, "Cascos", "S,M,L,XL", 22, "css img/Fox V1 lateral.png", "Activo"),
+                ("Casco FLY Racing F2", "Fly Racing", 450000, "Cascos", "S,M,L,XL", 12, "css img/Fly Racing F2 lateral.png", "Activo"),
+                ("Casco Bell Moto-9 Flex", "Bell", 650000, "Cascos", "M,L", 5, "css img/Bell Moto-9 Flex lateral.png", "Activo"),
+                ("Casco Bell Moto-9 Flex 2", "Bell", 700000, "Cascos", "S,M,L,XL", 7, "css img/Bell Moto-9 Flex 2.png", "Activo"),
+                ("Casco Alpinestars SM5", "Alpinestars", 550000, "Cascos", "S,M,L,XL", 18, "css img/Alpinestars SM5 lateral.png", "Activo"),
+                ("Casco Aircraft 2 Carbono", "Aircraft", 1200000, "Cascos", "S,M,L", 3, "css img/Aircraft 2 Carbono.png", "Activo"),
+                ("Casco Bell MX-9 Mips", "Bell", 480000, "Cascos", "S,M,L,XL", 10, "css img/Bell MX-9 Mips.png", "Activo"),
+                ("Casco FOX V1 Interfere", "Fox", 520000, "Cascos", "S,M,L,XL", 14, "css img/Fox V1 Interfere.png", "Activo"),
+                ("Casco Troy Lee Design D4", "Troy Lee Design", 850000, "Cascos", "S,M,L", 6, "css img/Troy Lee Design D4 lateral.png", "Activo"),
+                ("Casco FOX V3 Moth LE Copper", "Fox", 1000000, "Cascos", "S,M,L,XL", 2, "css img/Fox V3 Moth LE Copper.png", "Activo"),
+                ("Casco FOX V1 MATTE", "Fox", 530000, "Cascos", "S,M,L,XL", 9, "css img/FOX V1 MATTE.png", "Activo"),
+                ("Casco Alpinestars SM5 amarillo", "Alpinestars", 560000, "Cascos", "S,M,L", 11, "css img/Alpinestars SM5 amarillo lateral.png", "Activo"),
+                ("Guantes CROSS", "Fox", 50000, "Accesorios", "S,M,L", 25, "css img/Guantes FOX.png", "Activo"),
+                ("Antiparras CROSS", "Fox", 80000, "Accesorios", "Único", 30, "css img/antiparras 2.png", "Activo")
             ]
             
             conn.executemany(
                 """
-                INSERT INTO productos (name, brand, price, category, sizes, image, status)
-                VALUES (?, ?, ?, ?, ?, ?, ?)
+                INSERT INTO productos (name, brand, price, category, sizes, stock, image, status)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 sample_products
             )
@@ -79,6 +80,11 @@ def row_to_dict(row: sqlite3.Row):
         d["price"] = float(d["price"])
     except Exception:
         d["price"] = 0.0
+    # stock a entero
+    try:
+        d["stock"] = int(d["stock"])
+    except Exception:
+        d["stock"] = 0
     return d
 
 
@@ -167,16 +173,21 @@ def create_product():
         # Permitimos recibir CSV también
         sizes_list = [s.strip() for s in sizes_list.split(",") if s.strip()]
     sizes_csv = ",".join(sizes_list)
+    stock = data.get("stock", 0)
+    try:
+        stock = int(stock)
+    except Exception:
+        stock = 0
     image = (data.get("image") or "").strip()
     status = (data.get("status") or "Activo").strip() or "Activo"
 
     with closing(get_conn()) as conn, conn:
         cur = conn.execute(
             """
-            INSERT INTO productos (name, brand, price, category, sizes, image, status)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO productos (name, brand, price, category, sizes, stock, image, status)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             """,
-            (name, brand, price, category, sizes_csv, image, status),
+            (name, brand, price, category, sizes_csv, stock, image, status),
         )
         new_id = cur.lastrowid
 
@@ -222,6 +233,13 @@ def update_product(pid: int):
             sizes_list = [s.strip() for s in sizes_list.split(",") if s.strip()]
         set_field("sizes", ",".join(sizes_list))
 
+    if "stock" in data:
+        try:
+            stock = int(data.get("stock"))
+        except Exception:
+            return jsonify({"error": "El campo 'stock' debe ser numérico"}), 400
+        set_field("stock", stock)
+
     if "image" in data:
         set_field("image", (data.get("image") or "").strip())
 
@@ -262,6 +280,7 @@ def seed():
             "price": 895000,
             "category": "Cascos",
             "sizes": ["S", "M", "L", "XL"],
+            "stock": 15,
             "image": "css img/Fox V3 lateral.png",
             "status": "Activo",
         },
@@ -271,6 +290,7 @@ def seed():
             "price": 650000,
             "category": "Cascos",
             "sizes": ["M", "L"],
+            "stock": 5,
             "image": "css img/Bell Moto-9 Flex lateral.png",
             "status": "Activo",
         },
@@ -279,8 +299,8 @@ def seed():
         for p in sample:
             conn.execute(
                 """
-                INSERT INTO productos (name, brand, price, category, sizes, image, status)
-                VALUES (?, ?, ?, ?, ?, ?, ?)
+                INSERT INTO productos (name, brand, price, category, sizes, stock, image, status)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     p["name"],
@@ -288,11 +308,27 @@ def seed():
                     float(p["price"]),
                     p["category"],
                     ",".join(p["sizes"]),
+                    p["stock"],
                     p["image"],
                     p["status"],
                 ),
             )
     return jsonify({"ok": True, "inserted": len(sample)}), 201
+
+# Añadir al server.py
+@app.route("/api/login", methods=["POST"])
+def login():
+    data = request.get_json(force=True) or {}
+    
+    username = data.get("username", "").strip()
+    password = data.get("password", "").strip()
+    
+    # En un caso real, deberías verificar contra una base de datos
+    # y usar hash para las contraseñas
+    if username == "admin" and password == "admin":
+        return jsonify({"success": True, "message": "Login exitoso"}), 200
+    else:
+        return jsonify({"success": False, "message": "Credenciales inválidas"}), 401
 
 
 if __name__ == "__main__":

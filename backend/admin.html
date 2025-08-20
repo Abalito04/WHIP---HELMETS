@@ -8,6 +8,12 @@
 </head>
 <body>
     <header>
+        <script>
+    // Verificar autenticación antes de cargar el panel
+    if (localStorage.getItem('adminAuthenticated') !== 'true') {
+        window.location.href = 'login.html';
+    }
+</script>
         <div class="logo">
             <h1>WHIP-HELMETS - Panel de Administración</h1>
         </div>
@@ -49,6 +55,16 @@
             </div>
             <div class="filter-row">
                 <div class="filter-group">
+                    <label for="stock-filter">Filtrar por Stock</label>
+                    <select id="stock-filter">
+                        <option value="all">Todos</option>
+                        <option value="low">Stock Bajo (≤ 5)</option>
+                        <option value="medium">Stock Medio (6-15)</option>
+                        <option value="high">Stock Alto (> 15)</option>
+                        <option value="out">Sin Stock</option>
+                    </select>
+                </div>
+                <div class="filter-group">
                     <label for="price-range">Rango de Precios</label>
                     <input type="range" id="price-range" min="0" max="1000000" step="50000">
                     <output id="price-output">Todos los precios</output>
@@ -69,6 +85,7 @@
                     <th>Precio</th>
                     <th>Categoría</th>
                     <th>Talles Disponibles</th>
+                    <th>Stock</th>
                     <th>Estado</th>
                     <th>Acciones</th>
                 </tr>
@@ -120,6 +137,10 @@
                 <div class="form-group">
                     <label for="new-sizes">Talles Disponibles (separados por comas)</label>
                     <input type="text" id="new-sizes" placeholder="S, M, L, XL">
+                </div>
+                <div class="form-group">
+                    <label for="new-stock">Cantidad en Stock</label>
+                    <input type="number" id="new-stock" min="0" value="0" required>
                 </div>
                 <div class="form-group">
                     <label for="new-image">URL de la Imagen</label>

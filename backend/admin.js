@@ -37,7 +37,7 @@ async function fetchProducts() {
     // Mostrar datos de ejemplo si la API no está disponible
     productsBody.innerHTML = `
       <tr>
-        <td colspan="8" style="text-align: center; color: red;">
+        <td colspan="9" style="text-align: center; color: red;">
           Error al conectar con el servidor. Verifica que el servidor esté ejecutándose en ${API_BASE}
           <br><br>
           <button onclick="location.reload()" style="padding: 5px 10px;">Reintentar</button>
@@ -108,6 +108,8 @@ async function saveAllChanges() {
     
     if (field === 'sizes') {
       productUpdates[productId].updates[field] = input.value.split(',').map(s => s.trim());
+    } else if (field === 'stock') {
+      productUpdates[productId].updates[field] = parseInt(input.value) || 0;
     } else {
       productUpdates[productId].updates[field] = input.value;
     }
@@ -145,7 +147,7 @@ async function saveAllChanges() {
 // ==================== EXPORTAR DATOS ====================
 function exportData() {
   // Crear contenido CSV
-  let csvContent = "Nombre,Marca,Precio,Categoría,Talles,Estado,Imagen\n";
+  let csvContent = "Nombre,Marca,Precio,Categoría,Talles,Stock,Estado,Imagen\n";
   
   productsData.forEach(product => {
     const row = [
@@ -154,6 +156,7 @@ function exportData() {
       product.price,
       `"${product.category}"`,
       `"${Array.isArray(product.sizes) ? product.sizes.join(',') : product.sizes}"`,
+      product.stock || 0,
       `"${product.status}"`,
       `"${product.image}"`
     ];
@@ -186,12 +189,17 @@ function renderProducts() {
 
   if (productsToRender.length === 0) {
     productsBody.innerHTML =
-      '<tr><td colspan="8" style="text-align: center;">No se encontraron productos</td></tr>';
+      '<tr><td colspan="9" style="text-align: center;">No se encontraron productos</td></tr>';
     return;
   }
 
   productsToRender.forEach((product) => {
     const row = document.createElement("tr");
+    
+    // Determinar clase CSS para el stock
+    let stockClass = "stock-high";
+    if (product.stock <= 5) stockClass = "stock-low";
+    else if (product.stock <= 15) stockClass = "stock-medium";
 
     row.innerHTML = `
       <td class="product-image-cell">
@@ -203,6 +211,9 @@ function renderProducts() {
       <td><input type="number" value="${product.price}" data-field="price" data-id="${product.id}"></td>
       <td><input type="text" value="${product.category}" data-field="category" data-id="${product.id}"></td>
       <td><input type="text" value="${product.sizes ? product.sizes.join(",") : ""}" data-field="sizes" data-id="${product.id}"></td>
+      <td>
+        <input type="number" value="${product.stock || 0}" data-field="stock" data-id="${product.id}" class="${stockClass}" min="0">
+      </td>
       <td>
         <select data-field="status" data-id="${product.id}">
           <option value="Activo" ${product.status === "Activo" ? "selected" : ""}>Activo</option>
@@ -246,12 +257,23 @@ function applyFilters() {
   const searchTerm = document.getElementById("search").value.toLowerCase();
   const categoryFilter = document.getElementById("category").value.toLowerCase();
   const brandFilter = document.getElementById("brand").value.toLowerCase();
+  const stockFilter = document.getElementById("stock-filter").value;
   const priceFilter = parseInt(document.getElementById("price-range").value);
 
   filteredProducts = productsData.filter((product) => {
     if (searchTerm && !product.name.toLowerCase().includes(searchTerm)) return false;
     if (categoryFilter !== "all" && product.category.toLowerCase() !== categoryFilter) return false;
     if (brandFilter !== "all" && product.brand.toLowerCase() !== brandFilter) return false;
+    
+    // Filtrar por stock
+    if (stockFilter !== "all") {
+      const stock = product.stock || 0;
+      if (stockFilter === "low" && stock > 5) return false;
+      if (stockFilter === "medium" && (stock <= 5 || stock > 15)) return false;
+      if (stockFilter === "high" && stock <= 15) return false;
+      if (stockFilter === "out" && stock > 0) return false;
+    }
+    
     if (priceFilter && product.price > priceFilter) return false;
     return true;
   });
@@ -264,6 +286,7 @@ function resetFilters() {
   document.getElementById("search").value = "";
   document.getElementById("category").value = "all";
   document.getElementById("brand").value = "all";
+  document.getElementById("stock-filter").value = "all";
   document.getElementById("price-range").value = document.getElementById("price-range").max;
   filteredProducts = [...productsData];
   currentPage = 1;
@@ -289,9 +312,11 @@ function setupEventListeners() {
   document.getElementById("export-data").addEventListener("click", exportData);
   document.getElementById("logout").addEventListener("click", () => {
     if (confirm("¿Estás seguro de que deseas cerrar sesión?")) {
-      window.location.href = "index.html"; // Cambia por tu página de login
+        // Eliminar la autenticación
+        localStorage.removeItem('adminAuthenticated');
+        window.location.href = 'login.html';
     }
-  });
+});
 
   document.querySelector(".close").addEventListener("click", closeAddProductModal);
 
@@ -312,6 +337,7 @@ function setupEventListeners() {
       price: parseFloat(document.getElementById("new-price").value),
       category: document.getElementById("new-category").value,
       sizes: document.getElementById("new-sizes").value.split(",").map(s => s.trim()),
+      stock: parseInt(document.getElementById("new-stock").value) || 0,
       image: document.getElementById("new-image").value,
       status: document.getElementById("new-status").value
     };
@@ -329,6 +355,8 @@ function setupEventListeners() {
       rowInputs.forEach((input) => {
         if (input.dataset.field === "sizes") {
           updates["sizes"] = input.value.split(",").map((s) => s.trim());
+        } else if (input.dataset.field === "stock") {
+          updates["stock"] = parseInt(input.value) || 0;
         } else {
           updates[input.dataset.field] = input.value;
         }

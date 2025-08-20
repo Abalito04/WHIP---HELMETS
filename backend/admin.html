@@ -12,6 +12,7 @@
             <h1>WHIP-HELMETS - Panel de Administración</h1>
         </div>
         <div class="admin-actions">
+            <button class="btn btn-success" id="add-product">Agregar Producto</button>
             <button class="btn btn-primary" id="save-all">Guardar Todos los Cambios</button>
             <button class="btn btn-secondary" id="export-data">Exportar Datos</button>
             <button class="btn btn-danger" id="logout">Cerrar Sesión</button>
@@ -79,6 +80,60 @@
 
         <div class="pagination" id="pagination">
             <!-- La paginación se generará aquí -->
+        </div>
+    </div>
+
+    <!-- Modal para agregar nuevo producto -->
+    <div id="add-product-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Agregar Nuevo Producto</h2>
+            <form id="new-product-form">
+                <div class="form-group">
+                    <label for="new-name">Nombre del Producto</label>
+                    <input type="text" id="new-name" required>
+                </div>
+                <div class="form-group">
+                    <label for="new-brand">Marca</label>
+                    <select id="new-brand" required>
+                        <option value="">Seleccione una marca</option>
+                        <option value="fox">Fox</option>
+                        <option value="bell">Bell</option>
+                        <option value="fly">Fly Racing</option>
+                        <option value="alpinestars">Alpinestars</option>
+                        <option value="aircraft">Aircraft</option>
+                        <option value="troylee">Troy Lee Design</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="new-price">Precio</label>
+                    <input type="number" id="new-price" min="0" required>
+                </div>
+                <div class="form-group">
+                    <label for="new-category">Categoría</label>
+                    <select id="new-category" required>
+                        <option value="">Seleccione una categoría</option>
+                        <option value="Cascos">Cascos</option>
+                        <option value="Accesorios">Accesorios</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="new-sizes">Talles Disponibles (separados por comas)</label>
+                    <input type="text" id="new-sizes" placeholder="S, M, L, XL">
+                </div>
+                <div class="form-group">
+                    <label for="new-image">URL de la Imagen</label>
+                    <input type="text" id="new-image" placeholder="ruta/a/la/imagen.png">
+                </div>
+                <div class="form-group">
+                    <label for="new-status">Estado</label>
+                    <select id="new-status" required>
+                        <option value="Activo">Activo</option>
+                        <option value="Inactivo">Inactivo</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-success">Crear Producto</button>
+            </form>
         </div>
     </div>
 

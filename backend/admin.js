@@ -11,6 +11,8 @@ const productsPerPage = 5;
 const productsBody = document.getElementById("products-body");
 const paginationElement = document.getElementById("pagination");
 const notificationElement = document.getElementById("notification");
+const addProductModal = document.getElementById("add-product-modal");
+const newProductForm = document.getElementById("new-product-form");
 
 // ==================== API CALLS ====================
 async function fetchProducts() {
@@ -53,10 +55,10 @@ async function updateProduct(id, updates) {
       body: JSON.stringify(updates),
     });
     if (!res.ok) throw new Error("Error al actualizar");
-    showNotification("Producto actualizado", "success");
-    fetchProducts();
+    return { success: true, id };
   } catch (err) {
-    showNotification("Error al actualizar producto", "error");
+    console.error("Error al actualizar producto:", err);
+    return { success: false, id, error: err.message };
   }
 }
 
@@ -86,6 +88,92 @@ async function createProduct(product) {
   } catch (err) {
     showNotification("Error al crear producto", "error");
   }
+}
+
+// ==================== GUARDAR TODOS LOS CAMBIOS ====================
+async function saveAllChanges() {
+  const allInputs = document.querySelectorAll('#products-body input, #products-body select');
+  const updates = [];
+  
+  // Agrupar cambios por producto
+  const productUpdates = {};
+  
+  allInputs.forEach(input => {
+    const productId = input.dataset.id;
+    const field = input.dataset.field;
+    
+    if (!productUpdates[productId]) {
+      productUpdates[productId] = { id: productId, updates: {} };
+    }
+    
+    if (field === 'sizes') {
+      productUpdates[productId].updates[field] = input.value.split(',').map(s => s.trim());
+    } else {
+      productUpdates[productId].updates[field] = input.value;
+    }
+  });
+  
+  // Convertir a array
+  const updatePromises = Object.values(productUpdates).map(product => 
+    updateProduct(product.id, product.updates)
+  );
+  
+  // Mostrar indicador de progreso
+  showNotification("Guardando cambios...", "info");
+  
+  // Ejecutar todas las actualizaciones
+  try {
+    const results = await Promise.all(updatePromises);
+    
+    // Contar resultados
+    const successful = results.filter(r => r.success).length;
+    const failed = results.filter(r => !r.success).length;
+    
+    if (failed === 0) {
+      showNotification(`Todos los cambios (${successful}) guardados correctamente`, "success");
+    } else {
+      showNotification(`${successful} cambios guardados, ${failed} errores`, "error");
+    }
+    
+    // Recargar productos para reflejar cambios
+    fetchProducts();
+  } catch (error) {
+    showNotification("Error al guardar cambios: " + error.message, "error");
+  }
+}
+
+// ==================== EXPORTAR DATOS ====================
+function exportData() {
+  // Crear contenido CSV
+  let csvContent = "Nombre,Marca,Precio,Categoría,Talles,Estado,Imagen\n";
+  
+  productsData.forEach(product => {
+    const row = [
+      `"${product.name.replace(/"/g, '""')}"`,
+      `"${product.brand}"`,
+      product.price,
+      `"${product.category}"`,
+      `"${Array.isArray(product.sizes) ? product.sizes.join(',') : product.sizes}"`,
+      `"${product.status}"`,
+      `"${product.image}"`
+    ];
+    csvContent += row.join(',') + '\n';
+  });
+  
+  // Crear blob y descargar
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const link = document.createElement("a");
+  const url = URL.createObjectURL(blob);
+  
+  link.setAttribute("href", url);
+  link.setAttribute("download", "productos_whip_helmets.csv");
+  link.style.visibility = 'hidden';
+  
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  
+  showNotification("Datos exportados correctamente", "success");
 }
 
 // ==================== RENDER ====================
@@ -182,10 +270,55 @@ function resetFilters() {
   renderProducts();
 }
 
+// ==================== MODAL ====================
+function openAddProductModal() {
+  addProductModal.style.display = "block";
+}
+
+function closeAddProductModal() {
+  addProductModal.style.display = "none";
+  newProductForm.reset();
+}
+
 // ==================== EVENTOS ====================
 function setupEventListeners() {
   document.getElementById("apply-filters").addEventListener("click", applyFilters);
   document.getElementById("reset-filters").addEventListener("click", resetFilters);
+  document.getElementById("add-product").addEventListener("click", openAddProductModal);
+  document.getElementById("save-all").addEventListener("click", saveAllChanges);
+  document.getElementById("export-data").addEventListener("click", exportData);
+  document.getElementById("logout").addEventListener("click", () => {
+    if (confirm("¿Estás seguro de que deseas cerrar sesión?")) {
+      window.location.href = "index.html"; // Cambia por tu página de login
+    }
+  });
+
+  document.querySelector(".close").addEventListener("click", closeAddProductModal);
+
+  // Cerrar modal al hacer clic fuera
+  window.addEventListener("click", (event) => {
+    if (event.target === addProductModal) {
+      closeAddProductModal();
+    }
+  });
+
+  // Formulario para nuevo producto
+  newProductForm.addEventListener("submit", (e) => {
+    e.preventDefault();
+    
+    const newProduct = {
+      name: document.getElementById("new-name").value,
+      brand: document.getElementById("new-brand").value,
+      price: parseFloat(document.getElementById("new-price").value),
+      category: document.getElementById("new-category").value,
+      sizes: document.getElementById("new-sizes").value.split(",").map(s => s.trim()),
+      image: document.getElementById("new-image").value,
+      status: document.getElementById("new-status").value
+    };
+    
+    createProduct(newProduct);
+    closeAddProductModal();
+  });
 
   // Guardar cambios individuales
   productsBody.addEventListener("click", (e) => {
@@ -200,7 +333,14 @@ function setupEventListeners() {
           updates[input.dataset.field] = input.value;
         }
       });
-      updateProduct(id, updates);
+      updateProduct(id, updates).then(result => {
+        if (result.success) {
+          showNotification("Producto actualizado", "success");
+          fetchProducts();
+        } else {
+          showNotification("Error al actualizar producto", "error");
+        }
+      });
     }
 
     if (e.target.classList.contains("delete-btn")) {
@@ -227,10 +367,18 @@ function setupEventListeners() {
 function showNotification(message, type = "success") {
   notificationElement.textContent = message;
   notificationElement.className = `notification ${type}`;
-  setTimeout(() => {
-    notificationElement.className = "notification";
-    notificationElement.textContent = "";
-  }, 2500);
+  
+  // Para notificaciones de información (progreso)
+  if (type === "info") {
+    notificationElement.style.backgroundColor = "#17a2b8";
+  }
+  
+  if (type !== "info") {
+    setTimeout(() => {
+      notificationElement.className = "notification";
+      notificationElement.textContent = "";
+    }, 3000);
+  }
 }
 
 // ==================== INIT ====================

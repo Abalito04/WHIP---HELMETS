@@ -70,6 +70,15 @@ header {
     background-color: #e09d3e;
 }
 
+.btn-success {
+    background-color: #28a745;
+    color: white;
+}
+
+.btn-success:hover {
+    background-color: #218838;
+}
+
 .btn-secondary {
     background-color: #4CAF50;
     color: white;
@@ -229,6 +238,65 @@ header {
     opacity: 1;
 }
 
+.notification.info {
+    background-color: #17a2b8;
+    opacity: 1;
+}
+
+/* Modal para agregar producto */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.4);
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: 5% auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%;
+    max-width: 600px;
+    border-radius: 5px;
+    position: relative;
+}
+
+.close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.close:hover,
+.close:focus {
+    color: black;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 600;
+}
+
+.form-group input, .form-group select, .form-group textarea {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
 @media (max-width: 768px) {
     .products-table {
         display: block;
@@ -247,5 +315,10 @@ header {
     .admin-actions {
         flex-wrap: wrap;
         justify-content: center;
+    }
+
+    .modal-content {
+        width: 95%;
+        margin: 10% auto;
     }
 }

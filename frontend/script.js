@@ -15,6 +15,11 @@ document.addEventListener("DOMContentLoaded", () => {
   const miniCartTotal = document.getElementById("mini-cart-total");
   const miniCartClear = document.getElementById("mini-cart-clear");
 
+  // Login variables
+  const loginLink = document.querySelector(".login");
+  let isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
+  let userEmail = localStorage.getItem("userEmail") || "";
+
   // ==================== FUNCIONES ====================
   const updateCartCount = () => {
     if (cartCountEl) {
@@ -83,11 +88,21 @@ document.addEventListener("DOMContentLoaded", () => {
     clearBtn.className = "clear-cart-btn";
     clearBtn.style.cssText = "margin-top:10px;padding:10px 20px;background:#d9534f;border:none;border-radius:5px;cursor:pointer;";
     clearBtn.addEventListener("click", () => {
+      // Guardar información de los productos para actualizar el stock
+      const removedItems = [...cart];
+      
       cart = [];
       localStorage.setItem("cart_v1", JSON.stringify(cart));
       updateCartCount();
       renderCartItems();
       updateMiniCart();
+      
+      // Actualizar la UI de stock para todos los productos eliminados
+      if (typeof window.updateProductStockUI === 'function') {
+        removedItems.forEach(item => {
+          window.updateProductStockUI(item.productId, item.size);
+        });
+      }
     });
     cartItemsContainer.appendChild(clearBtn);
   };
@@ -144,14 +159,64 @@ document.addEventListener("DOMContentLoaded", () => {
     setTimeout(() => { notif.style.opacity = "0"; setTimeout(() => notif.remove(), 300); }, 1500);
   };
 
-  // Función para añadir productos al carrito (ahora será llamada desde shop.js)
-  window.addToCart = (productName, price, size) => {
-    cart.push({ productName, price, size });
-    localStorage.setItem("cart_v1", JSON.stringify(cart));
-    updateCartCount();
-    renderCartItems();
-    updateMiniCart();
-    showMiniNotification(`${productName} (${size}) agregado al carrito`);
+  // Función para añadir productos al carrito (modificada para verificar stock)
+  window.addToCart = (productName, price, size, productId) => {
+    // Primero verificar si hay stock disponible
+    const stockDisponible = window.checkStockAvailable(productId, size);
+    
+    if (stockDisponible) {
+      cart.push({ productName, price, size, productId });
+      localStorage.setItem("cart_v1", JSON.stringify(cart));
+      updateCartCount();
+      renderCartItems();
+      updateMiniCart();
+      showMiniNotification(`${productName} (${size}) agregado al carrito`);
+      
+      // Actualizar la UI para reflejar el cambio de stock
+      if (typeof window.updateProductStockUI === 'function') {
+        window.updateProductStockUI(productId, size);
+      }
+      return true;
+    } else {
+      showMiniNotification("No hay suficiente stock disponible");
+      return false;
+    }
+  };
+
+  // Función para actualizar la UI de login
+  const updateLoginUI = () => {
+    if (loginLink) {
+      if (isLoggedIn) {
+        loginLink.textContent = `Cerrar Sesión (${userEmail})`;
+        loginLink.href = "#logout";
+      } else {
+        loginLink.textContent = "Iniciar Sesión";
+        loginLink.href = "#login";
+      }
+    }
+  };
+
+  // Función para manejar login
+  const handleLogin = (email, password) => {
+    // Simulación de autenticación (en un caso real, se conectaría a una API)
+    if (email && password) {
+      isLoggedIn = true;
+      userEmail = email;
+      localStorage.setItem("isLoggedIn", "true");
+      localStorage.setItem("userEmail", email);
+      updateLoginUI();
+      return true;
+    }
+    return false;
+  };
+
+  // Función para manejar logout
+  const handleLogout = () => {
+    isLoggedIn = false;
+    userEmail = "";
+    localStorage.removeItem("isLoggedIn");
+    localStorage.removeItem("userEmail");
+    updateLoginUI();
   };
 
   // ==================== EVENTOS ====================
@@ -193,11 +258,17 @@ document.addEventListener("DOMContentLoaded", () => {
     miniCartItems.addEventListener("click", e => {
       if (e.target.classList.contains("remove-item")) {
         const index = e.target.dataset.index;
+        const removedItem = cart[index];
         cart.splice(index, 1);
         localStorage.setItem("cart_v1", JSON.stringify(cart));
         updateCartCount();
         renderCartItems();
         updateMiniCart();
+        
+        // Actualizar la UI de stock cuando se elimina un producto
+        if (typeof window.updateProductStockUI === 'function' && removedItem) {
+          window.updateProductStockUI(removedItem.productId, removedItem.size);
+        }
       }
     });
   }
@@ -205,11 +276,21 @@ document.addEventListener("DOMContentLoaded", () => {
   // Vaciar carrito desde el mini carrito
   if (miniCartClear) {
     miniCartClear.addEventListener("click", () => {
+      // Guardar información de los productos para actualizar el stock
+      const removedItems = [...cart];
+      
       cart = [];
       localStorage.setItem("cart_v1", JSON.stringify(cart));
       updateCartCount();
       renderCartItems();
       updateMiniCart();
+      
+      // Actualizar la UI de stock para todos los productos eliminados
+      if (typeof window.updateProductStockUI === 'function') {
+        removedItems.forEach(item => {
+          window.updateProductStockUI(item.productId, item.size);
+        });
+      }
     });
   }
 
@@ -218,18 +299,22 @@ document.addEventListener("DOMContentLoaded", () => {
     cartItemsContainer.addEventListener("click", e => {
       if (e.target.classList.contains("remove-item")) {
         const index = e.target.dataset.index;
+        const removedItem = cart[index];
         cart.splice(index, 1);
         localStorage.setItem("cart_v1", JSON.stringify(cart));
         updateCartCount();
         renderCartItems();
         updateMiniCart();
+        
+        // Actualizar la UI de stock cuando se elimina un producto
+        if (typeof window.updateProductStockUI === 'function' && removedItem) {
+          window.updateProductStockUI(removedItem.productId, removedItem.size);
+        }
       }
     });
   }
 
   // ==================== MODAL LOGIN ====================
-  const loginLink = document.querySelector(".login");
-
   // Crear modal
   const loginModal = document.createElement("div");
   loginModal.id = "login-modal";
@@ -239,20 +324,27 @@ document.addEventListener("DOMContentLoaded", () => {
       <span class="close-login">&times;</span>
       <h2>Iniciar Sesión</h2>
       <form id="login-form" style="width:100%; display:flex; flex-direction:column; gap:10px;">
-        <input type="text" placeholder="Usuario" required>
-        <input type="password" placeholder="Contraseña" required>
+        <input type="email" id="login-email" placeholder="Correo electrónico" required>
+        <input type="password" id="login-password" placeholder="Contraseña" required>
         <button type="submit" id="login-submit">Entrar</button>
         <button type="button" id="register-btn">Registrarse</button>
       </form>
+      <p style="margin-top:15px;font-size:0.9em;text-align:center;">
+        ¿No tienes cuenta? <a href="#" id="show-register">Regístrate aquí</a>
+      </p>
     </div>
   `;
   document.body.appendChild(loginModal);
 
-  // Abrir modal solo al hacer click
+  // Eventos para el botón de login
   if (loginLink) {
     loginLink.addEventListener("click", e => {
       e.preventDefault();
-      loginModal.style.display = "flex";
+      if (isLoggedIn) {
+        handleLogout();
+      } else {
+        loginModal.style.display = "flex";
+      }
     });
   }
 
@@ -271,13 +363,20 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // Evento login (solo simulación)
+  // Evento login
   const loginForm = document.getElementById("login-form");
   if (loginForm) {
     loginForm.addEventListener("submit", e => {
       e.preventDefault();
-      alert("¡Login exitoso!");
-      loginModal.style.display = "none";
+      const email = document.getElementById("login-email").value;
+      const password = document.getElementById("login-password").value;
+      
+      if (handleLogin(email, password)) {
+        loginModal.style.display = "none";
+        showMiniNotification("¡Sesión iniciada correctamente!");
+      } else {
+        alert("Error: Credenciales incorrectas");
+      }
     });
   }
 
@@ -285,7 +384,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const registerBtn = document.getElementById("register-btn");
   if (registerBtn) {
     registerBtn.addEventListener("click", () => {
-      alert("Redirigiendo al formulario de registro...");
+      alert("Funcionalidad de registro en desarrollo");
     });
   }
 
@@ -294,4 +393,5 @@ document.addEventListener("DOMContentLoaded", () => {
   updateCartCount();
   renderCartItems();
   updateMiniCart();
+  updateLoginUI();
 });

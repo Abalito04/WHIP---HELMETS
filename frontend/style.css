@@ -887,3 +887,32 @@ footer.legal-footer a:hover {
     color: #777;
     grid-column: 1 / -1;
 }
+
+/* ==================== ESTILOS DE STOCK ==================== */
+.stock-high {
+    color: #28a745;
+    font-weight: bold;
+}
+
+.stock-low {
+    color: #f85b01;
+    font-weight: bold;
+}
+
+.stock-out {
+    color: #dc3545;
+    font-weight: bold;
+}
+
+/* ==================== BOTÓN DESHABILITADO ==================== */
+.add-to-cart-btn:disabled {
+    background-color: #6c757d;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+/* ==================== SELECT DESHABILITADO ==================== */
+.size-selector:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}

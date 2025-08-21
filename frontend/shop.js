@@ -74,6 +74,9 @@ function renderProducts() {
     
     // Inicializar eventos para los nuevos botones
     initProductEvents();
+    
+    // Inicializar la UI de stock después de renderizar
+    setTimeout(initializeStockUI, 100);
 }
 
 // Función para crear tarjeta de producto
@@ -89,6 +92,23 @@ function createProductCard(product) {
     // Formatear precio
     const formattedPrice = new Intl.NumberFormat('es-ES').format(product.price);
     
+    // Determinar estado del stock
+    const stock = product.stock || 0;
+    const isOutOfStock = stock <= 0;
+    const lowStock = stock > 0 && stock <= 5;
+    
+    // Clases CSS según stock
+    let stockClass = "stock-high";
+    let stockText = `Stock: ${stock}`;
+    
+    if (isOutOfStock) {
+        stockClass = "stock-out";
+        stockText = "Sin stock";
+    } else if (lowStock) {
+        stockClass = "stock-low";
+        stockText = `Stock: ${stock}`;
+    }
+    
     card.innerHTML = `
         <div class="product-images-container">
             <img src="${imageUrl}" alt="${product.name}" class="product-image main-view">
@@ -96,13 +116,16 @@ function createProductCard(product) {
         </div>
         <h3>${product.name}</h3>
         <p class="price">$${formattedPrice}</p>
+        <p class="stock ${stockClass}">${stockText}</p>
         <div class="product-options">
             <label for="talles-${product.id}">Talle:</label>
-            <select id="talles-${product.id}" class="size-selector">
+            <select id="talles-${product.id}" class="size-selector" ${isOutOfStock ? 'disabled' : ''}>
                 ${product.sizes.map(size => `<option value="${size}">${size}</option>`).join('')}
             </select>
         </div>
-        <button class="add-to-cart-btn" data-product-id="${product.id}">Añadir al Carrito</button>
+        <button class="add-to-cart-btn" data-product-id="${product.id}" ${isOutOfStock ? 'disabled' : ''}>
+            ${isOutOfStock ? 'Sin stock' : 'Añadir al Carrito'}
+        </button>
     `;
     
     return card;
@@ -144,23 +167,34 @@ function showMiniNotification(message) {
     }, 2000);
 }
 
-// Inicializar eventos para productos
-// En shop.js, dentro de initProductEvents():
+// Función para inicializar eventos para productos
 function initProductEvents() {
-  // Manejar clic en botón "Añadir al Carrito"
-  document.querySelectorAll(".add-to-cart-btn").forEach(button => {
-    button.addEventListener("click", function(e) {
-      const productId = this.dataset.productId;
-      const sizeSelector = document.getElementById(`talles-${productId}`);
-      const size = sizeSelector ? sizeSelector.value : "Único";
-      const product = products.find(p => p.id == productId);
-      
-      if (product) {
-        // Llama a la función global definida en script.js
-        window.addToCart(product.name, product.price, size);
-      }
+    // Manejar clic en botón "Añadir al Carrito"
+    document.querySelectorAll(".add-to-cart-btn").forEach(button => {
+        button.addEventListener("click", function(e) {
+            const productId = this.dataset.productId;
+            const sizeSelector = document.getElementById(`talles-${productId}`);
+            const size = sizeSelector ? sizeSelector.value : "Único";
+            const product = products.find(p => p.id == productId);
+            
+            if (product) {
+                // Usar la función global para agregar al carrito
+                window.addToCart(product.name, product.price, size, productId);
+            }
+        });
     });
-  });
+    
+    // Manejar cambio de talla
+    document.querySelectorAll(".size-selector").forEach(selector => {
+        selector.addEventListener("change", function() {
+            const productId = this.id.replace("talles-", "");
+            const size = this.value;
+            
+            // Actualizar UI para la talla seleccionada
+            window.updateProductStockUI(productId, size);
+        });
+    });
+    
     // Aquí puedes agregar el filtro de marcas si lo necesitas
     initBrandFilter();
 }
@@ -210,11 +244,86 @@ function initBrandFilter() {
     });
 }
 
-// Función para abrir modal de producto
-function openProductModal(product) {
-    // Implementar lógica para abrir modal con detalles del producto
-    console.log("Abrir modal para:", product.name);
-    // Aquí puedes implementar la lógica para mostrar un modal con más detalles
+// Función para verificar stock disponible
+window.checkStockAvailable = (productId, size) => {
+    const product = products.find(p => p.id == productId);
+    if (!product || product.stock <= 0) return false;
+    
+    // Contar cuántos de este producto ya están en el carrito
+    const cart = JSON.parse(localStorage.getItem("cart_v1")) || [];
+    const inCartCount = cart.filter(item => 
+        item.productId == productId && item.size === size
+    ).length;
+    
+    // Verificar si aún hay stock disponible
+    return product.stock > inCartCount;
+};
+
+// Función para actualizar la UI de stock
+window.updateProductStockUI = (productId, size) => {
+    const product = products.find(p => p.id == productId);
+    if (!product) return;
+    
+    // Contar cuántos de este producto ya están en el carrito
+    const cart = JSON.parse(localStorage.getItem("cart_v1")) || [];
+    const inCartCount = cart.filter(item => 
+        item.productId == productId && item.size === size
+    ).length;
+    
+    // Encontrar el elemento del producto en la UI
+    const productElement = document.querySelector(`.product-card[data-id="${productId}"]`);
+    if (!productElement) return;
+    
+    // Actualizar el texto de stock
+    const stockElement = productElement.querySelector('.stock');
+    const addButton = productElement.querySelector('.add-to-cart-btn');
+    const sizeSelector = productElement.querySelector('.size-selector');
+    
+    const remainingStock = product.stock - inCartCount;
+    
+    if (remainingStock <= 0) {
+        stockElement.textContent = "Sin stock";
+        stockElement.className = "stock stock-out";
+        addButton.disabled = true;
+        addButton.textContent = "Sin stock";
+        if (sizeSelector) sizeSelector.disabled = true;
+    } else if (remainingStock <= 5) {
+        stockElement.textContent = `¡Quedan ${remainingStock} unidad/es!`;
+        stockElement.className = "stock stock-low";
+        addButton.disabled = false;
+        addButton.textContent = "Añadir al Carrito";
+        if (sizeSelector) sizeSelector.disabled = false;
+    } else {
+        stockElement.textContent = `Stock: ${remainingStock}`;
+        stockElement.className = "stock stock-high";
+        addButton.disabled = false;
+        addButton.textContent = "Añadir al Carrito";
+        if (sizeSelector) sizeSelector.disabled = false;
+    }
+};
+
+// Función para inicializar la UI de stock
+function initializeStockUI() {
+    const cart = JSON.parse(localStorage.getItem("cart_v1")) || [];
+    
+    products.forEach(product => {
+        const productElement = document.querySelector(`.product-card[data-id="${product.id}"]`);
+        if (!productElement) return;
+        
+        // Para cada talla del producto, verificar cuántos hay en el carrito
+        const sizes = product.sizes || ["Único"];
+        
+        sizes.forEach(size => {
+            const inCartCount = cart.filter(item => 
+                item.productId == product.id && item.size === size
+            ).length;
+            
+            // Si hay alguno en el carrito, actualizar la UI
+            if (inCartCount > 0) {
+                window.updateProductStockUI(product.id, size);
+            }
+        });
+    });
 }
 
 // Inicializar

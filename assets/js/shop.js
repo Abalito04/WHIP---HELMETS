@@ -115,7 +115,7 @@ function createProductCard(product) {
             <img src="${imageUrl}" alt="${product.name}" class="product-image hover-view">
         </div>
         <h3>${product.name}</h3>
-        <p class="price">$${formattedPrice}</p>
+        <p class="price">${formattedPrice}</p>
         <p class="stock ${stockClass}">${stockText}</p>
         <div class="product-options">
             <label for="talles-${product.id}">Talle:</label>

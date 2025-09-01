@@ -105,6 +105,17 @@ header {
     background-color: #d32f2f;
 }
 
+/* Estilos para enlaces que se ven como botones */
+.admin-actions a.btn {
+    text-decoration: none;
+    display: inline-block;
+    text-align: center;
+}
+
+.admin-actions a.btn:hover {
+    text-decoration: none;
+}
+
 .filters {
     background: white;
     padding: 15px;

@@ -936,6 +936,28 @@ def create_user_admin():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+# ---------------------- RUTAS DE ARCHIVOS ESTÁTICOS ----------------------
+
+@app.route("/assets/<path:filename>")
+def serve_assets(filename):
+    """Servir archivos estáticos desde assets/"""
+    return send_from_directory("../assets", filename)
+
+@app.route("/admin/<path:filename>")
+def serve_admin(filename):
+    """Servir archivos del admin"""
+    return send_from_directory("../admin", filename)
+
+@app.route("/pages/<path:filename>")
+def serve_pages(filename):
+    """Servir páginas estáticas"""
+    return send_from_directory("../pages", filename)
+
+@app.route("/payment/<path:filename>")
+def serve_payment(filename):
+    """Servir páginas de pago"""
+    return send_from_directory("../payment", filename)
+
 # ---------------------- RUTAS DE PÁGINAS DE PAGO ----------------------
 
 @app.route("/payment/success")

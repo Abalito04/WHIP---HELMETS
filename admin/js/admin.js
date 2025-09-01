@@ -1,5 +1,15 @@
 // ==================== CONFIG ====================
-const API_BASE = "http://127.0.0.1:5000";
+// Configuración dinámica de la API
+const API_BASE = (() => {
+    // Si estamos en Railway (producción), usar la URL actual
+    if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+        return window.location.origin;
+    }
+    // Si estamos en desarrollo local
+    return "http://127.0.0.1:5000";
+})();
+
+console.log("API_BASE configurado como:", API_BASE);
 
 // ==================== VARIABLES GLOBALES ====================
 let productsData = [];

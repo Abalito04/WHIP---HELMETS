@@ -41,7 +41,18 @@ def get_conn():
     return conn
 
 def init_db():
-    print("Inicializando base de datos...")
+    """Inicializar todas las bases de datos"""
+    print("Inicializando bases de datos...")
+    
+    # Inicializar base de datos de productos
+    init_products_db()
+    
+    # Inicializar base de datos de usuarios
+    init_users_db()
+
+def init_products_db():
+    """Inicializar base de datos de productos"""
+    print("Inicializando base de datos de productos...")
     with closing(get_conn()) as conn, conn:
         conn.execute(
             """
@@ -92,6 +103,80 @@ def init_db():
                 sample_products
             )
             print(f"{len(sample_products)} productos de ejemplo insertados")
+
+def init_users_db():
+    """Inicializar base de datos de usuarios"""
+    print("Inicializando base de datos de usuarios...")
+    
+    # Importar config para obtener la ruta de la base de datos de usuarios
+    try:
+        from config import USERS_DATABASE_PATH
+        users_db_path = USERS_DATABASE_PATH
+    except ImportError:
+        users_db_path = "users.db"
+    
+    with sqlite3.connect(users_db_path) as conn:
+        # Crear tabla de usuarios
+        conn.execute('''
+            CREATE TABLE IF NOT EXISTS users (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                username TEXT UNIQUE NOT NULL,
+                password_hash TEXT NOT NULL,
+                role TEXT NOT NULL DEFAULT 'user',
+                nombre TEXT,
+                apellido TEXT,
+                dni TEXT,
+                telefono TEXT,
+                direccion TEXT,
+                codigo_postal TEXT,
+                email TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        ''')
+        
+        # Crear tabla de sesiones
+        conn.execute('''
+            CREATE TABLE IF NOT EXISTS sessions (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
+                token TEXT UNIQUE NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                expires_at TIMESTAMP NOT NULL,
+                FOREIGN KEY (user_id) REFERENCES users (id)
+            )
+        ''')
+        
+        # Crear usuario admin por defecto si no existe
+        admin_exists = conn.execute(
+            "SELECT id FROM users WHERE username = 'admin'"
+        ).fetchone()
+        
+        if not admin_exists:
+            import hashlib
+            password_hash = hashlib.sha256('admin123'.encode()).hexdigest()
+            conn.execute(
+                "INSERT INTO users (username, password_hash, role) VALUES (?, ?, ?)",
+                ('admin', password_hash, 'admin')
+            )
+            print("Usuario admin creado: admin / admin123")
+        
+        # Crear usuario normal por defecto si no existe
+        user_exists = conn.execute(
+            "SELECT id FROM users WHERE username = 'usuario'"
+        ).fetchone()
+        
+        if not user_exists:
+            import hashlib
+            password_hash = hashlib.sha256('user123'.encode()).hexdigest()
+            conn.execute(
+                "INSERT INTO users (username, password_hash, role) VALUES (?, ?, ?)",
+                ('usuario', password_hash, 'user')
+            )
+            print("Usuario normal creado: usuario / user123")
+        
+        conn.commit()
+        print("Base de datos de usuarios inicializada")
             
 def row_to_dict(row: sqlite3.Row):
     d = dict(row)

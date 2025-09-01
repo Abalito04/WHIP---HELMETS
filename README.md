@@ -60,9 +60,7 @@ whip-helmets/
    # EDITAR config.py con tus credenciales de MercadoPago
    
    pip install -r requirements.txt
-   python init_db.py  # Crear base de datos de productos
-   python init_users_db.py  # Crear base de datos de usuarios
-   python server.py
+   python server.py  # Las bases de datos se crean automáticamente
    ```
    
    El servidor iniciará en: `http://127.0.0.1:5000`

@@ -62,6 +62,8 @@ Railway automáticamente:
 - ✅ Ejecuta el comando del `Procfile`
 - ✅ Configura el puerto y dominio
 - ✅ Proporciona variables de entorno
+- ✅ Crea las bases de datos al iniciar la aplicación
+- ✅ Inserta usuarios y productos por defecto
 
 ## 🛡️ Seguridad en Producción
 
@@ -92,8 +94,11 @@ Para actualizar:
 - El código ya está preparado para usar `PORT`
 
 ### Error de base de datos
-- Las bases de datos se crean automáticamente
-- Los archivos `.db` se regeneran en cada deploy
+- ✅ Las bases de datos se crean automáticamente al iniciar la aplicación
+- ✅ Los usuarios por defecto se crean automáticamente:
+  - **admin / admin123** (rol: admin)
+  - **usuario / user123** (rol: user)
+- ✅ Los productos de ejemplo se insertan automáticamente
 
 ### Error de imágenes
 - Las imágenes deben estar en el repositorio

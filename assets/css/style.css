@@ -1000,8 +1000,277 @@ footer.legal-footer a:hover {
     transform: none;
 }
 
-/* Responsive para galería */
+/* ================================================== */
+/*                  RESPONSIVE DESIGN                 */
+/* ================================================== */
+
+/* Tablets y dispositivos medianos */
+@media (max-width: 1024px) {
+    main {
+        padding: 1.5em;
+    }
+    
+    .logo-img {
+        height: 120px;
+    }
+    
+    .logo h1 {
+        font-size: 2.5em;
+    }
+    
+    .hero-banner {
+        padding: 3em 1.5em;
+    }
+    
+    .hero-banner h2 {
+        font-size: 2.5em;
+    }
+    
+    .hero-banner p {
+        font-size: 1.2em;
+    }
+    
+    .products-grid {
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1.5em;
+    }
+}
+
+/* Móviles y dispositivos pequeños */
 @media (max-width: 768px) {
+    body {
+        font-size: 1em;
+    }
+    
+    main {
+        padding: 1em;
+    }
+    
+    /* Header responsive */
+    .main-header {
+        padding: 0.5em 1em;
+        flex-direction: column;
+        gap: 1em;
+    }
+    
+    .header-left, .header-right {
+        flex-basis: auto;
+        width: 100%;
+        text-align: center;
+    }
+    
+    .header-center {
+        order: -1;
+        font-size: 1.2em;
+    }
+    
+    .logo {
+        justify-content: center;
+    }
+    
+    .logo-img {
+        height: 80px;
+        margin-right: 10px;
+    }
+    
+    .logo h1 {
+        font-size: 2em;
+    }
+    
+    /* Hero banner responsive */
+    .hero-banner {
+        padding: 2em 1em;
+        min-height: 60px;
+    }
+    
+    .hero-banner h2 {
+        font-size: 2em;
+        margin-bottom: 0.5em;
+    }
+    
+    .hero-banner p {
+        font-size: 1em;
+        margin-bottom: 1em;
+    }
+    
+    .cta-button {
+        padding: 12px 24px;
+        font-size: 1em;
+    }
+    
+    /* Productos responsive */
+    .products-grid {
+        grid-template-columns: 1fr;
+        gap: 1em;
+    }
+    
+    .product-card {
+        margin-bottom: 1em;
+    }
+    
+    .product-image {
+        height: 200px;
+    }
+    
+    .product-info h3 {
+        font-size: 1.3em;
+    }
+    
+    .product-price {
+        font-size: 1.4em;
+    }
+    
+    .product-actions {
+        flex-direction: column;
+        gap: 0.5em;
+    }
+    
+    .btn-primary, .btn-secondary {
+        width: 100%;
+        padding: 12px;
+        font-size: 1em;
+    }
+    
+    /* Carrito responsive */
+    .cart-modal {
+        width: 95%;
+        margin: 5% auto;
+        max-height: 90vh;
+    }
+    
+    .cart-header {
+        padding: 1em;
+    }
+    
+    .cart-header h2 {
+        font-size: 1.5em;
+    }
+    
+    .cart-items {
+        max-height: 50vh;
+    }
+    
+    .cart-item {
+        padding: 1em;
+        flex-direction: column;
+        gap: 0.5em;
+    }
+    
+    .cart-item-image {
+        width: 80px;
+        height: 80px;
+    }
+    
+    .cart-item-details {
+        text-align: center;
+    }
+    
+    .cart-item-actions {
+        justify-content: center;
+        gap: 0.5em;
+    }
+    
+    .quantity-controls {
+        gap: 0.5em;
+    }
+    
+    .quantity-btn {
+        width: 30px;
+        height: 30px;
+        font-size: 1em;
+    }
+    
+    .cart-total {
+        padding: 1em;
+    }
+    
+    .cart-total h3 {
+        font-size: 1.3em;
+    }
+    
+    .cart-actions {
+        flex-direction: column;
+        gap: 0.5em;
+    }
+    
+    .cart-actions button {
+        width: 100%;
+        padding: 12px;
+    }
+    
+    /* Mini carrito responsive */
+    .mini-cart {
+        width: 95%;
+        right: 2.5%;
+        max-height: 80vh;
+    }
+    
+    .mini-cart-header {
+        padding: 0.8em;
+    }
+    
+    .mini-cart-header h3 {
+        font-size: 1.2em;
+    }
+    
+    .mini-cart-items {
+        max-height: 40vh;
+    }
+    
+    .mini-cart-item {
+        padding: 0.8em;
+        flex-direction: column;
+        gap: 0.5em;
+    }
+    
+    .mini-cart-item-image {
+        width: 60px;
+        height: 60px;
+    }
+    
+    .mini-cart-total {
+        padding: 0.8em;
+    }
+    
+    .mini-cart-actions {
+        flex-direction: column;
+        gap: 0.5em;
+    }
+    
+    .mini-cart-actions button {
+        width: 100%;
+        padding: 10px;
+    }
+    
+    /* Login modal responsive */
+    .login-modal {
+        width: 95%;
+        margin: 5% auto;
+        padding: 1.5em;
+    }
+    
+    .login-header h2 {
+        font-size: 1.5em;
+    }
+    
+    .login-form input {
+        padding: 12px;
+        font-size: 1em;
+    }
+    
+    .login-form button {
+        padding: 12px;
+        font-size: 1em;
+    }
+    
+    /* Mensajes responsive */
+    .message {
+        margin: 1em;
+        padding: 1em;
+        font-size: 0.9em;
+    }
+    
+    /* Galería responsive */
     .gallery-content {
         margin: 5% auto;
         width: 95%;
@@ -1030,5 +1299,137 @@ footer.legal-footer a:hover {
         width: 40px;
         height: 40px;
         font-size: 20px;
+    }
+}
+
+/* Móviles muy pequeños */
+@media (max-width: 480px) {
+    body {
+        font-size: 0.9em;
+    }
+    
+    main {
+        padding: 0.5em;
+    }
+    
+    .main-header {
+        padding: 0.3em 0.5em;
+    }
+    
+    .logo-img {
+        height: 60px;
+        margin-right: 8px;
+    }
+    
+    .logo h1 {
+        font-size: 1.5em;
+    }
+    
+    .header-center {
+        font-size: 1em;
+    }
+    
+    .hero-banner {
+        padding: 1.5em 0.5em;
+    }
+    
+    .hero-banner h2 {
+        font-size: 1.5em;
+    }
+    
+    .hero-banner p {
+        font-size: 0.9em;
+    }
+    
+    .cta-button {
+        padding: 10px 20px;
+        font-size: 0.9em;
+    }
+    
+    .product-card {
+        margin-bottom: 0.8em;
+    }
+    
+    .product-image {
+        height: 180px;
+    }
+    
+    .product-info h3 {
+        font-size: 1.1em;
+    }
+    
+    .product-price {
+        font-size: 1.2em;
+    }
+    
+    .cart-modal {
+        width: 98%;
+        margin: 2% auto;
+    }
+    
+    .mini-cart {
+        width: 98%;
+        right: 1%;
+    }
+    
+    .login-modal {
+        width: 98%;
+        margin: 2% auto;
+        padding: 1em;
+    }
+    
+    .message {
+        margin: 0.5em;
+        padding: 0.8em;
+        font-size: 0.8em;
+    }
+    
+    .gallery-content {
+        width: 98%;
+        padding: 10px;
+    }
+    
+    .gallery-main-image img {
+        max-height: 250px;
+    }
+    
+    .gallery-thumbnails {
+        grid-template-columns: repeat(auto-fill, minmax(50px, 1fr));
+        gap: 5px;
+    }
+    
+    .gallery-thumbnail {
+        width: 50px;
+        height: 50px;
+    }
+    
+    .gallery-nav-btn {
+        width: 35px;
+        height: 35px;
+        font-size: 18px;
+    }
+}
+
+/* Orientación landscape en móviles */
+@media (max-width: 768px) and (orientation: landscape) {
+    .hero-banner {
+        padding: 1em;
+        min-height: 40px;
+    }
+    
+    .hero-banner h2 {
+        font-size: 1.8em;
+    }
+    
+    .hero-banner p {
+        font-size: 0.9em;
+    }
+    
+    .cart-modal {
+        max-height: 95vh;
+    }
+    
+    .mini-cart {
+        max-height: 90vh;
     }
 }

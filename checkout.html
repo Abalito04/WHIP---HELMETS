@@ -98,6 +98,130 @@
             display: flex;
             align-items: center;
             gap: 15px;
+        }
+        
+        /* ================================================== */
+        /*                  RESPONSIVE DESIGN                 */
+        /* ================================================== */
+        
+        /* Tablets y dispositivos medianos */
+        @media (max-width: 1024px) {
+            .checkout-container {
+                gap: 30px;
+                padding: 15px;
+            }
+            
+            .checkout-form,
+            .checkout-summary {
+                padding: 25px;
+            }
+        }
+        
+        /* Móviles y dispositivos pequeños */
+        @media (max-width: 768px) {
+            .checkout-container {
+                grid-template-columns: 1fr;
+                gap: 20px;
+                padding: 15px;
+            }
+            
+            .checkout-form,
+            .checkout-summary {
+                padding: 20px;
+            }
+            
+            .checkout-form h3,
+            .checkout-summary h3 {
+                font-size: 1.3em;
+                margin-bottom: 15px;
+            }
+            
+            .form-group {
+                margin-bottom: 15px;
+            }
+            
+            .form-group input,
+            .form-group select {
+                padding: 12px;
+                font-size: 1em;
+            }
+            
+            .checkout-btn {
+                padding: 12px 24px;
+                font-size: 1.1em;
+            }
+            
+            .cart-item {
+                flex-direction: column;
+                text-align: center;
+                gap: 10px;
+            }
+            
+            .cart-item-image {
+                width: 80px;
+                height: 80px;
+            }
+            
+            .cart-item-details {
+                width: 100%;
+            }
+            
+            .cart-item-actions {
+                justify-content: center;
+                gap: 10px;
+            }
+            
+            .quantity-controls {
+                gap: 8px;
+            }
+            
+            .quantity-btn {
+                width: 30px;
+                height: 30px;
+                font-size: 1em;
+            }
+        }
+        
+        /* Móviles muy pequeños */
+        @media (max-width: 480px) {
+            .checkout-container {
+                padding: 10px;
+                gap: 15px;
+            }
+            
+            .checkout-form,
+            .checkout-summary {
+                padding: 15px;
+            }
+            
+            .checkout-form h3,
+            .checkout-summary h3 {
+                font-size: 1.2em;
+                margin-bottom: 12px;
+            }
+            
+            .form-group input,
+            .form-group select {
+                padding: 10px;
+                font-size: 0.9em;
+            }
+            
+            .checkout-btn {
+                padding: 10px 20px;
+                font-size: 1em;
+            }
+            
+            .cart-item-image {
+                width: 70px;
+                height: 70px;
+            }
+            
+            .quantity-btn {
+                width: 28px;
+                height: 28px;
+                font-size: 0.9em;
+            }
+        }
             padding: 15px 0;
             border-bottom: 1px solid #eee;
         }

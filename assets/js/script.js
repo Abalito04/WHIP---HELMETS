@@ -456,7 +456,17 @@ document.addEventListener("DOMContentLoaded", () => {
       if (loading) loading.style.display = 'inline-block';
       
       try {
-        const response = await fetch('http://127.0.0.1:5000/api/auth/login', {
+        // Configuración dinámica de la API
+        const API_BASE = (() => {
+            // Si estamos en Railway (producción), usar la URL actual
+            if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+                return window.location.origin;
+            }
+            // Si estamos en desarrollo local
+            return "http://127.0.0.1:5000";
+        })();
+        
+        const response = await fetch(`${API_BASE}/api/auth/login`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
@@ -566,8 +576,18 @@ document.addEventListener("DOMContentLoaded", () => {
     const token = localStorage.getItem('authToken');
     
     if (token) {
+      // Configuración dinámica de la API
+      const API_BASE = (() => {
+          // Si estamos en Railway (producción), usar la URL actual
+          if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+              return window.location.origin;
+          }
+          // Si estamos en desarrollo local
+          return "http://127.0.0.1:5000";
+      })();
+      
       // Intentar cerrar sesión en el servidor
-      fetch('http://127.0.0.1:5000/api/auth/logout', {
+      fetch(`${API_BASE}/api/auth/logout`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -593,8 +613,8 @@ document.addEventListener("DOMContentLoaded", () => {
       window.location.href = '/admin/admin.html';
     } catch (error) {
       console.error('Error al redirigir al admin:', error);
-      // Fallback: intentar con URL completa
-      window.location.href = 'http://127.0.0.1:5000/admin/admin.html';
+      // Fallback: intentar con URL relativa
+      window.location.href = 'admin/admin.html';
     }
   }
 

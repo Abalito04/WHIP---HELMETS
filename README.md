@@ -1,5 +1,54 @@
 # WHIP HELMETS - E-commerce Web Application
 
+## 🚀 **ESTADO ACTUAL: OPERACIONAL EN RAILWAY**
+
+### ✅ **FUNCIONALIDADES COMPLETADAS:**
+- ✅ **Deploy en Railway** - Configuración completa
+- ✅ **Base de datos** - Creación automática con datos de ejemplo
+- ✅ **Autenticación** - Sistema de login/logout con rate limiting
+- ✅ **Productos** - CRUD completo con filtros avanzados
+- ✅ **Carrito** - Funcionalidad completa con persistencia
+- ✅ **Responsive** - Optimizado para móviles, tablets y desktop
+- ✅ **Admin panel** - Gestión completa de productos y usuarios
+- ✅ **Checkout** - Integración con MercadoPago
+- ✅ **Seguridad básica** - Rate limiting, sanitización de inputs
+- ✅ **Optimización de imágenes** - Procesamiento automático
+
+### 🔧 **CONFIGURACIÓN REQUERIDA EN RAILWAY:**
+
+#### **Variables de Entorno Obligatorias:**
+```bash
+# MercadoPago (CRÍTICO para pagos)
+MP_ACCESS_TOKEN=tu_access_token_real_aqui
+
+# Seguridad
+SECRET_KEY=tu_clave_secreta_unica_aqui
+JWT_SECRET_KEY=tu_jwt_secret_key_aqui
+
+# Configuración
+DEBUG=False
+IS_PRODUCTION=True
+```
+
+#### **Variables de Entorno Opcionales:**
+```bash
+# Rate limiting
+RATE_LIMIT_PER_MINUTE=60
+
+# JWT
+JWT_ACCESS_TOKEN_EXPIRES=3600
+
+# Email (para futuras implementaciones)
+SMTP_SERVER=
+SMTP_PORT=587
+SMTP_USERNAME=
+SMTP_PASSWORD=
+```
+
+### 👥 **USUARIOS POR DEFECTO:**
+- **Admin:** `admin` / `admin123`
+- **Usuario:** `usuario` / `user123`
+
 ## 📁 Estructura de Archivos Reorganizada
 
 ```
@@ -9,8 +58,7 @@ whip-helmets/
 │   ├── politica-de-privacidad.html     # Política de privacidad
 │   └── terminos-y-condiciones.html     # Términos y condiciones
 ├── admin/                              # Panel de administración
-│   ├── index.html                      # Dashboard administrativo
-│   ├── login.html                      # Login del admin
+│   ├── admin.html                      # Dashboard administrativo
 │   ├── css/
 │   │   └── admin.css                   # Estilos del panel admin
 │   └── js/
@@ -28,14 +76,32 @@ whip-helmets/
 │       └── products/                   # Imágenes de productos
 ├── backend/                            # Servidor y API
 │   ├── server.py                       # Servidor Flask principal
-│   ├── init_db.py                      # Inicialización de BD
+│   ├── auth.py                         # Sistema de autenticación
+│   ├── payment_handler.py              # Integración MercadoPago
+│   ├── image_processor.py              # Optimización de imágenes
+│   ├── config.py                       # Configuración
 │   ├── requirements.txt                # Dependencias Python
-│   ├── README.txt                      # Documentación del backend
 │   └── productos.db                    # Base de datos SQLite (generado)
-└── README.md                           # Documentación principal
+├── payment/                            # Páginas de pago
+│   ├── success.html                    # Pago exitoso
+│   ├── failure.html                    # Pago fallido
+│   └── pending.html                    # Pago pendiente
+├── app.py                              # Entry point para Railway
+├── Procfile                            # Comando de inicio
+├── runtime.txt                         # Versión de Python
+└── requirements.txt                    # Dependencias (raíz)
 ```
 
 ## 🚀 Instalación y Configuración
+
+### ☁️ Despliegue en Railway (Recomendado)
+
+**📋 Ver `RAILWAY_DEPLOY.md` para instrucciones detalladas**
+
+1. **Subir a GitHub** (con todos los archivos)
+2. **Conectar Railway** con tu repositorio
+3. **Configurar variables de entorno** en Railway
+4. **¡Listo!** La app estará online
 
 ### 🖥️ Desarrollo Local
 
@@ -64,30 +130,6 @@ whip-helmets/
    ```
    
    El servidor iniciará en: `http://127.0.0.1:5000`
-   
-   **📋 Ver `backend/SETUP.md` para instrucciones detalladas de configuración**
-
-### ☁️ Despliegue en Railway (Producción)
-
-Para desplegar en Railway:
-
-1. **Subir a GitHub** (con todos los archivos)
-2. **Conectar Railway** con tu repositorio
-3. **Configurar variables de entorno** en Railway
-4. **¡Listo!** La app estará online
-
-**📋 Ver `RAILWAY_DEPLOY.md` para instrucciones detalladas de Railway**
-
-3. **Configurar las imágenes**
-   - Colocar `logo.png` en `assets/images/`
-   - Colocar `fondo1.jpg` en `assets/images/backgrounds/`
-   - Las imágenes de productos van en `assets/images/products/`
-
-4. **Acceder a la aplicación**
-   - **Frontend**: Abrir `index.html` en el navegador
-   - **Admin Panel**: Ir a `admin/admin.html`
-     - Usuario: `admin`
-     - Contraseña: `admin123`
 
 ## 🌟 Características
 
@@ -96,8 +138,9 @@ Para desplegar en Railway:
 - ✅ Carrito de compras con LocalStorage
 - ✅ Control de stock en tiempo real
 - ✅ Filtros por marca y categoría
-- ✅ Diseño responsive
+- ✅ Diseño responsive completo
 - ✅ Sistema de notificaciones
+- ✅ Galería de imágenes de productos
 
 ### Panel Administrativo
 - ✅ CRUD completo de productos
@@ -105,14 +148,27 @@ Para desplegar en Railway:
 - ✅ Filtros avanzados
 - ✅ Exportación de datos (CSV)
 - ✅ Guardado masivo de cambios
-- ✅ Autenticación básica
+- ✅ Autenticación segura
+- ✅ Gestión de usuarios
+- ✅ Optimización de imágenes
+- ✅ Estadísticas de productos
 
 ### Backend API
 - ✅ REST API completa
 - ✅ Base de datos SQLite
-- ✅ Validación de datos
+- ✅ Validación de datos robusta
 - ✅ Manejo de errores
 - ✅ CORS configurado
+- ✅ Rate limiting
+- ✅ Sanitización de inputs
+- ✅ Integración MercadoPago
+
+### Seguridad
+- ✅ Rate limiting en login
+- ✅ Sanitización de inputs
+- ✅ Validación de datos
+- ✅ Manejo seguro de errores
+- ✅ Autenticación con tokens
 
 ## 📋 Endpoints de la API
 
@@ -123,59 +179,53 @@ Para desplegar en Railway:
 | POST | `/api/products` | Crear producto |
 | PUT | `/api/products/{id}` | Actualizar producto |
 | DELETE | `/api/products/{id}` | Eliminar producto |
-| POST | `/api/seed` | Datos de ejemplo |
+| POST | `/api/auth/login` | Login de usuario |
+| POST | `/api/auth/logout` | Logout de usuario |
+| GET | `/api/profile` | Obtener perfil |
+| PUT | `/api/profile` | Actualizar perfil |
+| POST | `/api/payment/create-preference` | Crear preferencia de pago |
+| POST | `/api/payment/webhook` | Webhook de MercadoPago |
+| GET | `/api/orders` | Obtener pedidos del usuario |
 
-## 🔧 Configuración
+## 🛡️ Seguridad Implementada
 
-### Cambiar credenciales de admin
-Editar en `admin/login.html`:
-```javascript
-if (username === 'admin' && password === 'admin') {
-```
+✅ **Rate Limiting** - Máximo 5 intentos de login por 5 minutos
+✅ **Sanitización** - Limpieza de inputs del usuario
+✅ **Validación** - Verificación de datos de entrada
+✅ **Manejo de errores** - Respuestas seguras sin información sensible
+✅ **Autenticación** - Sistema de tokens con expiración
 
-### Modificar URL de la API
-Cambiar en `assets/js/shop.js` y `admin/js/admin.js`:
-```javascript
-const API_BASE = "http://127.0.0.1:5000";
-```
+## 🚨 **MEJORAS FUTURAS RECOMENDADAS:**
 
-### Personalizar productos
-- Modificar los datos en `backend/server.py` (función `init_db`)
-- O usar el panel administrativo
+### 🔐 **Seguridad Avanzada (Prioridad Alta)**
+- [ ] Implementar JWT real con refresh tokens
+- [ ] Agregar validación de contraseñas robusta
+- [ ] Implementar 2FA para administradores
+- [ ] Agregar logging de seguridad
 
-## 🎨 Personalización
+### 💳 **Pagos (Prioridad Alta)**
+- [ ] Probar flujo completo de pagos en producción
+- [ ] Implementar manejo de webhooks de MercadoPago
+- [ ] Agregar notificaciones de pago por email
+- [ ] Implementar reembolsos
 
-### Colores principales
-En `assets/css/style.css`:
-```css
-:root {
-    --primary-color: #f0ad4e;  /* Dorado */
-    --secondary-color: #000;    /* Negro */
-    --dark-bg: #222;           /* Gris oscuro */
-}
-```
+### 📧 **Notificaciones (Prioridad Media)**
+- [ ] Email de confirmación de pedidos
+- [ ] Notificaciones de stock bajo
+- [ ] Email de bienvenida para nuevos usuarios
+- [ ] Notificaciones de estado de pedido
 
-### Fuentes
-Cambiar en `assets/css/style.css`:
-```css
-@import url('https://fonts.googleapis.com/css2?family=Bangers&display=swap');
-```
+### 📊 **Analytics (Prioridad Media)**
+- [ ] Tracking de ventas
+- [ ] Estadísticas de productos más vendidos
+- [ ] Reportes de inventario
+- [ ] Dashboard de métricas
 
-## 📱 Responsive Design
-
-La aplicación es completamente responsive con breakpoints en:
-- **Desktop**: > 768px
-- **Tablet**: 768px - 480px  
-- **Mobile**: < 480px
-
-## 🛡️ Seguridad
-
-⚠️ **Para producción, implementar:**
-- Autenticación JWT real
-- Validación de entrada robusta
-- HTTPS
-- Rate limiting
-- Sanitización de datos
+### 🔍 **SEO (Prioridad Baja)**
+- [ ] Meta tags para SEO
+- [ ] Open Graph tags
+- [ ] Schema.org markup
+- [ ] Sitemap.xml
 
 ## 🐛 Solución de Problemas
 
@@ -185,32 +235,24 @@ La aplicación es completamente responsive con breakpoints en:
 - Revisar la consola del navegador
 
 ### Las imágenes no cargan
-- Verificar que las rutas en la base de datos coincidan con la estructura de archivos
-- Comprobar que las imágenes existan en `assets/images/`
+- Verificar que las imágenes estén en el repositorio
+- Comprobar las rutas en la base de datos
+- Revisar permisos de archivos
 
-### El carrito no persiste
-- Verificar que LocalStorage esté habilitado
-- Comprobar permisos del navegador
+### Error de autenticación
+- Verificar credenciales de usuario
+- Comprobar que la base de datos esté creada
+- Revisar logs del servidor
 
-## 🤝 Contribución
+### Error de pagos
+- Verificar credenciales de MercadoPago
+- Comprobar configuración de URLs
+- Revisar webhooks
 
-1. Fork del proyecto
-2. Crear rama para feature (`git checkout -b feature/NuevaCaracteristica`)
-3. Commit de cambios (`git commit -m 'Agregar nueva característica'`)
-4. Push a la rama (`git push origin feature/NuevaCaracteristica`)
-5. Crear Pull Request
+## 📞 Soporte
 
-## 📄 Licencia
-
-Este proyecto está bajo la Licencia MIT - ver el archivo `LICENSE` para detalles.
-
-## Soporte
-
-Para soporte y consultas:
-- Email: contacto@whip-helmets.com
-- WhatsApp: +542954544001
-- Instagram: @whip.helmets
-
----
-
-**Desarrollado con ❤️ para WHIP HELMETS**
+Para problemas técnicos:
+1. Revisa los logs en Railway
+2. Verifica las variables de entorno
+3. Comprueba que todas las dependencias estén en `requirements.txt`
+4. Consulta la documentación en `RAILWAY_DEPLOY.md`

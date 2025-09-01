@@ -2,7 +2,10 @@ from flask import Flask, request, jsonify, send_from_directory, g
 from flask_cors import CORS
 import sqlite3
 import os
+import re
 from contextlib import closing
+from datetime import datetime, timedelta
+import hashlib
 
 # Importar el módulo de autenticación
 try:
@@ -18,7 +21,7 @@ try:
     IMAGE_PROCESSING_AVAILABLE = True
 except ImportError:
     IMAGE_PROCESSING_AVAILABLE = False
-    print("⚠️  Módulo de procesamiento de imágenes no disponible")
+    print("⚠️  Procesamiento de imágenes no disponible")
 
 # Importar el manejador de pagos
 try:
@@ -28,6 +31,37 @@ try:
 except ImportError:
     PAYMENT_AVAILABLE = False
     print("⚠️  Módulo de pagos no disponible")
+
+# Importar configuración
+from config import *
+
+# Diccionario para almacenar intentos de login (rate limiting básico)
+login_attempts = {}
+
+def sanitize_input(text):
+    """Sanitiza input del usuario"""
+    if not text:
+        return ""
+    # Remover caracteres peligrosos
+    text = re.sub(r'[<>"\']', '', str(text))
+    return text.strip()
+
+def check_rate_limit(ip, action, limit=5, window=300):
+    """Verifica rate limiting básico"""
+    now = datetime.now()
+    key = f"{ip}_{action}"
+    
+    if key not in login_attempts:
+        login_attempts[key] = []
+    
+    # Limpiar intentos antiguos
+    login_attempts[key] = [t for t in login_attempts[key] if now - t < timedelta(seconds=window)]
+    
+    if len(login_attempts[key]) >= limit:
+        return False
+    
+    login_attempts[key].append(now)
+    return True
 
 DB_PATH = "productos.db"
 
@@ -558,7 +592,6 @@ def auth_register():
                 return jsonify({"error": f"Campo {field} es requerido"}), 400
         
         # Validar formato de email
-        import re
         email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
         if not re.match(email_pattern, profile_data['email']):
             return jsonify({"error": "Formato de email inválido"}), 400
@@ -583,23 +616,32 @@ def auth_register():
 
 @app.route("/api/auth/login", methods=["POST"])
 def auth_login():
-    """Endpoint para login de usuarios"""
+    """Endpoint para login de usuarios con rate limiting"""
     if not AUTH_AVAILABLE:
         return jsonify({"error": "Sistema de autenticación no disponible"}), 503
     
     try:
+        # Rate limiting básico
+        client_ip = request.remote_addr
+        if not check_rate_limit(client_ip, 'login', limit=5, window=300):
+            return jsonify({"error": "Demasiados intentos de login. Intenta en 5 minutos."}), 429
+        
         data = request.get_json()
-        username = data.get('username')
-        password = data.get('password')
+        username = sanitize_input(data.get('username', ''))
+        password = data.get('password', '')
         
         if not username or not password:
             return jsonify({"error": "Usuario y contraseña requeridos"}), 400
+        
+        # Validar longitud mínima
+        if len(username) < 3 or len(password) < 6:
+            return jsonify({"error": "Usuario y contraseña deben tener al menos 3 y 6 caracteres respectivamente"}), 400
         
         result = auth_manager.login(username, password)
         return jsonify(result), 200 if result['success'] else 401
         
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"error": "Error interno del servidor"}), 500
 
 @app.route("/api/auth/logout", methods=["POST"])
 @require_auth
@@ -679,7 +721,6 @@ def update_profile():
                 return jsonify({"error": f"Campo {field} es requerido"}), 400
         
         # Validar formato de email
-        import re
         email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
         if not re.match(email_pattern, data['email']):
             return jsonify({"error": "Formato de email inválido"}), 400

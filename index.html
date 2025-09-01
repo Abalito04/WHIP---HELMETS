@@ -4,8 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WHIP-HELMETS</title>
+    <!-- Preload recursos críticos -->
+    <link rel="preload" href="assets/css/style.css" as="style">
+    <link rel="preload" href="assets/images/logo.png" as="image">
+    <link rel="preload" href="assets/images/backgrounds/fondo1.jpg" as="image">
+    
     <link rel="stylesheet" href="assets/css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <script src="performance-config.js" defer></script>
+    <script src="assets/js/image-optimizer.js" defer></script>
     <script src="assets/js/script.js" defer></script>
     <script src="assets/js/shop.js" defer></script>
 </head>
@@ -41,6 +48,9 @@
             <h2>Carrito</h2>
             <div id="cart-items"></div>
             <p id="cart-total">Total: $0</p>
+            <button id="checkout-btn" class="checkout-btn" style="display: none;">
+                Finalizar Compra
+            </button>
         </div>
     </div>
 </header>
@@ -106,6 +116,72 @@
     <div id="mini-cart-items"></div>
     <p id="mini-cart-total">Total: $0</p>
     <button id="mini-cart-clear">Eliminar todo</button>
+</div>
+
+<!-- Modal de Login -->
+<div id="login-modal" class="login-modal">
+    <div class="login-content">
+        <span class="close-login">&times;</span>
+        <div class="login-header">
+            <i class="fas fa-helmet-safety"></i>
+            <h2>Iniciar Sesión</h2>
+            <p>Accede a tu cuenta para continuar</p>
+        </div>
+        
+        <div id="login-error" class="login-error"></div>
+        <div id="login-success" class="login-success"></div>
+        
+        <form id="login-form">
+            <div class="form-group">
+                <label for="username">Usuario</label>
+                <input type="text" id="username" name="username" required placeholder="Ingresa tu usuario">
+            </div>
+            
+            <div class="form-group">
+                <label for="password">Contraseña</label>
+                <input type="password" id="password" name="password" required placeholder="Ingresa tu contraseña">
+            </div>
+            
+            <button type="submit" class="login-btn" id="login-btn">
+                Iniciar Sesión
+                <span class="loading">
+                    <span class="spinner"></span>
+                </span>
+            </button>
+        </form>
+        
+        <div class="login-footer">
+            <p>¿No tienes cuenta? <a href="register.html">Regístrate aquí</a></p>
+            <div class="demo-credentials">
+                <h4>👤 Credenciales de Prueba:</h4>
+                <p><strong>Admin:</strong> admin / admin123</p>
+                <p><strong>Usuario:</strong> usuario / user123</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Galería de Imágenes -->
+<div id="gallery-modal" class="gallery-modal">
+    <div class="gallery-content">
+        <div class="gallery-header">
+            <h2 id="gallery-title">Galería de Imágenes</h2>
+            <button class="gallery-close">&times;</button>
+        </div>
+        
+        <div class="gallery-main-image">
+            <img id="gallery-main-img" src="" alt="Imagen principal">
+        </div>
+        
+        <div class="gallery-thumbnails" id="gallery-thumbnails">
+            <!-- Las miniaturas se cargarán dinámicamente -->
+        </div>
+        
+        <div class="gallery-navigation">
+            <button class="gallery-nav-btn" id="gallery-prev">‹</button>
+            <button class="gallery-nav-btn" id="gallery-next">›</button>
+        </div>
+    </div>
 </div>
 
 </body>

@@ -17,8 +17,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Login variables
   const loginLink = document.querySelector(".login");
-  let isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
-  let userEmail = localStorage.getItem("userEmail") || "";
+  const loginModal = document.getElementById('login-modal');
+  const loginForm = document.getElementById('login-form');
+  const closeLogin = document.querySelector('.close-login');
+  let currentUser = null;
+  
+  // Verificar sesión al cargar
+  checkAuthStatus();
 
   // ==================== FUNCIONES ====================
   const updateCartCount = () => {
@@ -103,8 +108,14 @@ document.addEventListener("DOMContentLoaded", () => {
           window.updateProductStockUI(item.productId, item.size);
         });
       }
+      
+      // Ocultar botón de checkout si no hay items
+      showCheckoutButton();
     });
     cartItemsContainer.appendChild(clearBtn);
+    
+    // Mostrar botón de checkout
+    showCheckoutButton();
   };
 
   const updateMiniCart = () => {
@@ -158,6 +169,18 @@ document.addEventListener("DOMContentLoaded", () => {
     requestAnimationFrame(() => notif.style.opacity = "1");
     setTimeout(() => { notif.style.opacity = "0"; setTimeout(() => notif.remove(), 300); }, 1500);
   };
+  
+  // Función para mostrar/ocultar botón de checkout
+  const showCheckoutButton = () => {
+    const checkoutBtn = document.getElementById('checkout-btn');
+    if (checkoutBtn) {
+      if (cart.length > 0) {
+        checkoutBtn.style.display = 'block';
+      } else {
+        checkoutBtn.style.display = 'none';
+      }
+    }
+  };
 
   // Función para añadir productos al carrito (modificada para verificar stock)
   window.addToCart = (productName, price, size, productId) => {
@@ -176,6 +199,9 @@ document.addEventListener("DOMContentLoaded", () => {
       if (typeof window.updateProductStockUI === 'function') {
         window.updateProductStockUI(productId, size);
       }
+      
+      // Mostrar botón de checkout si hay items en el carrito
+      showCheckoutButton();
       return true;
     } else {
       showMiniNotification("No hay suficiente stock disponible");
@@ -243,6 +269,25 @@ document.addEventListener("DOMContentLoaded", () => {
     miniCart.addEventListener("click", (e) => {
       e.stopPropagation();
       if (miniCartDropdown) miniCartDropdown.classList.toggle("active");
+    });
+  }
+  
+  // Evento para el botón de checkout
+  const checkoutBtn = document.getElementById('checkout-btn');
+  if (checkoutBtn) {
+    checkoutBtn.addEventListener('click', () => {
+      // Verificar si el usuario está autenticado
+      const token = localStorage.getItem('authToken');
+      if (!token) {
+        alert('Debes iniciar sesión para realizar una compra');
+        // Mostrar el modal de login
+        const loginModal = document.getElementById('loginModal');
+        if (loginModal) {
+          loginModal.style.display = 'block';
+        }
+        return;
+      }
+      window.location.href = 'checkout.html';
     });
   }
 
@@ -314,77 +359,263 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // ==================== MODAL LOGIN ====================
-  // Crear modal
-  const loginModal = document.createElement("div");
-  loginModal.id = "login-modal";
-  loginModal.style.display = "none";
-  loginModal.innerHTML = `
-    <div class="login-content">
-      <span class="close-login">&times;</span>
-      <h2>Iniciar Sesión</h2>
-      <form id="login-form" style="width:100%; display:flex; flex-direction:column; gap:10px;">
-        <input type="email" id="login-email" placeholder="Correo electrónico" required>
-        <input type="password" id="login-password" placeholder="Contraseña" required>
-        <button type="submit" id="login-submit">Entrar</button>
-        <button type="button" id="register-btn">Registrarse</button>
-      </form>
-      <p style="margin-top:15px;font-size:0.9em;text-align:center;">
-        ¿No tienes cuenta? <a href="#" id="show-register">Regístrate aquí</a>
-      </p>
-    </div>
-  `;
-  document.body.appendChild(loginModal);
+  // ==================== FUNCIONES DE LOGIN ====================
+  
+  function checkAuthStatus() {
+    const token = localStorage.getItem('authToken');
+    const userInfo = localStorage.getItem('userInfo');
+    
+    if (token && userInfo) {
+      try {
+        currentUser = JSON.parse(userInfo);
+        updateLoginButton();
+      } catch (e) {
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('userInfo');
+      }
+    }
+  }
+
+  function updateLoginButton() {
+    if (currentUser) {
+      loginLink.textContent = `👤 ${currentUser.username}`;
+      loginLink.onclick = showUserMenu;
+    } else {
+      loginLink.textContent = 'Iniciar Sesión';
+      loginLink.onclick = showLoginModal;
+    }
+  }
+
+  function showLoginModal() {
+    if (loginModal) {
+      loginModal.classList.add('show');
+    }
+  }
+
+  function hideLoginModal() {
+    if (loginModal) {
+      loginModal.classList.remove('show');
+    }
+    // Limpiar formulario
+    if (loginForm) loginForm.reset();
+    hideMessages();
+  }
+
+  function hideMessages() {
+    const errorDiv = document.getElementById('login-error');
+    const successDiv = document.getElementById('login-success');
+    if (errorDiv) errorDiv.style.display = 'none';
+    if (successDiv) successDiv.style.display = 'none';
+  }
+
+  function showMessage(message, type) {
+    const errorDiv = document.getElementById('login-error');
+    const successDiv = document.getElementById('login-success');
+    
+    hideMessages();
+    
+    if (type === 'error') {
+      if (errorDiv) {
+        errorDiv.textContent = message;
+        errorDiv.style.display = 'block';
+      } else {
+        alert(message);
+      }
+    } else {
+      if (successDiv) {
+        successDiv.textContent = message;
+        successDiv.style.display = 'block';
+      } else {
+        alert(message);
+      }
+    }
+    
+    // Auto-ocultar después de 5 segundos
+    setTimeout(() => {
+      hideMessages();
+    }, 5000);
+  }
+
+  // Manejar envío del formulario de login
+  if (loginForm) {
+    loginForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value;
+      const submitBtn = document.getElementById('login-btn');
+      const loading = document.querySelector('.loading');
+      
+      if (!username || !password) {
+        showMessage('Por favor completa todos los campos', 'error');
+        return;
+      }
+      
+      // Mostrar loading
+      if (submitBtn) submitBtn.disabled = true;
+      if (loading) loading.style.display = 'inline-block';
+      
+      try {
+        const response = await fetch('http://127.0.0.1:5000/api/auth/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ username, password })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+          // Guardar token en localStorage
+          localStorage.setItem('authToken', data.session_token);
+          localStorage.setItem('userInfo', JSON.stringify(data.user));
+          
+          currentUser = data.user;
+          updateLoginButton();
+          
+          showMessage('¡Login exitoso!', 'success');
+          
+          // Cerrar modal después de 1.5 segundos
+          setTimeout(() => {
+            hideLoginModal();
+            
+            // Si es admin, mostrar opción de ir al panel
+            if (data.user.role === 'admin') {
+              console.log('Usuario admin detectado, preguntando si quiere ir al panel...');
+              if (confirm('¿Quieres ir al panel de administración?')) {
+                console.log('Redirigiendo al panel de administración...');
+                window.location.href = '/admin/admin.html';
+              } else {
+                console.log('Usuario eligió no ir al panel');
+              }
+            }
+          }, 1500);
+          
+        } else {
+          showMessage(data.error || 'Error en el login', 'error');
+        }
+        
+      } catch (error) {
+        showMessage('Error de conexión. Verifica que el servidor esté corriendo.', 'error');
+      } finally {
+        // Ocultar loading
+        if (submitBtn) submitBtn.disabled = false;
+        if (loading) loading.style.display = 'none';
+      }
+    });
+  }
+
+  // Cerrar modal de login
+  if (closeLogin) {
+    closeLogin.addEventListener('click', hideLoginModal);
+  }
+
+  // Cerrar modal al hacer clic fuera
+  if (loginModal) {
+    loginModal.addEventListener('click', (e) => {
+      if (e.target === loginModal) {
+        hideLoginModal();
+      }
+    });
+  }
+
+  function showUserMenu() {
+    const menu = `
+      <div class="user-menu">
+        <p style="color: #333; margin: 5px 0; font-weight: bold;">👤 ${currentUser.username}</p>
+        <p style="color: #666; margin: 5px 0; font-size: 0.9rem;">Rol: ${currentUser.role === 'admin' ? 'Administrador' : 'Usuario'}</p>
+        <a href="profile.html" style="background: #337ab7; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; margin: 5px 5px 5px 0; font-size: 0.9rem; text-decoration: none; display: inline-block;">Mi Perfil</a>
+        ${currentUser.role !== 'admin' ? '<a href="orders.html" style="background: #f0ad4e; color: #333; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; margin: 5px 5px 5px 0; font-size: 0.9rem; text-decoration: none; display: inline-block;">Mis Pedidos</a>' : ''}
+        ${currentUser.role === 'admin' ? '<button onclick="goToAdmin()" style="background: #5bc0de; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; margin: 5px 5px 5px 0; font-size: 0.9rem;">Panel Admin</button>' : ''}
+        <button onclick="logout()" style="background: #d9534f; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; margin: 5px 5px 5px 0; font-size: 0.9rem;">Cerrar Sesión</button>
+      </div>
+    `;
+    
+    // Crear un popup simple
+    const popup = document.createElement('div');
+    popup.className = 'user-popup';
+    popup.innerHTML = menu;
+    popup.style.cssText = `
+      position: absolute;
+      top: 60px;
+      right: 20px;
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 15px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      z-index: 1000;
+      min-width: 200px;
+    `;
+    
+    document.body.appendChild(popup);
+    
+    // Cerrar al hacer clic fuera
+    setTimeout(() => {
+      document.addEventListener('click', function closePopup(e) {
+        if (!popup.contains(e.target) && e.target !== loginLink) {
+          popup.remove();
+          document.removeEventListener('click', closePopup);
+        }
+      });
+    }, 100);
+  }
+
+  function logout() {
+    const token = localStorage.getItem('authToken');
+    
+    if (token) {
+      // Intentar cerrar sesión en el servidor
+      fetch('http://127.0.0.1:5000/api/auth/logout', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      }).catch(() => {
+        // Si falla, continuar con el logout local
+      });
+    }
+    
+    // Limpiar localStorage
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('userInfo');
+    currentUser = null;
+    updateLoginButton();
+    
+    // Recargar página para limpiar estado
+    location.reload();
+  }
+
+  function goToAdmin() {
+    console.log('Función goToAdmin ejecutada');
+    try {
+      window.location.href = '/admin/admin.html';
+    } catch (error) {
+      console.error('Error al redirigir al admin:', error);
+      // Fallback: intentar con URL completa
+      window.location.href = 'http://127.0.0.1:5000/admin/admin.html';
+    }
+  }
+
+  function showRegisterForm() {
+    showMessage('Función de registro en desarrollo. Usa las credenciales de prueba.', 'error');
+  }
+  
+  // Hacer funciones globales para que funcionen desde el HTML
+  window.logout = logout;
+  window.goToAdmin = goToAdmin;
+  window.showRegisterForm = showRegisterForm;
 
   // Eventos para el botón de login
   if (loginLink) {
     loginLink.addEventListener("click", e => {
       e.preventDefault();
-      if (isLoggedIn) {
-        handleLogout();
+      if (currentUser) {
+        showUserMenu();
       } else {
-        loginModal.style.display = "flex";
+        showLoginModal();
       }
-    });
-  }
-
-  // Cerrar modal al hacer click en la X
-  const closeLogin = loginModal.querySelector(".close-login");
-  if (closeLogin) {
-    closeLogin.addEventListener("click", () => {
-      loginModal.style.display = "none";
-    });
-  }
-
-  // Cerrar modal al hacer click fuera del contenido
-  loginModal.addEventListener("click", e => {
-    if (e.target === loginModal) {
-      loginModal.style.display = "none";
-    }
-  });
-
-  // Evento login
-  const loginForm = document.getElementById("login-form");
-  if (loginForm) {
-    loginForm.addEventListener("submit", e => {
-      e.preventDefault();
-      const email = document.getElementById("login-email").value;
-      const password = document.getElementById("login-password").value;
-      
-      if (handleLogin(email, password)) {
-        loginModal.style.display = "none";
-        showMiniNotification("¡Sesión iniciada correctamente!");
-      } else {
-        alert("Error: Credenciales incorrectas");
-      }
-    });
-  }
-
-  // Botón registrarse
-  const registerBtn = document.getElementById("register-btn");
-  if (registerBtn) {
-    registerBtn.addEventListener("click", () => {
-      alert("Funcionalidad de registro en desarrollo");
     });
   }
 

@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pago Exitoso - WHIP-HELMETS</title>
+    <link rel="stylesheet" href="../assets/css/style.css">
+    <style>
+        .payment-result {
+            max-width: 600px;
+            margin: 50px auto;
+            text-align: center;
+            padding: 40px;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .success-icon {
+            font-size: 80px;
+            color: #28a745;
+            margin-bottom: 20px;
+        }
+        .payment-result h1 {
+            color: #28a745;
+            margin-bottom: 20px;
+        }
+        .payment-result p {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 18px;
+        }
+        .btn-primary {
+            background: #f0ad4e;
+            color: #333;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            text-decoration: none;
+            display: inline-block;
+            margin: 10px;
+        }
+        .btn-secondary {
+            background: #6c757d;
+            color: #fff;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            text-decoration: none;
+            display: inline-block;
+            margin: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="payment-result">
+        <div class="success-icon">✅</div>
+        <h1>¡Pago Exitoso!</h1>
+        <p>Tu pedido ha sido procesado correctamente. Recibirás un email de confirmación pronto.</p>
+        <p>Número de pedido: <strong id="order-number">Cargando...</strong></p>
+        <div>
+            <a href="../index.html" class="btn-primary">Volver a la Tienda</a>
+            <a href="#" class="btn-secondary" onclick="window.print()">Imprimir Comprobante</a>
+        </div>
+    </div>
+
+    <script>
+        // Obtener parámetros de la URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const orderNumber = urlParams.get('order_number') || 'N/A';
+        document.getElementById('order-number').textContent = orderNumber;
+        
+        // Limpiar carrito después del pago exitoso
+        localStorage.removeItem("cart_v1");
+    </script>
+</body>
+</html>

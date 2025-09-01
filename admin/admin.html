@@ -10,8 +10,28 @@
     <header>
         <script>
     // Verificar autenticación antes de cargar el panel
-    if (localStorage.getItem('adminAuthenticated') !== 'true') {
-        window.location.href = 'login.html';
+    const authToken = localStorage.getItem('authToken');
+    const userInfo = localStorage.getItem('userInfo');
+    
+    if (!authToken || !userInfo) {
+        // No hay token o información de usuario, redirigir al login principal
+        window.location.href = '/';
+        alert('Debes iniciar sesión primero');
+    } else {
+        try {
+            const user = JSON.parse(userInfo);
+            if (user.role !== 'admin') {
+                // Usuario no es admin, redirigir
+                window.location.href = '/';
+                alert('Acceso denegado. Se requiere rol de administrador');
+            }
+        } catch (error) {
+            // Error al parsear la información del usuario
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('userInfo');
+            window.location.href = '/';
+            alert('Error en la sesión. Por favor inicia sesión nuevamente');
+        }
     }
 </script>
         <div class="logo">
@@ -21,82 +41,142 @@
             <button class="btn btn-success" id="add-product">Agregar Producto</button>
             <button class="btn btn-primary" id="save-all">Guardar Todos los Cambios</button>
             <button class="btn btn-secondary" id="export-data">Exportar Datos</button>
+            <button class="btn btn-info" id="optimize-images">🖼️ Optimizar Imágenes</button>
+            <button class="btn btn-warning" id="image-stats">📊 Estadísticas</button>
+            <button class="btn btn-success" id="manage-users">👥 Gestionar Usuarios</button>
             <button class="btn btn-danger" id="logout">Cerrar Sesión</button>
         </div>
     </header>
 
     <div class="admin-container">
-        <div class="filters">
-            <div class="filter-row">
-                <div class="filter-group">
-                    <label for="search">Buscar Producto</label>
-                    <input type="text" id="search" placeholder="Nombre, marca, modelo...">
+        <!-- Panel de Productos -->
+        <div id="products-panel" class="admin-panel">
+            <div class="filters">
+                <div class="filter-row">
+                    <div class="filter-group">
+                        <label for="search">Buscar Producto</label>
+                        <input type="text" id="search" placeholder="Nombre, marca, modelo...">
+                    </div>
+                    <div class="filter-group">
+                        <label for="category">Categoría</label>
+                        <select id="category">
+                            <option value="all">Todas las categorías</option>
+                            <option value="cascos">Cascos</option>
+                            <option value="accesorios">Accesorios</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="brand">Marca</label>
+                        <select id="brand">
+                            <option value="all">Todas las marcas</option>
+                            <option value="fox">Fox</option>
+                            <option value="bell">Bell</option>
+                            <option value="fly">Fly Racing</option>
+                            <option value="alpinestars">Alpinestars</option>
+                            <option value="aircraft">Aircraft</option>
+                            <option value="troylee">Troy Lee Design</option>
+                        </select>
+                    </div>
                 </div>
-                <div class="filter-group">
-                    <label for="category">Categoría</label>
-                    <select id="category">
-                        <option value="all">Todas las categorías</option>
-                        <option value="cascos">Cascos</option>
-                        <option value="accesorios">Accesorios</option>
-                    </select>
-                </div>
-                <div class="filter-group">
-                    <label for="brand">Marca</label>
-                    <select id="brand">
-                        <option value="all">Todas las marcas</option>
-                        <option value="fox">Fox</option>
-                        <option value="bell">Bell</option>
-                        <option value="fly">Fly Racing</option>
-                        <option value="alpinestars">Alpinestars</option>
-                        <option value="aircraft">Aircraft</option>
-                        <option value="troylee">Troy Lee Design</option>
-                    </select>
+                <div class="filter-row">
+                    <div class="filter-group">
+                        <label for="stock-filter">Filtrar por Stock</label>
+                        <select id="stock-filter">
+                            <option value="all">Todos</option>
+                            <option value="low">Stock Bajo (≤ 5)</option>
+                            <option value="medium">Stock Medio (6-15)</option>
+                            <option value="high">Stock Alto (> 15)</option>
+                            <option value="out">Sin Stock</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="price-range">Rango de Precios</label>
+                        <input type="range" id="price-range" min="0" max="1000000" step="50000">
+                        <output id="price-output">Todos los precios</output>
+                    </div>
+                    <div class="filter-group">
+                        <button class="btn btn-primary" id="apply-filters">Aplicar Filtros</button>
+                        <button class="btn" id="reset-filters">Restablecer</button>
+                    </div>
                 </div>
             </div>
-            <div class="filter-row">
-                <div class="filter-group">
-                    <label for="stock-filter">Filtrar por Stock</label>
-                    <select id="stock-filter">
-                        <option value="all">Todos</option>
-                        <option value="low">Stock Bajo (≤ 5)</option>
-                        <option value="medium">Stock Medio (6-15)</option>
-                        <option value="high">Stock Alto (> 15)</option>
-                        <option value="out">Sin Stock</option>
-                    </select>
-                </div>
-                <div class="filter-group">
-                    <label for="price-range">Rango de Precios</label>
-                    <input type="range" id="price-range" min="0" max="1000000" step="50000">
-                    <output id="price-output">Todos los precios</output>
-                </div>
-                <div class="filter-group">
-                    <button class="btn btn-primary" id="apply-filters">Aplicar Filtros</button>
-                    <button class="btn" id="reset-filters">Restablecer</button>
-                </div>
+
+            <table class="products-table">
+                <thead>
+                    <tr>
+                        <th>Imagen</th>
+                        <th>Nombre del Producto</th>
+                        <th>Marca</th>
+                        <th>Precio</th>
+                        <th>Categoría</th>
+                        <th>Talles Disponibles</th>
+                        <th>Stock</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="products-body">
+                    <!-- Los productos se cargarán aquí dinámicamente -->
+                </tbody>
+            </table>
+
+            <div class="pagination" id="pagination">
+                <!-- La paginación se generará aquí -->
             </div>
         </div>
 
-        <table class="products-table">
-            <thead>
-                <tr>
-                    <th>Imagen</th>
-                    <th>Nombre del Producto</th>
-                    <th>Marca</th>
-                    <th>Precio</th>
-                    <th>Categoría</th>
-                    <th>Talles Disponibles</th>
-                    <th>Stock</th>
-                    <th>Estado</th>
-                    <th>Acciones</th>
-                </tr>
-            </thead>
-            <tbody id="products-body">
-                <!-- Los productos se cargarán aquí dinámicamente -->
-            </tbody>
-        </table>
+        <!-- Panel de Usuarios -->
+        <div id="users-panel" class="admin-panel" style="display: none;">
+            <div class="users-header">
+                <h2>👥 Gestión de Usuarios</h2>
+                <div class="users-actions">
+                    <button class="btn btn-primary" id="back-to-products">⬅️ Volver a Productos</button>
+                    <button class="btn btn-success" id="add-user">➕ Agregar Usuario</button>
+                </div>
+            </div>
+            
+            <div class="users-filters">
+                <div class="filter-row">
+                    <div class="filter-group">
+                        <label for="user-search">Buscar Usuario</label>
+                        <input type="text" id="user-search" placeholder="Username, nombre, email...">
+                    </div>
+                    <div class="filter-group">
+                        <label for="role-filter">Filtrar por Rol</label>
+                        <select id="role-filter">
+                            <option value="all">Todos los roles</option>
+                            <option value="admin">Administradores</option>
+                            <option value="user">Usuarios</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <button class="btn btn-primary" id="apply-user-filters">Aplicar Filtros</button>
+                        <button class="btn" id="reset-user-filters">Restablecer</button>
+                    </div>
+                </div>
+            </div>
 
-        <div class="pagination" id="pagination">
-            <!-- La paginación se generará aquí -->
+            <table class="users-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Username</th>
+                        <th>Nombre</th>
+                        <th>Apellido</th>
+                        <th>Email</th>
+                        <th>Rol</th>
+                        <th>Fecha de Registro</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="users-body">
+                    <!-- Los usuarios se cargarán aquí dinámicamente -->
+                </tbody>
+            </table>
+
+            <div class="pagination" id="users-pagination">
+                <!-- La paginación se generará aquí -->
+            </div>
         </div>
     </div>
 
@@ -155,6 +235,155 @@
                 </div>
                 <button type="submit" class="btn btn-success">Crear Producto</button>
             </form>
+        </div>
+    </div>
+
+    <!-- Modal para agregar/editar usuario -->
+    <div id="user-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2 id="user-modal-title">Agregar Nuevo Usuario</h2>
+            <form id="user-form">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="user-username">Username *</label>
+                        <input type="text" id="user-username" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="user-password">Contraseña *</label>
+                        <input type="password" id="user-password" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="user-nombre">Nombre</label>
+                        <input type="text" id="user-nombre">
+                    </div>
+                    <div class="form-group">
+                        <label for="user-apellido">Apellido</label>
+                        <input type="text" id="user-apellido">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="user-email">Email</label>
+                        <input type="email" id="user-email">
+                    </div>
+                    <div class="form-group">
+                        <label for="user-role">Rol *</label>
+                        <select id="user-role" required>
+                            <option value="user">Usuario</option>
+                            <option value="admin">Administrador</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="user-dni">DNI</label>
+                        <input type="text" id="user-dni" maxlength="8">
+                    </div>
+                    <div class="form-group">
+                        <label for="user-telefono">Teléfono</label>
+                        <input type="text" id="user-telefono">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="user-direccion">Dirección</label>
+                    <textarea id="user-direccion" rows="3"></textarea>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="user-codigo-postal">Código Postal</label>
+                        <input type="text" id="user-codigo-postal" maxlength="5">
+                    </div>
+                    <div class="form-group">
+                        <label>&nbsp;</label>
+                        <button type="submit" class="btn btn-success">Guardar Usuario</button>
+                        <button type="button" class="btn btn-secondary" id="cancel-user">Cancelar</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal para confirmar eliminación de usuario -->
+    <div id="delete-user-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>⚠️ Confirmar Eliminación</h2>
+            <p>¿Estás seguro de que quieres eliminar al usuario <strong id="delete-user-name"></strong>?</p>
+            <p>Esta acción no se puede deshacer.</p>
+            <div class="modal-actions">
+                <button class="btn btn-danger" id="confirm-delete-user">Sí, Eliminar</button>
+                <button class="btn btn-secondary" id="cancel-delete-user">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para estadísticas de imágenes -->
+    <div id="image-stats-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>📊 Estadísticas de Optimización de Imágenes</h2>
+            <div id="image-stats-content">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h3>Imágenes Originales</h3>
+                        <p id="original-count">-</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Imágenes Optimizadas</h3>
+                        <p id="optimized-count">-</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Tamaño Original</h3>
+                        <p id="original-size">-</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Tamaño Optimizado</h3>
+                        <p id="optimized-size">-</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3>Reducción</h3>
+                        <p id="reduction-percent">-</p>
+                    </div>
+                </div>
+                <div class="optimization-actions">
+                    <button class="btn btn-info" id="process-new-images">🔄 Procesar Nuevas Imágenes</button>
+                    <button class="btn btn-warning" id="cleanup-images">🧹 Limpiar Optimizaciones</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Galería de Imágenes -->
+    <div id="gallery-modal" class="gallery-modal">
+        <div class="gallery-content">
+            <div class="gallery-header">
+                <h2 id="gallery-title">Galería de Imágenes</h2>
+                <button class="gallery-close">&times;</button>
+            </div>
+            
+            <div class="gallery-main-image">
+                <img id="gallery-main-img" src="" alt="Imagen principal">
+            </div>
+            
+            <div class="gallery-thumbnails" id="gallery-thumbnails">
+                <!-- Las miniaturas se cargarán dinámicamente -->
+            </div>
+            
+            <div class="gallery-actions">
+                <button class="btn btn-primary" id="set-main-image">Establecer como Principal</button>
+                <button class="btn btn-danger" id="delete-image">Eliminar Imagen</button>
+                <button class="btn btn-success" id="add-images">Agregar Imágenes</button>
+            </div>
+            
+            <div class="gallery-upload" id="gallery-upload">
+                <input type="file" id="gallery-file-input" multiple accept="image/*">
+                <label for="gallery-file-input">
+                    📁 Arrastra imágenes aquí o haz clic para seleccionar
+                </label>
+            </div>
         </div>
     </div>
 

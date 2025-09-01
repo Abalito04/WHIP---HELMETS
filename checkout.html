@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout - WHIP-HELMETS</title>
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    
+    <!-- MercadoPago SDK -->
+    <script src="https://sdk.mercadopago.com/js/v2"></script>
+    
+    <style>
+        .checkout-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+        }
+        
+        .checkout-form {
+            background: #fff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        
+                 .checkout-summary {
+             background: #f8f9fa;
+             padding: 30px;
+             border-radius: 10px;
+             height: fit-content;
+             color: #333;
+         }
+         
+         .checkout-summary h3 {
+             color: #333;
+             margin-bottom: 20px;
+         }
+         
+         .checkout-form h3 {
+             color: #000;
+             margin-bottom: 20px;
+         }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+        
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #f0ad4e;
+        }
+        
+        .checkout-btn {
+            background: #f0ad4e;
+            color: #333;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 5px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            transition: background 0.3s ease;
+        }
+        
+        .checkout-btn:hover {
+            background: #e09d3e;
+        }
+        
+        .checkout-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        
+        .cart-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px 0;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .cart-item img {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 5px;
+        }
+        
+        .cart-item-details {
+            flex: 1;
+        }
+        
+                 .cart-item-name {
+             font-weight: bold;
+             margin-bottom: 5px;
+             color: #333;
+         }
+        
+                 .cart-item-size {
+             color: #666;
+             font-size: 14px;
+             margin-bottom: 3px;
+         }
+        
+        .cart-item-price {
+            font-weight: bold;
+            color: #f0ad4e;
+        }
+        
+                 .cart-total {
+             margin-top: 20px;
+             padding-top: 20px;
+             border-top: 2px solid #ddd;
+             font-size: 20px;
+             font-weight: bold;
+             color: #333;
+         }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #f0ad4e;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        
+        @media (max-width: 768px) {
+            .checkout-container {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="main-header">
+        <div class="header-left">
+            <a href="index.html" class="logo">
+                <img src="assets/images/logo.png" alt="Logo WHIP-HELMETS" class="logo-img">
+                <h1>WHIP-HELMETS</h1>
+            </a>
+        </div>
+        <div class="header-center">
+            <h2>Finalizar Compra</h2>
+        </div>
+        <div class="header-right">
+            <a href="index.html" class="btn-secondary">Volver a la Tienda</a>
+        </div>
+    </header>
+
+    <main>
+        <div class="checkout-container">
+            <!-- Formulario de Checkout -->
+            <div class="checkout-form">
+                <h3>Datos de Contacto</h3>
+                
+                <div class="error-message" id="error-message"></div>
+                <div class="success-message" id="success-message"></div>
+                
+                <form id="checkout-form">
+                    <div class="form-group">
+                        <label for="customer-name">Nombre Completo *</label>
+                        <input type="text" id="customer-name" name="name" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="customer-email">Email *</label>
+                        <input type="email" id="customer-email" name="email" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="customer-phone">Teléfono *</label>
+                        <input type="tel" id="customer-phone" name="phone" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="customer-address">Dirección de Envío</label>
+                        <input type="text" id="customer-address" name="address">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="customer-city">Ciudad</label>
+                        <input type="text" id="customer-city" name="city">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="customer-zip">Código Postal</label>
+                        <input type="text" id="customer-zip" name="zip">
+                    </div>
+                    
+                    <button type="submit" class="checkout-btn" id="checkout-btn">
+                        Pagar con MercadoPago
+                    </button>
+                </form>
+                
+                <div class="loading" id="loading">
+                    <div class="spinner"></div>
+                    <p>Procesando pago...</p>
+                </div>
+            </div>
+            
+            <!-- Resumen del Carrito -->
+            <div class="checkout-summary">
+                <h3>Resumen de tu Pedido</h3>
+                <div id="cart-summary">
+                    <!-- Los items se cargarán dinámicamente -->
+                </div>
+                <div class="cart-total">
+                    Total: <span id="cart-total">$0</span>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const API_BASE = "http://127.0.0.1:5000";
+        let cart = JSON.parse(localStorage.getItem("cart_v1")) || [];
+        
+        // Verificar si el usuario está autenticado
+        function checkAuthentication() {
+            const token = localStorage.getItem('authToken');
+            if (!token) {
+                // Usuario no autenticado, redirigir al login
+                alert('Debes iniciar sesión para realizar una compra');
+                window.location.href = 'index.html#login';
+                return false;
+            }
+            return true;
+        }
+        
+                 // Cargar resumen del carrito
+         function loadCartSummary() {
+             const cartSummary = document.getElementById('cart-summary');
+             const cartTotal = document.getElementById('cart-total');
+             
+             if (cart.length === 0) {
+                 cartSummary.innerHTML = '<p style="color: #333;">No hay productos en el carrito</p>';
+                 cartTotal.textContent = '$0';
+                 return;
+             }
+             
+             let total = 0;
+             let html = '';
+             
+             cart.forEach(item => {
+                 // Corregir estructura del carrito - usar productName en lugar de name
+                 const itemName = item.productName || item.name || 'Producto sin nombre';
+                 const itemPrice = parseFloat(item.price) || 0;
+                 const itemQuantity = parseInt(item.quantity) || 1;
+                 const itemSize = item.size || 'Sin talle';
+                 
+                 // Obtener imagen del producto
+                 let itemImage = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIGZpbGw9IiNFRUVFRUUiLz48cGF0aCBkPSJNMTUgMzBINjBWNDBIMzVWMzBIMjVWMTVIMjBWMzBIMTVaIiBmaWxsPSIjOTk5Ii8+PC9zdmc+';
+                 
+                 // Si no hay imagen en el carrito, intentar obtenerla de los productos
+                 if (!item.image && item.productId) {
+                     // Buscar el producto en la lista de productos
+                     const products = window.products || [];
+                     const product = products.find(p => p.id == item.productId);
+                     if (product && product.image) {
+                         itemImage = product.image;
+                     }
+                 } else if (item.image) {
+                     itemImage = item.image;
+                 }
+                 
+                 const itemTotal = itemPrice * itemQuantity;
+                 total += itemTotal;
+                 
+                 html += `
+                     <div class="cart-item">
+                         <img src="${itemImage}" alt="${itemName}" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIGZpbGw9IiNFRUVFRUUiLz48cGF0aCBkPSJNMTUgMzBINjBWNDBIMzVWMzBIMjVWMTVIMjBWMzBIMTVaIiBmaWxsPSIjOTk5Ii8+PC9zdmc+'">
+                         <div class="cart-item-details">
+                             <div class="cart-item-name">${itemName}</div>
+                             <div class="cart-item-size">Talle: ${itemSize}</div>
+                         </div>
+                         <div class="cart-item-price">
+                             $${itemPrice.toLocaleString()} x ${itemQuantity}
+                         </div>
+                     </div>
+                 `;
+             });
+             
+             cartSummary.innerHTML = html;
+             cartTotal.textContent = `$${total.toLocaleString()}`;
+         }
+        
+                 // Procesar checkout
+         async function processCheckout(customerInfo) {
+             try {
+                 // Preparar items para la API
+                 const items = cart.map(item => ({
+                     name: item.productName || item.name || 'Producto sin nombre',
+                     price: parseFloat(item.price) || 0,
+                     quantity: parseInt(item.quantity) || 1,
+                     size: item.size || 'Sin talle',
+                     product_id: item.productId
+                 }));
+                
+                                 // Crear preferencia de pago
+                 const token = localStorage.getItem('authToken');
+                 const response = await fetch(`${API_BASE}/api/payment/create-preference`, {
+                     method: 'POST',
+                     headers: {
+                         'Content-Type': 'application/json',
+                         'Authorization': `Bearer ${token}`
+                     },
+                     body: JSON.stringify({
+                         items: items,
+                         customer_info: customerInfo
+                     })
+                 });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    // Redirigir a MercadoPago
+                    window.location.href = result.sandbox_init_point; // Usar sandbox para pruebas
+                } else {
+                    throw new Error(result.error || 'Error al procesar el pago');
+                }
+                
+            } catch (error) {
+                console.error('Error:', error);
+                showError('Error al procesar el pago: ' + error.message);
+            }
+        }
+        
+        // Mostrar error
+        function showError(message) {
+            const errorDiv = document.getElementById('error-message');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+            hideLoading();
+        }
+        
+        // Mostrar éxito
+        function showSuccess(message) {
+            const successDiv = document.getElementById('success-message');
+            successDiv.textContent = message;
+            successDiv.style.display = 'block';
+        }
+        
+        // Mostrar/ocultar loading
+        function showLoading() {
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('checkout-btn').disabled = true;
+        }
+        
+        function hideLoading() {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('checkout-btn').disabled = false;
+        }
+        
+        // Event listener para el formulario
+        document.getElementById('checkout-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            // Verificar autenticación antes de procesar
+            if (!checkAuthentication()) {
+                return;
+            }
+            
+            if (cart.length === 0) {
+                showError('No hay productos en el carrito');
+                return;
+            }
+            
+            showLoading();
+            
+            const formData = new FormData(e.target);
+            const customerInfo = {
+                name: formData.get('name'),
+                email: formData.get('email'),
+                phone: formData.get('phone'),
+                address: formData.get('address'),
+                city: formData.get('city'),
+                zip: formData.get('zip')
+            };
+            
+            await processCheckout(customerInfo);
+        });
+        
+                 // Cargar datos del usuario
+        async function loadUserData() {
+            try {
+                const token = localStorage.getItem('authToken');
+                if (!token) return;
+                
+                const response = await fetch(`${API_BASE}/api/profile`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (response.ok) {
+                    const userData = await response.json();
+                    
+                    // Rellenar campos con datos del usuario
+                    if (userData.nombre && userData.apellido) {
+                        document.getElementById('customer-name').value = `${userData.nombre} ${userData.apellido}`;
+                    }
+                    if (userData.email) {
+                        document.getElementById('customer-email').value = userData.email;
+                    }
+                    if (userData.telefono) {
+                        document.getElementById('customer-phone').value = userData.telefono;
+                    }
+                    if (userData.direccion) {
+                        document.getElementById('customer-address').value = userData.direccion;
+                    }
+                    if (userData.codigo_postal) {
+                        document.getElementById('customer-zip').value = userData.codigo_postal;
+                    }
+                }
+            } catch (error) {
+                console.error('Error cargando datos del usuario:', error);
+            }
+        }
+        
+        // Cargar productos para obtener imágenes
+         async function loadProducts() {
+             try {
+                 const response = await fetch(`${API_BASE}/api/products`);
+                 const products = await response.json();
+                 window.products = products;
+                 loadCartSummary();
+             } catch (error) {
+                 console.error('Error cargando productos:', error);
+                 loadCartSummary(); // Cargar sin productos
+             }
+         }
+         
+                 // Cargar resumen al cargar la página
+        document.addEventListener('DOMContentLoaded', () => {
+            // Verificar autenticación al cargar la página
+            if (!checkAuthentication()) {
+                return;
+            }
+            loadUserData(); // Cargar datos del usuario
+            loadProducts();
+        });
+    </script>
+</body>
+</html>

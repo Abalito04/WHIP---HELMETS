@@ -77,6 +77,13 @@ function renderProducts() {
     
     // Inicializar la UI de stock después de renderizar
     setTimeout(initializeStockUI, 100);
+    
+    // Optimizar imágenes después de renderizar productos (comentado temporalmente)
+    // setTimeout(() => {
+    //     if (window.imageOptimizer) {
+    //         window.imageOptimizer.optimizeExistingImages();
+    //     }
+    // }, 200);
 }
 
 // Función para crear tarjeta de producto
@@ -89,8 +96,8 @@ function createProductCard(product) {
     // Crear imágenes (usar imagen por defecto si no hay)
     const imageUrl = product.image || "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIGZpbGw9IiNFRUVFRUUiLz48cGF0aCBkPSJNMTUgMzBINjBWNDBIMzVWMzBIMjVWMTVIMjBWMzBIMTVaIiBmaWxsPSIjOTk5Ii8+PC9zdmc+";
     
-    // Formatear precio
-    const formattedPrice = new Intl.NumberFormat('es-ES').format(product.price);
+    // Formatear precio con símbolo $
+    const formattedPrice = '$' + new Intl.NumberFormat('es-ES').format(product.price);
     
     // Determinar estado del stock
     const stock = product.stock || 0;
@@ -111,8 +118,8 @@ function createProductCard(product) {
     
     card.innerHTML = `
         <div class="product-images-container">
-            <img src="${imageUrl}" alt="${product.name}" class="product-image main-view">
-            <img src="${imageUrl}" alt="${product.name}" class="product-image hover-view">
+            <img src="${imageUrl}" alt="${product.name}" class="product-image main-view" onclick="openProductGallery(${product.id}, '${product.name}')" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIGZpbGw9IiNFRUVFRUUiLz48cGF0aCBkPSJNMTUgMzBINjBWNDBIMzVWMzBIMjVWMTVIMjBWMzBIMTVaIiBmaWxsPSIjOTk5Ii8+PC9zdmc+'">
+            <button class="gallery-btn" onclick="openProductGallery(${product.id}, '${product.name}')" title="Ver galería">📷</button>
         </div>
         <h3>${product.name}</h3>
         <p class="price">${formattedPrice}</p>
@@ -325,6 +332,148 @@ function initializeStockUI() {
         });
     });
 }
+
+// ==================== FUNCIONES DE GALERÍA ====================
+let currentGalleryProduct = null;
+let currentGalleryImages = [];
+let selectedImageIndex = 0;
+
+// Función para abrir la galería de un producto
+window.openProductGallery = function(productId, productName) {
+    currentGalleryProduct = productId;
+    document.getElementById('gallery-title').textContent = `Galería - ${productName}`;
+    
+    // Cargar imágenes del producto
+    loadProductImages(productId);
+    
+    // Mostrar modal
+    document.getElementById('gallery-modal').style.display = 'block';
+    
+    // Prevenir scroll del body
+    document.body.style.overflow = 'hidden';
+};
+
+function loadProductImages(productId) {
+    const product = products.find(p => p.id == productId);
+    if (product) {
+        // Simular múltiples imágenes basadas en la imagen principal
+        currentGalleryImages = [
+            product.image,
+            product.image.replace('_medium.webp', '_small.webp'),
+            product.image.replace('_medium.webp', '_large.webp'),
+            product.image.replace('_medium.webp', '_thumb.webp')
+        ].filter(img => img !== product.image); // Remover duplicados
+        
+        // Agregar la imagen principal al inicio
+        currentGalleryImages.unshift(product.image);
+        
+        renderGallery();
+    }
+}
+
+function renderGallery() {
+    if (currentGalleryImages.length === 0) {
+        document.getElementById('gallery-main-img').src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjQwMCIgdmlld0JveD0iMCAwIDQwMCA0MDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjQwMCIgaGVpZ2h0PSI0MDAiIGZpbGw9IiNFRUVFRUUiLz48cGF0aCBkPSJNMTUwIDIwMEg0MDBWMzAwSDI1MFYyMEgyMDBWMjAwSDE1MFoiIGZpbGw9IiM5OTkiLz48L3N2Zz4=';
+        document.getElementById('gallery-thumbnails').innerHTML = '<p style="text-align: center; color: #666;">No hay imágenes disponibles</p>';
+        return;
+    }
+    
+    // Mostrar imagen principal
+    const mainImg = document.getElementById('gallery-main-img');
+    mainImg.src = `/${currentGalleryImages[selectedImageIndex]}`;
+    
+    // Renderizar miniaturas
+    const thumbnailsContainer = document.getElementById('gallery-thumbnails');
+    thumbnailsContainer.innerHTML = '';
+    
+    currentGalleryImages.forEach((image, index) => {
+        const thumbnail = document.createElement('img');
+        thumbnail.src = `/${image}`;
+        thumbnail.className = `gallery-thumbnail ${index === selectedImageIndex ? 'active' : ''}`;
+        thumbnail.onclick = () => selectImage(index);
+        thumbnail.onerror = () => {
+            thumbnail.style.display = 'none';
+        };
+        thumbnailsContainer.appendChild(thumbnail);
+    });
+    
+    // Actualizar botones de navegación
+    updateNavigationButtons();
+}
+
+function selectImage(index) {
+    selectedImageIndex = index;
+    renderGallery();
+}
+
+function updateNavigationButtons() {
+    const prevBtn = document.getElementById('gallery-prev');
+    const nextBtn = document.getElementById('gallery-next');
+    
+    prevBtn.disabled = selectedImageIndex === 0;
+    nextBtn.disabled = selectedImageIndex === currentGalleryImages.length - 1;
+}
+
+function closeGallery() {
+    document.getElementById('gallery-modal').style.display = 'none';
+    document.body.style.overflow = 'auto';
+    currentGalleryProduct = null;
+    currentGalleryImages = [];
+    selectedImageIndex = 0;
+}
+
+function navigateGallery(direction) {
+    if (direction === 'prev' && selectedImageIndex > 0) {
+        selectedImageIndex--;
+    } else if (direction === 'next' && selectedImageIndex < currentGalleryImages.length - 1) {
+        selectedImageIndex++;
+    }
+    renderGallery();
+}
+
+// Eventos de la galería
+document.addEventListener('DOMContentLoaded', () => {
+    // Cerrar galería
+    const closeBtn = document.querySelector('.gallery-close');
+    if (closeBtn) {
+        closeBtn.addEventListener('click', closeGallery);
+    }
+    
+    // Cerrar al hacer clic fuera
+    const galleryModal = document.getElementById('gallery-modal');
+    if (galleryModal) {
+        galleryModal.addEventListener('click', (e) => {
+            if (e.target.id === 'gallery-modal') {
+                closeGallery();
+            }
+        });
+    }
+    
+    // Botones de navegación
+    const prevBtn = document.getElementById('gallery-prev');
+    const nextBtn = document.getElementById('gallery-next');
+    
+    if (prevBtn) {
+        prevBtn.addEventListener('click', () => navigateGallery('prev'));
+    }
+    
+    if (nextBtn) {
+        nextBtn.addEventListener('click', () => navigateGallery('next'));
+    }
+    
+    // Navegación con teclado
+    document.addEventListener('keydown', (e) => {
+        if (document.getElementById('gallery-modal').style.display === 'block') {
+            if (e.key === 'Escape') {
+                closeGallery();
+            } else if (e.key === 'ArrowLeft') {
+                navigateGallery('prev');
+            } else if (e.key === 'ArrowRight') {
+                navigateGallery('next');
+            }
+        }
+    });
+});
 
 // Inicializar
 document.addEventListener("DOMContentLoaded", function() {

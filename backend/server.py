@@ -1,8 +1,33 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory, g
 from flask_cors import CORS
 import sqlite3
 import os
 from contextlib import closing
+
+# Importar el módulo de autenticación
+try:
+    from auth import auth_manager, require_auth, require_admin
+    AUTH_AVAILABLE = True
+except ImportError:
+    AUTH_AVAILABLE = False
+    print("⚠️  Módulo de autenticación no disponible")
+
+# Importar el procesador de imágenes
+try:
+    from image_processor import image_processor
+    IMAGE_PROCESSING_AVAILABLE = True
+except ImportError:
+    IMAGE_PROCESSING_AVAILABLE = False
+    print("⚠️  Módulo de procesamiento de imágenes no disponible")
+
+# Importar el manejador de pagos
+try:
+    from payment_handler import PaymentHandler
+    payment_handler = PaymentHandler()
+    PAYMENT_AVAILABLE = True
+except ImportError:
+    PAYMENT_AVAILABLE = False
+    print("⚠️  Módulo de pagos no disponible")
 
 DB_PATH = "productos.db"
 
@@ -87,6 +112,18 @@ def row_to_dict(row: sqlite3.Row):
         d["stock"] = 0
     return d
 
+
+# ---------------------- RUTAS PRINCIPALES ----------------------
+
+@app.route("/")
+def index():
+    """Sirve la página principal"""
+    return send_from_directory("..", "index.html")
+
+@app.route("/<path:filename>")
+def serve_static(filename):
+    """Sirve archivos estáticos"""
+    return send_from_directory("..", filename)
 
 # ---------------------- API ----------------------
 
@@ -315,22 +352,534 @@ def seed():
             )
     return jsonify({"ok": True, "inserted": len(sample)}), 201
 
-# Añadir al server.py
-@app.route("/api/login", methods=["POST"])
-def login():
-    data = request.get_json(force=True) or {}
-    
-    username = data.get("username", "").strip()
-    password = data.get("password", "").strip()
-    
-    # En un caso real, deberías verificar contra una base de datos
-    # y usar hash para las contraseñas
-    if username == "admin" and password == "admin":
-        return jsonify({"success": True, "message": "Login exitoso"}), 200
-    else:
-        return jsonify({"success": False, "message": "Credenciales inválidas"}), 401
+# Esta ruta está duplicada y se elimina para evitar conflictos
+# La ruta correcta es /api/auth/login
 
+
+# ---------------------- Endpoints de optimización de imágenes ----------------------
+
+@app.route("/api/images/optimize", methods=["POST"])
+def optimize_images():
+    """Optimiza automáticamente las imágenes nuevas"""
+    if not IMAGE_PROCESSING_AVAILABLE:
+        return jsonify({"error": "Procesamiento de imágenes no disponible"}), 503
+    
+    try:
+        result = image_processor.process_new_images()
+        return jsonify(result), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/api/images/stats", methods=["GET"])
+def get_image_stats():
+    """Obtiene estadísticas de optimización de imágenes"""
+    if not IMAGE_PROCESSING_AVAILABLE:
+        return jsonify({"error": "Procesamiento de imágenes no disponible"}), 503
+    
+    try:
+        stats = image_processor.get_optimization_stats()
+        return jsonify(stats), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/api/images/cleanup", methods=["POST"])
+def cleanup_images():
+    """Limpia optimizaciones obsoletas"""
+    if not IMAGE_PROCESSING_AVAILABLE:
+        return jsonify({"error": "Procesamiento de imágenes no disponible"}), 503
+    
+    try:
+        removed_count = image_processor.cleanup_old_optimizations()
+        return jsonify({"removed": removed_count, "message": f"Eliminadas {removed_count} optimizaciones obsoletas"}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+# ---------------------- Modificar endpoint de productos para optimización automática ----------------------
+
+def optimize_product_image(image_path):
+    """Optimiza la imagen de un producto si es necesario"""
+    if not IMAGE_PROCESSING_AVAILABLE or not image_path:
+        return image_path
+    
+    try:
+        # Verificar si la imagen existe
+        if not os.path.exists(image_path):
+            return image_path
+        
+        # Obtener ruta optimizada
+        optimized_path = image_processor.get_optimized_image_path(image_path, 'medium')
+        
+        # Si no existe la versión optimizada, procesarla
+        if optimized_path == image_path:
+            image_processor.optimize_single_image(image_path)
+            optimized_path = image_processor.get_optimized_image_path(image_path, 'medium')
+        
+        return optimized_path
+    except Exception as e:
+        print(f"Error optimizando imagen {image_path}: {e}")
+        return image_path
+
+# Modificar la función row_to_dict para incluir optimización automática
+def row_to_dict(row: sqlite3.Row):
+    d = dict(row)
+    # sizes: CSV -> lista
+    if d.get("sizes"):
+        d["sizes"] = [s.strip() for s in d["sizes"].split(",") if s.strip()]
+    else:
+        d["sizes"] = []
+    # price a 2 decimales
+    try:
+        d["price"] = float(d["price"])
+    except Exception:
+        d["price"] = 0.0
+    # stock a entero
+    try:
+        d["stock"] = int(d["stock"])
+    except Exception:
+        d["stock"] = 0
+    
+    # Optimizar imagen automáticamente
+    if d.get("image"):
+        d["image"] = optimize_product_image(d["image"])
+    
+    return d
+
+# ---------------------- RUTAS DE AUTENTICACIÓN ----------------------
+
+@app.route("/api/auth/register", methods=["POST"])
+def auth_register():
+    """Endpoint para registro de nuevos usuarios"""
+    if not AUTH_AVAILABLE:
+        return jsonify({"error": "Sistema de autenticación no disponible"}), 503
+    
+    try:
+        data = request.get_json()
+        username = data.get('username')
+        password = data.get('password')
+        profile_data = data.get('profile', {})
+        
+        # Validar campos requeridos
+        if not username or not password:
+            return jsonify({"error": "Usuario y contraseña son requeridos"}), 400
+        
+        # Validar longitud de contraseña
+        if len(password) < 6:
+            return jsonify({"error": "La contraseña debe tener al menos 6 caracteres"}), 400
+        
+        # Validar campos del perfil si se proporcionan
+        required_fields = ['nombre', 'apellido', 'dni', 'telefono', 'email']
+        for field in required_fields:
+            if not profile_data.get(field):
+                return jsonify({"error": f"Campo {field} es requerido"}), 400
+        
+        # Validar formato de email
+        import re
+        email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+        if not re.match(email_pattern, profile_data['email']):
+            return jsonify({"error": "Formato de email inválido"}), 400
+        
+        # Validar DNI (solo números)
+        if not profile_data['dni'].isdigit():
+            return jsonify({"error": "DNI debe contener solo números"}), 400
+        
+        # Validar código postal (opcional, pero si se proporciona debe ser numérico)
+        if profile_data.get('codigo_postal') and not profile_data['codigo_postal'].isdigit():
+            return jsonify({"error": "Código postal debe contener solo números"}), 400
+        
+        result = auth_manager.register(username, password, profile_data)
+        
+        if result['success']:
+            return jsonify(result), 201
+        else:
+            return jsonify(result), 400
+            
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/api/auth/login", methods=["POST"])
+def auth_login():
+    """Endpoint para login de usuarios"""
+    if not AUTH_AVAILABLE:
+        return jsonify({"error": "Sistema de autenticación no disponible"}), 503
+    
+    try:
+        data = request.get_json()
+        username = data.get('username')
+        password = data.get('password')
+        
+        if not username or not password:
+            return jsonify({"error": "Usuario y contraseña requeridos"}), 400
+        
+        result = auth_manager.login(username, password)
+        return jsonify(result), 200 if result['success'] else 401
+        
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/api/auth/logout", methods=["POST"])
+@require_auth
+def auth_logout():
+    """Endpoint para logout de usuarios"""
+    if not AUTH_AVAILABLE:
+        return jsonify({"error": "Sistema de autenticación no disponible"}), 503
+    
+    try:
+        auth_header = request.headers.get('Authorization')
+        token = auth_header.split(' ')[1]
+        result = auth_manager.logout(token)
+        return jsonify(result), 200
+        
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/api/auth/validate", methods=["GET"])
+@require_auth
+def auth_validate_session():
+    """Validar sesión actual"""
+    if not AUTH_AVAILABLE:
+        return jsonify({"error": "Sistema de autenticación no disponible"}), 503
+    
+    try:
+        return jsonify({
+            "valid": True,
+            "user": g.current_user
+        }), 200
+        
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/api/auth/users", methods=["GET"])
+@require_admin
+def auth_get_users():
+    """Obtener lista de usuarios (solo admin)"""
+    if not AUTH_AVAILABLE:
+        return jsonify({"error": "Sistema de autenticación no disponible"}), 503
+    
+    try:
+        users = auth_manager.get_users()
+        return jsonify(users), 200
+        
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/api/profile", methods=["GET"])
+@require_auth
+def get_profile():
+    """Obtener perfil del usuario autenticado"""
+    if not AUTH_AVAILABLE:
+        return jsonify({"error": "Sistema de autenticación no disponible"}), 503
+    
+    try:
+        user = auth_manager.get_user_by_id(g.current_user['user_id'])
+        if user:
+            return jsonify(user), 200
+        return jsonify({"error": "Usuario no encontrado"}), 404
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/api/profile", methods=["PUT"])
+@require_auth
+def update_profile():
+    """Actualizar perfil del usuario autenticado"""
+    if not AUTH_AVAILABLE:
+        return jsonify({"error": "Sistema de autenticación no disponible"}), 503
+    
+    try:
+        data = request.get_json()
+        
+        # Validar campos requeridos
+        required_fields = ['nombre', 'apellido', 'dni', 'telefono', 'email']
+        for field in required_fields:
+            if not data.get(field):
+                return jsonify({"error": f"Campo {field} es requerido"}), 400
+        
+        # Validar formato de email
+        import re
+        email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+        if not re.match(email_pattern, data['email']):
+            return jsonify({"error": "Formato de email inválido"}), 400
+        
+        # Validar DNI (solo números)
+        if not data['dni'].isdigit():
+            return jsonify({"error": "DNI debe contener solo números"}), 400
+        
+        # Validar código postal (opcional, pero si se proporciona debe ser numérico)
+        if data.get('codigo_postal') and not data['codigo_postal'].isdigit():
+            return jsonify({"error": "Código postal debe contener solo números"}), 400
+        
+        auth_manager.update_user_profile(g.current_user['user_id'], data)
+        return jsonify({"success": True, "message": "Perfil actualizado correctamente"}), 200
+        
+    except Exception as e:
+        return jsonify({"error": f"Error al actualizar perfil: {str(e)}"}), 500
+
+# ---------------------- RUTA ADMIN PARA PRODUCTOS ----------------------
+
+@app.route("/api/admin/products", methods=["GET"])
+@require_admin
+def list_products_admin():
+    """Ruta para administradores - lista todos los productos sin filtros"""
+    try:
+        with closing(get_conn()) as conn:
+            rows = conn.execute("SELECT * FROM productos ORDER BY id DESC").fetchall()
+        return jsonify([row_to_dict(r) for r in rows]), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+# ---------------------- RUTAS DE PAGOS ----------------------
+
+@app.route("/api/payment/create-preference", methods=["POST"])
+def create_payment_preference():
+    """Crear preferencia de pago en MercadoPago"""
+    if not PAYMENT_AVAILABLE:
+        return jsonify({"error": "Sistema de pagos no disponible"}), 503
+    
+    # Verificar autenticación
+    auth_header = request.headers.get('Authorization')
+    if not auth_header or not auth_header.startswith('Bearer '):
+        return jsonify({"error": "Token de autenticación requerido"}), 401
+    
+    token = auth_header.split(' ')[1]
+    user = auth_manager.validate_session(token)
+    if not user:
+        return jsonify({"error": "Sesión inválida"}), 401
+    
+    try:
+        data = request.get_json()
+        items = data.get('items', [])
+        customer_info = data.get('customer_info', {})
+        
+        if not items:
+            return jsonify({"error": "Items requeridos"}), 400
+        
+        # Agregar información del usuario autenticado
+        customer_info['user_id'] = user['user_id']
+        customer_info['user_email'] = user.get('email', '')
+        
+        # Crear pedido en la base de datos
+        total_amount = sum(item['price'] * item['quantity'] for item in items)
+        order_result = payment_handler.create_order(items, customer_info, total_amount)
+        
+        if not order_result['success']:
+            return jsonify(order_result), 500
+        
+        # Crear preferencia de pago
+        preference_result = payment_handler.create_payment_preference(items, customer_info)
+        
+        if preference_result['success']:
+            return jsonify({
+                "success": True,
+                "preference_id": preference_result['preference_id'],
+                "init_point": preference_result['init_point'],
+                "sandbox_init_point": preference_result['sandbox_init_point'],
+                "order_number": order_result['order_number']
+            }), 200
+        else:
+            return jsonify(preference_result), 500
+            
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/api/payment/webhook", methods=["POST"])
+def payment_webhook():
+    """Webhook para recibir notificaciones de MercadoPago"""
+    if not PAYMENT_AVAILABLE:
+        return jsonify({"error": "Sistema de pagos no disponible"}), 503
+    
+    try:
+        data = request.get_json()
+        result = payment_handler.process_webhook(data)
+        
+        if result['success']:
+            return jsonify({"status": "ok"}), 200
+        else:
+            return jsonify(result), 400
+            
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/api/payment/status/<payment_id>", methods=["GET"])
+def get_payment_status(payment_id):
+    """Obtener estado de un pago"""
+    if not PAYMENT_AVAILABLE:
+        return jsonify({"error": "Sistema de pagos no disponible"}), 503
+    
+    try:
+        result = payment_handler.get_payment_status(payment_id)
+        return jsonify(result), 200 if result['success'] else 400
+        
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/api/orders/<order_number>", methods=["GET"])
+def get_order(order_number):
+    """Obtener información de un pedido"""
+    if not PAYMENT_AVAILABLE:
+        return jsonify({"error": "Sistema de pagos no disponible"}), 503
+    
+    # Verificar autenticación
+    auth_header = request.headers.get('Authorization')
+    if not auth_header or not auth_header.startswith('Bearer '):
+        return jsonify({"error": "Token de autenticación requerido"}), 401
+    
+    token = auth_header.split(' ')[1]
+    user = auth_manager.validate_session(token)
+    if not user:
+        return jsonify({"error": "Sesión inválida"}), 401
+    
+    try:
+        result = payment_handler.get_order(order_number, user['user_id'])
+        return jsonify(result), 200 if result['success'] else 404
+        
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/api/orders", methods=["GET"])
+def get_user_orders():
+    """Obtener todos los pedidos del usuario autenticado"""
+    if not PAYMENT_AVAILABLE:
+        return jsonify({"error": "Sistema de pagos no disponible"}), 503
+    
+    # Verificar autenticación
+    auth_header = request.headers.get('Authorization')
+    if not auth_header or not auth_header.startswith('Bearer '):
+        return jsonify({"error": "Token de autenticación requerido"}), 401
+    
+    token = auth_header.split(' ')[1]
+    user = auth_manager.validate_session(token)
+    if not user:
+        return jsonify({"error": "Sesión inválida"}), 401
+    
+    try:
+        result = payment_handler.get_user_orders(user['user_id'])
+        return jsonify(result), 200 if result['success'] else 404
+        
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+# ---------------------- GESTIÓN DE USUARIOS (ADMIN) ----------------------
+
+@app.route("/api/admin/users", methods=["GET"])
+@require_admin
+def get_all_users():
+    """Obtener todos los usuarios (solo admin)"""
+    try:
+        users = auth_manager.get_all_users()
+        return jsonify({"success": True, "users": users}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/api/admin/users/<int:user_id>", methods=["GET"])
+@require_admin
+def get_user(user_id):
+    """Obtener un usuario específico (solo admin)"""
+    try:
+        user = auth_manager.get_user_by_id(user_id)
+        if user:
+            return jsonify({"success": True, "user": user}), 200
+        else:
+            return jsonify({"error": "Usuario no encontrado"}), 404
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/api/admin/users/<int:user_id>", methods=["PUT"])
+@require_admin
+def update_user_admin(user_id):
+    """Actualizar un usuario (solo admin)"""
+    try:
+        data = request.get_json()
+        
+        # Validaciones básicas
+        if data.get('email') and not '@' in data['email']:
+            return jsonify({"error": "Email inválido"}), 400
+        
+        if data.get('dni') and not data['dni'].isdigit():
+            return jsonify({"error": "DNI debe contener solo números"}), 400
+        
+        if data.get('codigo_postal') and not data['codigo_postal'].isdigit():
+            return jsonify({"error": "Código postal debe contener solo números"}), 400
+        
+        result = auth_manager.update_user_by_admin(user_id, data)
+        if result['success']:
+            return jsonify(result), 200
+        else:
+            return jsonify(result), 400
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/api/admin/users/<int:user_id>", methods=["DELETE"])
+@require_admin
+def delete_user(user_id):
+    """Eliminar un usuario (solo admin)"""
+    try:
+        result = auth_manager.delete_user(user_id)
+        if result['success']:
+            return jsonify(result), 200
+        else:
+            return jsonify(result), 400
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/api/admin/users", methods=["POST"])
+@require_admin
+def create_user_admin():
+    """Crear un nuevo usuario (solo admin)"""
+    try:
+        data = request.get_json()
+        
+        # Validaciones requeridas
+        if not data.get('username') or not data.get('password'):
+            return jsonify({"error": "Username y password son requeridos"}), 400
+        
+        if len(data['password']) < 6:
+            return jsonify({"error": "La contraseña debe tener al menos 6 caracteres"}), 400
+        
+        if data.get('email') and not '@' in data['email']:
+            return jsonify({"error": "Email inválido"}), 400
+        
+        if data.get('dni') and not data['dni'].isdigit():
+            return jsonify({"error": "DNI debe contener solo números"}), 400
+        
+        if data.get('codigo_postal') and not data['codigo_postal'].isdigit():
+            return jsonify({"error": "Código postal debe contener solo números"}), 400
+        
+        result = auth_manager.create_user_by_admin(data)
+        if result['success']:
+            return jsonify(result), 201
+        else:
+            return jsonify(result), 400
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+# ---------------------- RUTAS DE PÁGINAS DE PAGO ----------------------
+
+@app.route("/payment/success")
+def payment_success():
+    """Página de pago exitoso"""
+    return send_from_directory("payment", "success.html")
+
+@app.route("/payment/failure")
+def payment_failure():
+    """Página de pago fallido"""
+    return send_from_directory("payment", "failure.html")
+
+@app.route("/payment/pending")
+def payment_pending():
+    """Página de pago pendiente"""
+    return send_from_directory("payment", "pending.html")
 
 if __name__ == "__main__":
     init_db()
-    app.run(host="127.0.0.1", port=5000, debug=True)
+    
+    # Procesar imágenes nuevas al iniciar el servidor
+    if IMAGE_PROCESSING_AVAILABLE:
+        print("Procesando imagenes nuevas...")
+        result = image_processor.process_new_images()
+        print(f"OK: {result.get('message', 'Procesamiento completado')}")
+    
+    # Configuración para Railway
+    import os
+    port = int(os.environ.get('PORT', 5000))
+    debug = os.environ.get('DEBUG', 'False').lower() == 'true'
+    
+    app.run(host="0.0.0.0", port=port, debug=debug)

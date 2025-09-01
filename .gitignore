@@ -1,0 +1,45 @@
+# Bases de datos (contienen datos sensibles)
+*.db
+users.db
+productos.db
+
+# Archivos de cache de Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Archivos temporales de optimización
+backend/assets/images/products/backup/
+backend/assets/images/products/optimized/
+
+# Archivos de configuración con datos sensibles (ahora usa variables de entorno)
+# backend/config.py - Ahora es seguro subir a GitHub
+
+# Archivos de entorno
+.env
+.env.local
+.env.production
+
+# Logs
+*.log
+
+# Archivos temporales del sistema
+.DS_Store
+Thumbs.db
+
+# Archivos de IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Archivos de respaldo
+*.bak
+*.backup
+
+# Archivos de sesión
+*.session
+
+# Archivos de cache del navegador
+.cache/

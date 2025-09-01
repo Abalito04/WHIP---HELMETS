@@ -37,11 +37,13 @@ whip-helmets/
 
 ## 🚀 Instalación y Configuración
 
-### Prerrequisitos
+### 🖥️ Desarrollo Local
+
+#### Prerrequisitos
 - Python 3.10+
 - Navegador web moderno
 
-### Pasos de instalación
+#### Pasos de instalación
 
 1. **Clonar/Descargar el proyecto**
    ```bash
@@ -52,12 +54,31 @@ whip-helmets/
 2. **Configurar el Backend**
    ```bash
    cd backend
+   
+   # Configurar archivo de configuración
+   cp config.example.py config.py
+   # EDITAR config.py con tus credenciales de MercadoPago
+   
    pip install -r requirements.txt
-   python init_db.py  # Opcional: para recrear la BD
+   python init_db.py  # Crear base de datos de productos
+   python init_users_db.py  # Crear base de datos de usuarios
    python server.py
    ```
    
    El servidor iniciará en: `http://127.0.0.1:5000`
+   
+   **📋 Ver `backend/SETUP.md` para instrucciones detalladas de configuración**
+
+### ☁️ Despliegue en Railway (Producción)
+
+Para desplegar en Railway:
+
+1. **Subir a GitHub** (con todos los archivos)
+2. **Conectar Railway** con tu repositorio
+3. **Configurar variables de entorno** en Railway
+4. **¡Listo!** La app estará online
+
+**📋 Ver `RAILWAY_DEPLOY.md` para instrucciones detalladas de Railway**
 
 3. **Configurar las imágenes**
    - Colocar `logo.png` en `assets/images/`
@@ -66,9 +87,9 @@ whip-helmets/
 
 4. **Acceder a la aplicación**
    - **Frontend**: Abrir `index.html` en el navegador
-   - **Admin Panel**: Ir a `admin/login.html`
+   - **Admin Panel**: Ir a `admin/admin.html`
      - Usuario: `admin`
-     - Contraseña: `admin`
+     - Contraseña: `admin123`
 
 ## 🌟 Características
 

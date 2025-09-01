@@ -5,12 +5,12 @@
 ### 1. Preparar el repositorio
 
 Asegúrate de que tu repositorio contenga:
-- ✅ `railway.json` (configuración de Railway)
 - ✅ `Procfile` (comando de inicio)
 - ✅ `runtime.txt` (versión de Python)
-- ✅ `nixpacks.toml` (configuración de build)
+- ✅ `app.py` (archivo principal para Railway)
+- ✅ `requirements.txt` (dependencias en la raíz)
 - ✅ `backend/config.py` (configurado para variables de entorno)
-- ✅ `backend/requirements.txt` (dependencias)
+- ✅ `backend/requirements.txt` (dependencias del backend)
 
 ### 2. Conectar con Railway
 
@@ -96,9 +96,10 @@ Para actualizar:
 - El código ya está preparado para usar `PORT`
 
 ### Error "python: command not found"
-- ✅ Se solucionó con `python3` en lugar de `python`
+- ✅ Se solucionó con `app.py` en la raíz del proyecto
+- ✅ Se simplificó la configuración eliminando archivos complejos
+- ✅ Se agregó `requirements.txt` en la raíz
 - ✅ Se agregó `runtime.txt` para especificar la versión de Python
-- ✅ Se agregó `nixpacks.toml` para configurar el build
 
 ### Error de base de datos
 - ✅ Las bases de datos se crean automáticamente al iniciar la aplicación

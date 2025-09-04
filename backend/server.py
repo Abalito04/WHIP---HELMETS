@@ -15,13 +15,8 @@ except ImportError:
     AUTH_AVAILABLE = False
     print("⚠️  Módulo de autenticación no disponible")
 
-# Importar el procesador de imágenes
-try:
-    from image_processor import image_processor
-    IMAGE_PROCESSING_AVAILABLE = True
-except ImportError:
-    IMAGE_PROCESSING_AVAILABLE = False
-    print("⚠️  Procesamiento de imágenes no disponible")
+# Procesamiento de imágenes deshabilitado
+IMAGE_PROCESSING_AVAILABLE = False
 
 # Importar el manejador de pagos
 try:
@@ -475,70 +470,9 @@ def seed():
 # La ruta correcta es /api/auth/login
 
 
-# ---------------------- Endpoints de optimización de imágenes ----------------------
+# ---------------------- Optimización de imágenes deshabilitada ----------------------
 
-@app.route("/api/images/optimize", methods=["POST"])
-def optimize_images():
-    """Optimiza automáticamente las imágenes nuevas"""
-    if not IMAGE_PROCESSING_AVAILABLE:
-        return jsonify({"error": "Procesamiento de imágenes no disponible"}), 503
-    
-    try:
-        result = image_processor.process_new_images()
-        return jsonify(result), 200
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-@app.route("/api/images/stats", methods=["GET"])
-def get_image_stats():
-    """Obtiene estadísticas de optimización de imágenes"""
-    if not IMAGE_PROCESSING_AVAILABLE:
-        return jsonify({"error": "Procesamiento de imágenes no disponible"}), 503
-    
-    try:
-        stats = image_processor.get_optimization_stats()
-        return jsonify(stats), 200
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-@app.route("/api/images/cleanup", methods=["POST"])
-def cleanup_images():
-    """Limpia optimizaciones obsoletas"""
-    if not IMAGE_PROCESSING_AVAILABLE:
-        return jsonify({"error": "Procesamiento de imágenes no disponible"}), 503
-    
-    try:
-        removed_count = image_processor.cleanup_old_optimizations()
-        return jsonify({"removed": removed_count, "message": f"Eliminadas {removed_count} optimizaciones obsoletas"}), 200
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-# ---------------------- Modificar endpoint de productos para optimización automática ----------------------
-
-def optimize_product_image(image_path):
-    """Optimiza la imagen de un producto si es necesario"""
-    if not IMAGE_PROCESSING_AVAILABLE or not image_path:
-        return image_path
-    
-    try:
-        # Verificar si la imagen existe
-        if not os.path.exists(image_path):
-            return image_path
-        
-        # Obtener ruta optimizada
-        optimized_path = image_processor.get_optimized_image_path(image_path, 'medium')
-        
-        # Si no existe la versión optimizada, procesarla
-        if optimized_path == image_path:
-            image_processor.optimize_single_image(image_path)
-            optimized_path = image_processor.get_optimized_image_path(image_path, 'medium')
-        
-        return optimized_path
-    except Exception as e:
-        print(f"Error optimizando imagen {image_path}: {e}")
-        return image_path
-
-# Modificar la función row_to_dict para incluir optimización automática
+# Función para convertir filas de base de datos a diccionarios
 def row_to_dict(row: sqlite3.Row):
     d = dict(row)
     # sizes: CSV -> lista
@@ -556,10 +490,6 @@ def row_to_dict(row: sqlite3.Row):
         d["stock"] = int(d["stock"])
     except Exception:
         d["stock"] = 0
-    
-    # Optimizar imagen automáticamente
-    if d.get("image"):
-        d["image"] = optimize_product_image(d["image"])
     
     return d
 
@@ -1018,12 +948,6 @@ def payment_pending():
 
 if __name__ == "__main__":
     init_db()
-    
-    # Procesar imágenes nuevas al iniciar el servidor
-    if IMAGE_PROCESSING_AVAILABLE:
-        print("Procesando imagenes nuevas...")
-        result = image_processor.process_new_images()
-        print(f"OK: {result.get('message', 'Procesamiento completado')}")
     
     # Configuración para Railway
     import os

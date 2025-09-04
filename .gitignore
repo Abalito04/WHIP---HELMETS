@@ -9,9 +9,7 @@ __pycache__/
 *$py.class
 *.so
 
-# Archivos temporales de optimización
-backend/assets/images/products/backup/
-backend/assets/images/products/optimized/
+# Directorios de optimización eliminados
 
 # Archivos de configuración con datos sensibles (ahora usa variables de entorno)
 # backend/config.py - Ahora es seguro subir a GitHub

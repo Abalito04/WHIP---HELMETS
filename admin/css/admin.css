@@ -260,6 +260,41 @@ header {
     color: white;
 }
 
+/* Estilos para subida de imágenes */
+.image-upload-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.upload-options {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.image-preview {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px;
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+}
+
+.image-preview img {
+    max-width: 60px;
+    max-height: 60px;
+    object-fit: cover;
+    border-radius: 4px;
+}
+
+.preview-filename {
+    font-size: 0.9em;
+    color: #6c757d;
+}
+
 .pagination {
     display: flex;
     justify-content: center;

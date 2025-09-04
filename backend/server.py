@@ -472,6 +472,50 @@ def seed():
 
 # ---------------------- Optimización de imágenes deshabilitada ----------------------
 
+# ---------------------- SUBIDA DE IMÁGENES ----------------------
+
+@app.route("/api/upload", methods=["POST"])
+def upload_image():
+    """Endpoint para subir imágenes"""
+    try:
+        if 'file' not in request.files:
+            return jsonify({"error": "No se encontró archivo"}), 400
+        
+        file = request.files['file']
+        if file.filename == '':
+            return jsonify({"error": "No se seleccionó archivo"}), 400
+        
+        # Verificar que sea una imagen
+        if not file.filename.lower().endswith(('.png', '.jpg', '.jpeg', '.gif', '.webp')):
+            return jsonify({"error": "Solo se permiten archivos de imagen"}), 400
+        
+        # Crear directorio de uploads si no existe
+        upload_dir = os.path.join('assets', 'images', 'products', 'uploaded')
+        os.makedirs(upload_dir, exist_ok=True)
+        
+        # Generar nombre único para el archivo
+        import uuid
+        file_extension = os.path.splitext(file.filename)[1]
+        unique_filename = f"{uuid.uuid4()}{file_extension}"
+        file_path = os.path.join(upload_dir, unique_filename)
+        
+        # Guardar el archivo
+        file.save(file_path)
+        
+        # Retornar la ruta relativa para usar en la base de datos
+        relative_path = f"assets/images/products/uploaded/{unique_filename}"
+        
+        return jsonify({
+            "success": True,
+            "message": "Imagen subida correctamente",
+            "file_path": relative_path,
+            "filename": unique_filename
+        }), 200
+        
+    except Exception as e:
+        print(f"Error al subir imagen: {e}")
+        return jsonify({"error": f"Error al subir imagen: {str(e)}"}), 500
+
 # Función para convertir filas de base de datos a diccionarios
 def row_to_dict(row: sqlite3.Row):
     d = dict(row)

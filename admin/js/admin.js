@@ -342,6 +342,15 @@ function openAddProductModal() {
 function closeAddProductModal() {
   addProductModal.style.display = "none";
   newProductForm.reset();
+  
+  // Limpiar vista previa de imagen
+  const preview = document.getElementById("image-preview");
+  const previewImg = document.getElementById("preview-img");
+  if (previewImg.src) {
+    URL.revokeObjectURL(previewImg.src);
+  }
+  preview.style.display = "none";
+  document.getElementById("image-file-input").value = "";
 }
 
 
@@ -406,6 +415,51 @@ function setupEventListeners() {
   window.addEventListener("click", (event) => {
     if (event.target === addProductModal) {
       closeAddProductModal();
+    }
+  });
+
+  // Botón de subir imagen
+  document.getElementById("upload-image-btn").addEventListener("click", () => {
+    document.getElementById("image-file-input").click();
+  });
+
+  // Manejar selección de archivo
+  document.getElementById("image-file-input").addEventListener("change", async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // Mostrar vista previa
+    const preview = document.getElementById("image-preview");
+    const previewImg = document.getElementById("preview-img");
+    const previewFilename = document.querySelector(".preview-filename");
+    
+    previewImg.src = URL.createObjectURL(file);
+    previewFilename.textContent = file.name;
+    preview.style.display = "flex";
+
+    // Subir archivo
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const response = await fetch(`${API_BASE}/api/upload`, {
+        method: 'POST',
+        body: formData
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        // Actualizar el campo de imagen con la ruta del archivo subido
+        document.getElementById("new-image").value = result.file_path;
+        showNotification("Imagen subida correctamente", "success");
+      } else {
+        showNotification(`Error al subir imagen: ${result.error}`, "error");
+        preview.style.display = "none";
+      }
+    } catch (error) {
+      showNotification(`Error al subir imagen: ${error.message}`, "error");
+      preview.style.display = "none";
     }
   });
 

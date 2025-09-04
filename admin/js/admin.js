@@ -101,72 +101,32 @@ async function createProduct(product) {
   }
 }
 
-// ==================== FUNCIONES DE OPTIMIZACIÓN DE IMÁGENES ====================
+// ==================== FUNCIONES DE ESTADÍSTICAS DE PRODUCTOS ====================
 
-async function optimizeImages() {
+async function getProductStats() {
   try {
-    showNotification("Procesando imágenes nuevas...", "info");
+    const res = await fetch(`${API_BASE}/api/products`);
+    if (!res.ok) throw new Error("Error al obtener productos");
     
-    const res = await fetch(`${API_BASE}/api/images/optimize`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-    });
+    const products = await res.json();
     
-    if (!res.ok) throw new Error("Error al optimizar imágenes");
-    
-    const result = await res.json();
-    showNotification(result.message || "Optimización completada", "success");
-    
-    // Recargar productos para mostrar imágenes optimizadas
-    fetchProducts();
-    
-  } catch (err) {
-    showNotification(`Error al optimizar imágenes: ${err.message}`, "error");
-  }
-}
-
-async function getImageStats() {
-  try {
-    const res = await fetch(`${API_BASE}/api/images/stats`);
-    
-    if (!res.ok) throw new Error("Error al obtener estadísticas");
-    
-    const stats = await res.json();
+    // Calcular estadísticas
+    const totalProducts = products.length;
+    const activeProducts = products.filter(p => p.stock > 0).length;
+    const totalStock = products.reduce((sum, p) => sum + (p.stock || 0), 0);
+    const totalValue = products.reduce((sum, p) => sum + ((p.price || 0) * (p.stock || 0)), 0);
     
     // Actualizar estadísticas en el modal
-    document.getElementById("original-count").textContent = stats.original_images || 0;
-    document.getElementById("optimized-count").textContent = stats.optimized_images || 0;
-    document.getElementById("original-size").textContent = `${stats.original_size_mb || 0} MB`;
-    document.getElementById("optimized-size").textContent = `${stats.optimized_size_mb || 0} MB`;
-    document.getElementById("reduction-percent").textContent = `${stats.size_reduction_percent || 0}%`;
+    document.getElementById("total-products").textContent = totalProducts;
+    document.getElementById("active-products").textContent = activeProducts;
+    document.getElementById("total-stock").textContent = totalStock;
+    document.getElementById("total-value").textContent = `$${totalValue.toFixed(2)}`;
     
     // Mostrar modal
     imageStatsModal.style.display = "block";
     
   } catch (err) {
     showNotification(`Error al obtener estadísticas: ${err.message}`, "error");
-  }
-}
-
-async function cleanupImages() {
-  try {
-    showNotification("Limpiando optimizaciones obsoletas...", "info");
-    
-    const res = await fetch(`${API_BASE}/api/images/cleanup`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-    });
-    
-    if (!res.ok) throw new Error("Error al limpiar optimizaciones");
-    
-    const result = await res.json();
-    showNotification(result.message || "Limpieza completada", "success");
-    
-    // Actualizar estadísticas
-    getImageStats();
-    
-  } catch (err) {
-    showNotification(`Error al limpiar optimizaciones: ${err.message}`, "error");
   }
 }
 
@@ -392,24 +352,9 @@ function setupEventListeners() {
   document.getElementById("save-all").addEventListener("click", saveAllChanges);
   document.getElementById("export-data").addEventListener("click", exportData);
   
-  // Optimizar imágenes
-  document.getElementById("optimize-images").addEventListener("click", () => {
-    optimizeImages();
-  });
-
-  // Ver estadísticas de imágenes
+  // Ver estadísticas de productos
   document.getElementById("image-stats").addEventListener("click", () => {
-    getImageStats();
-  });
-
-  // Procesar nuevas imágenes desde el modal
-  document.getElementById("process-new-images").addEventListener("click", () => {
-    optimizeImages();
-  });
-
-  // Limpiar optimizaciones desde el modal
-  document.getElementById("cleanup-images").addEventListener("click", () => {
-    cleanupImages();
+    getProductStats();
   });
 
   // Cerrar modal de estadísticas
@@ -595,16 +540,8 @@ function loadProductImages(productId) {
   // Por ahora, simulamos las imágenes. En un caso real, esto vendría de la API
   const product = productsData.find(p => p.id == productId);
   if (product) {
-    // Simular múltiples imágenes basadas en la imagen principal
-    currentGalleryImages = [
-      product.image,
-      product.image.replace('_medium.webp', '_small.webp'),
-      product.image.replace('_medium.webp', '_large.webp'),
-      product.image.replace('_medium.webp', '_thumb.webp')
-    ].filter(img => img !== product.image); // Remover duplicados
-    
-    // Agregar la imagen principal al inicio
-    currentGalleryImages.unshift(product.image);
+    // Usar solo la imagen principal
+    currentGalleryImages = [product.image];
     
     renderGallery();
   }

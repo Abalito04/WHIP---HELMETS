@@ -374,16 +374,6 @@ header {
     color: #007bff;
 }
 
-.optimization-actions {
-    display: flex;
-    gap: 15px;
-    justify-content: center;
-    flex-wrap: wrap;
-}
-
-.optimization-actions .btn {
-    min-width: 200px;
-}
 }
 
 .form-group label {

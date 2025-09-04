@@ -41,8 +41,6 @@
             <button class="btn btn-success" id="add-product">Agregar Producto</button>
             <button class="btn btn-primary" id="save-all">Guardar Todos los Cambios</button>
             <button class="btn btn-secondary" id="export-data">Exportar Datos</button>
-            <button class="btn btn-info" id="optimize-images">🖼️ Optimizar Imágenes</button>
-            <button class="btn btn-warning" id="image-stats">📊 Estadísticas</button>
             <button class="btn btn-success" id="manage-users">👥 Gestionar Usuarios</button>
             <a href="/" class="btn btn-primary">🏠 Volver a la Tienda</a>
             <button class="btn btn-danger" id="logout">Cerrar Sesión</button>
@@ -325,33 +323,25 @@
     <div id="image-stats-modal" class="modal">
         <div class="modal-content">
             <span class="close">&times;</span>
-            <h2>📊 Estadísticas de Optimización de Imágenes</h2>
+            <h2>📊 Estadísticas de Productos</h2>
             <div id="image-stats-content">
                 <div class="stats-grid">
                     <div class="stat-card">
-                        <h3>Imágenes Originales</h3>
-                        <p id="original-count">-</p>
+                        <h3>Total de Productos</h3>
+                        <p id="total-products">-</p>
                     </div>
                     <div class="stat-card">
-                        <h3>Imágenes Optimizadas</h3>
-                        <p id="optimized-count">-</p>
+                        <h3>Productos Activos</h3>
+                        <p id="active-products">-</p>
                     </div>
                     <div class="stat-card">
-                        <h3>Tamaño Original</h3>
-                        <p id="original-size">-</p>
+                        <h3>Stock Total</h3>
+                        <p id="total-stock">-</p>
                     </div>
                     <div class="stat-card">
-                        <h3>Tamaño Optimizado</h3>
-                        <p id="optimized-size">-</p>
+                        <h3>Valor Total</h3>
+                        <p id="total-value">-</p>
                     </div>
-                    <div class="stat-card">
-                        <h3>Reducción</h3>
-                        <p id="reduction-percent">-</p>
-                    </div>
-                </div>
-                <div class="optimization-actions">
-                    <button class="btn btn-info" id="process-new-images">🔄 Procesar Nuevas Imágenes</button>
-                    <button class="btn btn-warning" id="cleanup-images">🧹 Limpiar Optimizaciones</button>
                 </div>
             </div>
         </div>

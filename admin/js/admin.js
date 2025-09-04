@@ -23,8 +23,6 @@ const paginationElement = document.getElementById("pagination");
 const notificationElement = document.getElementById("notification");
 const addProductModal = document.getElementById("add-product-modal");
 const newProductForm = document.getElementById("new-product-form");
-const editProductModal = document.getElementById("edit-product-modal");
-const editProductForm = document.getElementById("edit-product-form");
 const imageStatsModal = document.getElementById("image-stats-modal");
 
 // ==================== API CALLS ====================
@@ -265,7 +263,6 @@ function renderProducts() {
       </td>
       <td>
         <div class="action-buttons">
-          <button class="action-btn edit-btn" data-id="${product.id}" title="Editar producto">✏️</button>
           <button class="action-btn save-btn" data-id="${product.id}" title="Guardar cambios">💾</button>
           <button class="action-btn delete-btn" data-id="${product.id}" title="Eliminar producto">🗑</button>
         </div>
@@ -347,34 +344,6 @@ function closeAddProductModal() {
   newProductForm.reset();
 }
 
-function openEditProductModal(productId) {
-  const product = productsData.find(p => p.id == productId);
-  if (!product) {
-    showNotification("Producto no encontrado", "error");
-    return;
-  }
-
-  // Llenar el formulario con los datos del producto
-  document.getElementById("edit-name").value = product.name || "";
-  document.getElementById("edit-brand").value = product.brand || "";
-  document.getElementById("edit-price").value = product.price || 0;
-  document.getElementById("edit-category").value = product.category || "";
-  document.getElementById("edit-sizes").value = product.sizes ? product.sizes.join(", ") : "";
-  document.getElementById("edit-stock").value = product.stock || 0;
-  document.getElementById("edit-image").value = product.image || "";
-  document.getElementById("edit-status").value = product.status || "Activo";
-
-  // Guardar el ID del producto para la actualización
-  editProductForm.dataset.productId = productId;
-
-  editProductModal.style.display = "block";
-}
-
-function closeEditProductModal() {
-  editProductModal.style.display = "none";
-  editProductForm.reset();
-  delete editProductForm.dataset.productId;
-}
 
 // ==================== EVENTOS ====================
 function setupEventListeners() {
@@ -393,7 +362,6 @@ function setupEventListeners() {
   document.querySelectorAll(".close").forEach(closeBtn => {
     closeBtn.addEventListener("click", () => {
       addProductModal.style.display = "none";
-      editProductModal.style.display = "none";
       imageStatsModal.style.display = "none";
     });
   });
@@ -402,9 +370,6 @@ function setupEventListeners() {
   window.addEventListener("click", (event) => {
     if (event.target === addProductModal) {
       closeAddProductModal();
-    }
-    if (event.target === editProductModal) {
-      closeEditProductModal();
     }
     if (event.target === imageStatsModal) {
       imageStatsModal.style.display = "none";
@@ -463,44 +428,10 @@ function setupEventListeners() {
     closeAddProductModal();
   });
 
-  // Formulario de edición de producto
-  editProductForm.addEventListener("submit", (e) => {
-    e.preventDefault();
-    
-    const productId = editProductForm.dataset.productId;
-    if (!productId) {
-      showNotification("Error: ID de producto no encontrado", "error");
-      return;
-    }
-
-    const updatedProduct = {
-      name: document.getElementById("edit-name").value,
-      brand: document.getElementById("edit-brand").value,
-      price: parseFloat(document.getElementById("edit-price").value),
-      category: document.getElementById("edit-category").value,
-      sizes: document.getElementById("edit-sizes").value.split(",").map(s => s.trim()).filter(s => s),
-      stock: parseInt(document.getElementById("edit-stock").value) || 0,
-      image: document.getElementById("edit-image").value,
-      status: document.getElementById("edit-status").value
-    };
-    
-    updateProduct(productId, updatedProduct).then(result => {
-      if (result.success) {
-        showNotification("Producto actualizado correctamente", "success");
-        closeEditProductModal();
-        fetchProducts();
-      } else {
-        showNotification("Error al actualizar producto", "error");
-      }
-    });
-  });
 
   // Guardar cambios individuales
   productsBody.addEventListener("click", (e) => {
-    if (e.target.classList.contains("edit-btn")) {
-      const id = e.target.dataset.id;
-      openEditProductModal(id);
-    } else if (e.target.classList.contains("save-btn")) {
+    if (e.target.classList.contains("save-btn")) {
       const id = e.target.dataset.id;
       const rowInputs = document.querySelectorAll(`[data-id="${id}"]`);
       const updates = {};

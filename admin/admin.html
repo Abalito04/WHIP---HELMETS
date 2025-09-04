@@ -237,6 +237,64 @@
         </div>
     </div>
 
+    <!-- Modal para editar producto -->
+    <div id="edit-product-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>✏️ Editar Producto</h2>
+            <form id="edit-product-form">
+                <div class="form-group">
+                    <label for="edit-name">Nombre del Producto</label>
+                    <input type="text" id="edit-name" required>
+                </div>
+                <div class="form-group">
+                    <label for="edit-brand">Marca</label>
+                    <select id="edit-brand" required>
+                        <option value="">Seleccione una marca</option>
+                        <option value="fox">Fox</option>
+                        <option value="bell">Bell</option>
+                        <option value="fly">Fly Racing</option>
+                        <option value="alpinestars">Alpinestars</option>
+                        <option value="aircraft">Aircraft</option>
+                        <option value="troylee">Troy Lee Design</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="edit-price">Precio</label>
+                    <input type="number" id="edit-price" min="0" required>
+                </div>
+                <div class="form-group">
+                    <label for="edit-category">Categoría</label>
+                    <select id="edit-category" required>
+                        <option value="">Seleccione una categoría</option>
+                        <option value="Cascos">Cascos</option>
+                        <option value="Accesorios">Accesorios</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="edit-sizes">Talles Disponibles (separados por comas)</label>
+                    <input type="text" id="edit-sizes" placeholder="S, M, L, XL">
+                </div>
+                <div class="form-group">
+                    <label for="edit-stock">Cantidad en Stock</label>
+                    <input type="number" id="edit-stock" min="0" value="0" required>
+                </div>
+                <div class="form-group">
+                    <label for="edit-image">URL de la Imagen</label>
+                    <input type="text" id="edit-image" placeholder="ruta/a/la/imagen.png">
+                </div>
+                <div class="form-group">
+                    <label for="edit-status">Estado</label>
+                    <select id="edit-status" required>
+                        <option value="Activo">Activo</option>
+                        <option value="Inactivo">Inactivo</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-success">💾 Guardar Cambios</button>
+            </form>
+        </div>
+    </div>
+
     <!-- Modal para agregar/editar usuario -->
     <div id="user-modal" class="modal">
         <div class="modal-content">

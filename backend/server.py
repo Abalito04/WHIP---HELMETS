@@ -400,24 +400,24 @@ def update_product(pid: int):
                 # Si no podemos verificar, intentar de todas formas
                 set_field("porcentaje_descuento", porcentaje_descuento)
 
-    if "category" in data:
-        set_field("category", (data.get("category") or "").strip())
+        if "category" in data:
+            set_field("category", (data.get("category") or "").strip())
 
-    if "sizes" in data:
-        sizes_list = data.get("sizes") or []
-        if isinstance(sizes_list, str):
-            sizes_list = [s.strip() for s in sizes_list.split(",") if s.strip()]
-        set_field("sizes", ",".join(sizes_list))
+        if "sizes" in data:
+            sizes_list = data.get("sizes") or []
+            if isinstance(sizes_list, str):
+                sizes_list = [s.strip() for s in sizes_list.split(",") if s.strip()]
+            set_field("sizes", ",".join(sizes_list))
 
-    if "stock" in data:
-        try:
-            stock = int(data.get("stock"))
-        except Exception:
-            return jsonify({"error": "El campo 'stock' debe ser numérico"}), 400
-        set_field("stock", stock)
+        if "stock" in data:
+            try:
+                stock = int(data.get("stock"))
+            except Exception:
+                return jsonify({"error": "El campo 'stock' debe ser numérico"}), 400
+            set_field("stock", stock)
 
-    if "image" in data:
-        set_field("image", (data.get("image") or "").strip())
+        if "image" in data:
+            set_field("image", (data.get("image") or "").strip())
 
         if "images" in data:
             images_list = data.get("images") or []
@@ -434,13 +434,13 @@ def update_product(pid: int):
             images_json = json.dumps(images_list)
             set_field("images", images_json)
 
-    if "status" in data:
-        set_field("status", (data.get("status") or "").strip())
+        if "status" in data:
+            set_field("status", (data.get("status") or "").strip())
 
-    if not fields:
-        return jsonify({"error": "Nada para actualizar"}), 400
+        if not fields:
+            return jsonify({"error": "Nada para actualizar"}), 400
 
-    params.append(pid)
+        params.append(pid)
 
         conn = get_conn()
         try:
@@ -448,8 +448,8 @@ def update_product(pid: int):
             print(f"DEBUG: Params: {params}")
             
             cur = execute_query(conn, f"UPDATE productos SET {', '.join(fields)} WHERE id = %s", params)
-        if cur.rowcount == 0:
-            return jsonify({"error": "Producto no encontrado"}), 404
+            if cur.rowcount == 0:
+                return jsonify({"error": "Producto no encontrado"}), 404
             conn.commit()  # Confirmar la transacción
             
             print(f"DEBUG: Producto {pid} actualizado exitosamente")
@@ -504,7 +504,7 @@ def delete_product(pid: int):
         if cur.rowcount == 0:
             return jsonify({"error": "Producto no encontrado"}), 404
         conn.commit()  # Confirmar la transacción
-    return jsonify({"ok": True}), 200
+        return jsonify({"ok": True}), 200
     finally:
         conn.close()
 

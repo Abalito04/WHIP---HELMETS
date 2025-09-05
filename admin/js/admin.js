@@ -30,7 +30,10 @@ const imageStatsModal = document.getElementById("image-stats-modal");
 async function fetchProducts() {
   try {
     console.log("Intentando conectar con la API...");
-    const res = await fetch(`${API_BASE}/api/products`);
+    console.log("API_BASE:", API_BASE);
+    const url = `${API_BASE}/api/products`;
+    console.log("URL completa:", url);
+    const res = await fetch(url);
     
     if (!res.ok) {
       throw new Error(`Error HTTP: ${res.status} ${res.statusText}`);
@@ -791,7 +794,9 @@ function init() {
 // Función para verificar conectividad
 async function checkConnectivity() {
   try {
-    const response = await fetch(`${API_BASE}/api/health`, { 
+    const url = `${API_BASE}/api/health`;
+    console.log("Verificando conectividad con URL:", url);
+    const response = await fetch(url, { 
       method: 'GET',
       headers: {
         'Accept': 'application/json',

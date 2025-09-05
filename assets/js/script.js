@@ -18,6 +18,8 @@ document.addEventListener("DOMContentLoaded", () => {
   // Login variables
   const loginLink = document.querySelector(".login");
   const loginModal = document.getElementById('login-modal');
+  let isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
+  let userEmail = localStorage.getItem("userEmail") || "";
   const loginForm = document.getElementById('login-form');
   const closeLogin = document.querySelector('.close-login');
   let currentUser = null;

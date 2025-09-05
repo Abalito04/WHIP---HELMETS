@@ -542,6 +542,46 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  // Botón para crear usuarios de prueba
+  const createTestUsersBtn = document.getElementById('create-test-users');
+  if (createTestUsersBtn) {
+    createTestUsersBtn.addEventListener('click', async () => {
+      try {
+        createTestUsersBtn.disabled = true;
+        createTestUsersBtn.textContent = '⏳ Creando...';
+        
+        const API_BASE = (() => {
+          if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+            return window.location.origin;
+          }
+          return "http://127.0.0.1:5000";
+        })();
+        
+        const response = await fetch(`${API_BASE}/api/debug/create-test-users`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+        
+        const result = await response.json();
+        
+        if (response.ok) {
+          showMessage('✅ Usuarios de prueba creados exitosamente', 'success');
+          console.log('Resultado:', result);
+        } else {
+          showMessage('❌ Error al crear usuarios: ' + result.error, 'error');
+        }
+        
+      } catch (error) {
+        showMessage('❌ Error de conexión: ' + error.message, 'error');
+      } finally {
+        createTestUsersBtn.disabled = false;
+        createTestUsersBtn.textContent = '🔧 Crear Usuarios de Prueba';
+      }
+    });
+  }
+
   function showUserMenu() {
     const menu = `
       <div class="user-menu">

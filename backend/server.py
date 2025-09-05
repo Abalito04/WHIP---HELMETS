@@ -1090,6 +1090,54 @@ def debug_users():
     finally:
         conn.close()
 
+@app.route("/api/debug/create-test-users", methods=["POST"])
+def create_test_users():
+    """Debug: Crear usuarios de prueba"""
+    try:
+        # Crear usuario admin
+        admin_result = auth_manager.register_user(
+            username="admin",
+            password="admin123",
+            email="admin@test.com",
+            nombre="Admin",
+            apellido="User",
+            dni="12345678",
+            telefono="1234567890",
+            direccion="Calle Admin 123",
+            codigo_postal="1234"
+        )
+        
+        # Crear usuario normal
+        user_result = auth_manager.register_user(
+            username="usuario",
+            password="user123",
+            email="usuario@test.com",
+            nombre="Usuario",
+            apellido="Test",
+            dni="87654321",
+            telefono="0987654321",
+            direccion="Calle Usuario 456",
+            codigo_postal="5678"
+        )
+        
+        # Actualizar rol del admin
+        if admin_result.get("success"):
+            conn = get_conn()
+            cursor = conn.cursor()
+            cursor.execute("UPDATE users SET role = 'admin' WHERE username = 'admin'")
+            conn.commit()
+            conn.close()
+        
+        return jsonify({
+            "admin_created": admin_result.get("success", False),
+            "user_created": user_result.get("success", False),
+            "admin_message": admin_result.get("message", admin_result.get("error", "")),
+            "user_message": user_result.get("message", user_result.get("error", ""))
+        }), 200
+        
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 # ---------------------- RUTAS DE PAGOS ----------------------
 
 @app.route("/api/payment/create-preference", methods=["POST"])

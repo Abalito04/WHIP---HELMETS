@@ -191,42 +191,42 @@ def list_products():
     ?q=texto&brand=Fox&category=Cascos&status=Activo&min_price=0&max_price=1000000
     """
     try:
-    q = request.args.get("q", "").strip()
-    brand = request.args.get("brand", "").strip()
-    category = request.args.get("category", "").strip()
-    status = request.args.get("status", "").strip()
-    min_price = request.args.get("min_price", "").strip()
-    max_price = request.args.get("max_price", "").strip()
+        q = request.args.get("q", "").strip()
+        brand = request.args.get("brand", "").strip()
+        category = request.args.get("category", "").strip()
+        status = request.args.get("status", "").strip()
+        min_price = request.args.get("min_price", "").strip()
+        max_price = request.args.get("max_price", "").strip()
 
         query = "SELECT id, name, brand, price, COALESCE(porcentaje_descuento, NULL) as porcentaje_descuento, category, sizes, stock, image, images, status, created_at, updated_at FROM productos WHERE 1=1"
-    params = []
+        params = []
 
-    if q:
+        if q:
             query += " AND (LOWER(name) LIKE %s OR LOWER(brand) LIKE %s OR LOWER(category) LIKE %s)"
-        like = f"%{q.lower()}%"
-        params.extend([like, like, like])
+            like = f"%{q.lower()}%"
+            params.extend([like, like, like])
 
-    if brand:
+        if brand:
             query += " AND LOWER(brand) = %s"
-        params.append(brand.lower())
+            params.append(brand.lower())
 
-    if category:
+        if category:
             query += " AND LOWER(category) = %s"
-        params.append(category.lower())
+            params.append(category.lower())
 
-    if status:
+        if status:
             query += " AND LOWER(status) = %s"
-        params.append(status.lower())
+            params.append(status.lower())
 
-    if min_price:
+        if min_price:
             query += " AND price >= %s"
-        params.append(float(min_price))
+            params.append(float(min_price))
 
-    if max_price:
+        if max_price:
             query += " AND price <= %s"
-        params.append(float(max_price))
+            params.append(float(max_price))
 
-    query += " ORDER BY id DESC"
+        query += " ORDER BY id DESC"
 
         print(f"DEBUG: Query: {query}")
         print(f"DEBUG: Params: {params}")

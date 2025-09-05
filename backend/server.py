@@ -184,28 +184,28 @@ def list_products():
         params = []
 
         if q:
-            query += " AND (LOWER(name) LIKE ? OR LOWER(brand) LIKE ? OR LOWER(category) LIKE ?)"
+            query += " AND (LOWER(name) LIKE %s OR LOWER(brand) LIKE %s OR LOWER(category) LIKE %s)"
             like = f"%{q.lower()}%"
             params.extend([like, like, like])
 
         if brand:
-            query += " AND LOWER(brand) = ?"
+            query += " AND LOWER(brand) = %s"
             params.append(brand.lower())
 
         if category:
-            query += " AND LOWER(category) = ?"
+            query += " AND LOWER(category) = %s"
             params.append(category.lower())
 
         if status:
-            query += " AND LOWER(status) = ?"
+            query += " AND LOWER(status) = %s"
             params.append(status.lower())
 
         if min_price:
-            query += " AND price >= ?"
+            query += " AND price >= %s"
             params.append(float(min_price))
 
         if max_price:
-            query += " AND price <= ?"
+            query += " AND price <= %s"
             params.append(float(max_price))
 
         query += " ORDER BY id DESC"
@@ -317,7 +317,7 @@ def update_product(pid: int):
     params = []
 
     def set_field(key, value):
-        fields.append(f"{key} = ?")
+        fields.append(f"{key} = %s")
         params.append(value)
 
     # Campos opcionales

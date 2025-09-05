@@ -67,21 +67,23 @@ CORS(app)
 # ---------------------- Database helpers ----------------------
 def get_conn():
     """Obtiene conexión a la base de datos (PostgreSQL o SQLite)"""
-    from config import DATABASE_URL
-    if DATABASE_URL:
+    from config import DATABASE_URL, FORCE_POSTGRESQL
+    
+    # En producción, usar PostgreSQL por defecto
+    if FORCE_POSTGRESQL or DATABASE_URL:
         # Usar PostgreSQL
         from database import get_conn as get_pg_conn
         return get_pg_conn()
     else:
-        # Usar SQLite
+        # Usar SQLite solo en desarrollo local
         conn = sqlite3.connect(DB_PATH)
         conn.row_factory = sqlite3.Row
         return conn
 
 def is_postgresql():
     """Verifica si estamos usando PostgreSQL"""
-    from config import DATABASE_URL
-    return bool(DATABASE_URL)
+    from config import DATABASE_URL, FORCE_POSTGRESQL
+    return FORCE_POSTGRESQL or bool(DATABASE_URL)
 
 def get_placeholder():
     """Retorna el placeholder correcto para la base de datos actual"""
@@ -99,10 +101,17 @@ def init_db():
     print("Inicializando bases de datos...")
     
     # Verificar si tenemos PostgreSQL configurado
-    from config import DATABASE_URL
-    if DATABASE_URL:
+    from config import DATABASE_URL, FORCE_POSTGRESQL
+    
+    if FORCE_POSTGRESQL or DATABASE_URL:
         print("Usando PostgreSQL...")
-        init_postgresql()
+        try:
+            init_postgresql()
+        except Exception as e:
+            print(f"Error al conectar con PostgreSQL: {e}")
+            print("Intentando con SQLite como respaldo...")
+            init_products_db()
+            init_users_db()
     else:
         print("Usando SQLite (desarrollo local)...")
         # Inicializar base de datos de productos

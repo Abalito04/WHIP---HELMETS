@@ -36,6 +36,9 @@ PGDATABASE = os.environ.get('PGDATABASE', 'whip_helmets')
 PGUSER = os.environ.get('PGUSER', 'postgres')
 PGPASSWORD = os.environ.get('PGPASSWORD', '')
 
+# Forzar uso de PostgreSQL en producción
+FORCE_POSTGRESQL = os.environ.get('FORCE_POSTGRESQL', 'true').lower() == 'true'
+
 # Configuración de la base de datos
 DATABASE_PATH = os.environ.get('DATABASE_PATH', 'productos.db')
 USERS_DATABASE_PATH = os.environ.get('USERS_DATABASE_PATH', 'users.db')

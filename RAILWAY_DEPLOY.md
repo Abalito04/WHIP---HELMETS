@@ -40,6 +40,17 @@ CLOUDINARY_API_SECRET=pSrCsNF60-t5bSP_YUA2iGrTvBA
 # O alternativamente, usar la URL completa:
 # CLOUDINARY_URL=cloudinary://291494695985798:pSrCsNF60-t5bSP_YUA2iGrTvBA@ddowcuhlu
 
+# Configuración de PostgreSQL (Railway proporciona DATABASE_URL automáticamente)
+# Si usas una base de datos externa, configura estas variables:
+# PGHOST=tu-host-postgresql
+# PGPORT=5432
+# PGDATABASE=whip_helmets
+# PGUSER=tu-usuario
+# PGPASSWORD=tu-password
+
+# Forzar uso de PostgreSQL (recomendado para producción)
+FORCE_POSTGRESQL=true
+
 # URLs (Railway las configura automáticamente)
 RAILWAY_STATIC_URL=https://tu-app.railway.app
 ```

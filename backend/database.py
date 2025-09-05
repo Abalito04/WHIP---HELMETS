@@ -48,6 +48,7 @@ def init_postgresql_tables():
                 sizes TEXT,
                 stock INTEGER DEFAULT 0,
                 image TEXT,
+                images TEXT,
                 status VARCHAR(50),
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -150,10 +151,10 @@ def insert_sample_products():
             
             cursor.executemany(
                 """
-                INSERT INTO productos (name, brand, price, category, sizes, stock, image, status)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                INSERT INTO productos (name, brand, price, category, sizes, stock, image, images, status)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
                 """,
-                sample_products
+                [(p[0], p[1], p[2], p[3], p[4], p[5], p[6], '[]', p[7]) for p in sample_products]
             )
             
             conn.commit()

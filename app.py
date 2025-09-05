@@ -15,7 +15,10 @@ os.chdir('backend')
 
 # Importar y ejecutar el servidor
 if __name__ == "__main__":
-    from server import app
+    from server import app, init_db
+    
+    # Inicializar bases de datos
+    init_db()
     
     # Configuración para Railway
     port = int(os.environ.get('PORT', 5000))

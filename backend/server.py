@@ -83,6 +83,11 @@ def init_db():
     print("Inicializando PostgreSQL...")
     
     try:
+        # Verificar configuración de base de datos
+        from config import check_database_config
+        check_database_config()
+        print("✅ Configuración de base de datos verificada")
+        
         # Verificar conexión a PostgreSQL
         from database import get_conn as get_pg_conn
         with get_pg_conn() as conn:

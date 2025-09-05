@@ -9,6 +9,9 @@ from config import DATABASE_URL, PGHOST, PGPORT, PGDATABASE, PGUSER, PGPASSWORD
 
 def get_connection_string():
     """Obtiene la cadena de conexión a PostgreSQL"""
+    from config import check_database_config
+    check_database_config()  # Verificar que DATABASE_URL esté configurada
+    
     if DATABASE_URL:
         return DATABASE_URL
     else:

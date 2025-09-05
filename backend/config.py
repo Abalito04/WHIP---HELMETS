@@ -39,8 +39,13 @@ PGPASSWORD = os.environ.get('PGPASSWORD', '')
 # PostgreSQL exclusivo - no más SQLite
 # Railway siempre proporciona DATABASE_URL
 DATABASE_URL = os.environ.get('DATABASE_URL', '')
-if not DATABASE_URL:
-    raise ValueError("DATABASE_URL es requerida. Configura PostgreSQL en Railway.")
+
+# Verificar DATABASE_URL solo cuando se necesite, no al importar
+def check_database_config():
+    """Verificar que la configuración de base de datos esté disponible"""
+    if not DATABASE_URL:
+        raise ValueError("DATABASE_URL es requerida. Configura PostgreSQL en Railway.")
+    return True
 
 # Configuración de seguridad
 JWT_SECRET_KEY = os.environ.get('JWT_SECRET_KEY', SECRET_KEY)

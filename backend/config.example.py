@@ -20,3 +20,9 @@ SECRET_KEY = "cambia-esta-clave-secreta-en-produccion"
 # Configuración de la base de datos
 DATABASE_PATH = "productos.db"
 USERS_DATABASE_PATH = "users.db"
+
+# Configuración de Cloudinary
+# IMPORTANTE: Obtén tus credenciales en: https://cloudinary.com/console
+CLOUDINARY_CLOUD_NAME = os.environ.get('CLOUDINARY_CLOUD_NAME', 'tu_cloud_name_aqui')
+CLOUDINARY_API_KEY = os.environ.get('CLOUDINARY_API_KEY', 'tu_api_key_aqui')
+CLOUDINARY_API_SECRET = os.environ.get('CLOUDINARY_API_SECRET', 'tu_api_secret_aqui')

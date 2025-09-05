@@ -3,3 +3,4 @@ flask-cors==4.0.1
 watchdog==3.0.0
 mercadopago==2.2.0
 requests==2.31.0
+cloudinary==1.41.0

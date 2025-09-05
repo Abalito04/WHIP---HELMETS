@@ -16,7 +16,7 @@ except ImportError:
     print("⚠️  Módulo de autenticación no disponible")
 
 # Procesamiento de imágenes deshabilitado
-IMAGE_PROCESSING_AVAILABLE = False
+    IMAGE_PROCESSING_AVAILABLE = False
 
 # Importar el manejador de pagos
 try:
@@ -476,7 +476,7 @@ def seed():
 
 @app.route("/api/upload", methods=["POST"])
 def upload_image():
-    """Endpoint para subir imágenes"""
+    """Endpoint para subir imágenes a Cloudinary"""
     try:
         if 'file' not in request.files:
             return jsonify({"error": "No se encontró archivo"}), 400
@@ -489,31 +489,45 @@ def upload_image():
         if not file.filename.lower().endswith(('.png', '.jpg', '.jpeg', '.gif', '.webp')):
             return jsonify({"error": "Solo se permiten archivos de imagen"}), 400
         
-        # Crear directorio de uploads si no existe
-        upload_dir = os.path.join('assets', 'images', 'products', 'uploaded')
-        os.makedirs(upload_dir, exist_ok=True)
+        # Verificar configuración de Cloudinary
+        if not CLOUDINARY_CLOUD_NAME or not CLOUDINARY_API_KEY or not CLOUDINARY_API_SECRET:
+            return jsonify({"error": "Cloudinary no está configurado. Contacta al administrador."}), 500
         
-        # Generar nombre único para el archivo
-        import uuid
-        file_extension = os.path.splitext(file.filename)[1]
-        unique_filename = f"{uuid.uuid4()}{file_extension}"
-        file_path = os.path.join(upload_dir, unique_filename)
+        # Configurar Cloudinary
+        import cloudinary
+        import cloudinary.uploader
         
-        # Guardar el archivo
-        file.save(file_path)
+        cloudinary.config(
+            cloud_name=CLOUDINARY_CLOUD_NAME,
+            api_key=CLOUDINARY_API_KEY,
+            api_secret=CLOUDINARY_API_SECRET
+        )
         
-        # Retornar la ruta relativa para usar en la base de datos
-        relative_path = f"assets/images/products/uploaded/{unique_filename}"
+        # Subir imagen a Cloudinary
+        result = cloudinary.uploader.upload(
+            file,
+            folder="whip-helmets/products",  # Organizar en carpeta
+            public_id=None,  # Cloudinary genera ID único automáticamente
+            resource_type="image",
+            transformation=[
+                {"width": 800, "height": 800, "crop": "limit"},  # Redimensionar si es muy grande
+                {"quality": "auto"}  # Optimizar calidad automáticamente
+            ]
+        )
+        
+        # Retornar la URL de Cloudinary
+        cloudinary_url = result['secure_url']
         
         return jsonify({
             "success": True,
-            "message": "Imagen subida correctamente",
-            "file_path": relative_path,
-            "filename": unique_filename
+            "message": "Imagen subida correctamente a Cloudinary",
+            "file_path": cloudinary_url,
+            "cloudinary_id": result['public_id'],
+            "filename": file.filename
         }), 200
         
     except Exception as e:
-        print(f"Error al subir imagen: {e}")
+        print(f"Error al subir imagen a Cloudinary: {e}")
         return jsonify({"error": f"Error al subir imagen: {str(e)}"}), 500
 
 # Función para convertir filas de base de datos a diccionarios

@@ -32,6 +32,11 @@ MP_ACCESS_TOKEN=tu_access_token_real_aqui
 SECRET_KEY=tu_clave_secreta_unica_aqui
 DEBUG=False
 
+# Credenciales de Cloudinary (para subida de imágenes)
+CLOUDINARY_CLOUD_NAME=tu_cloud_name_aqui
+CLOUDINARY_API_KEY=tu_api_key_aqui
+CLOUDINARY_API_SECRET=tu_api_secret_aqui
+
 # URLs (Railway las configura automáticamente)
 RAILWAY_STATIC_URL=https://tu-app.railway.app
 ```
@@ -43,7 +48,23 @@ RAILWAY_STATIC_URL=https://tu-app.railway.app
 3. Ve a "Credenciales" en el panel
 4. Copia tu **Access Token** (usa el de "Production" para producción)
 
-### 5. Configurar el dominio personalizado (opcional)
+### 5. Configurar Cloudinary (para subida de imágenes)
+
+1. Ve a [Cloudinary Console](https://cloudinary.com/console)
+2. Crea una cuenta gratuita (25GB gratis)
+3. En el Dashboard, copia:
+   - **Cloud Name**
+   - **API Key**
+   - **API Secret**
+4. Agrega estas credenciales en Railway como variables de entorno
+
+**Beneficios de Cloudinary:**
+- ✅ **25GB gratis** para siempre
+- ✅ **URLs permanentes** - Las imágenes nunca se pierden
+- ✅ **Optimización automática** - Redimensiona y comprime imágenes
+- ✅ **CDN global** - Carga rápida desde cualquier lugar
+
+### 6. Configurar el dominio personalizado (opcional)
 
 1. En Railway, ve a "Settings"
 2. En "Domains", agrega tu dominio personalizado

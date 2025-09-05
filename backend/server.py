@@ -378,7 +378,7 @@ def list_products():
     query += " ORDER BY id DESC"
 
     with closing(get_conn()) as conn:
-        rows = conn.execute(query, params).fetchall()
+        rows = execute_query(conn, query, params).fetchall()
     return jsonify([row_to_dict(r) for r in rows]), 200
 
 
@@ -976,7 +976,7 @@ def list_products_admin():
     """Ruta para administradores - lista todos los productos sin filtros"""
     try:
         with closing(get_conn()) as conn:
-            rows = conn.execute("SELECT * FROM productos ORDER BY id DESC").fetchall()
+            rows = execute_query(conn, "SELECT * FROM productos ORDER BY id DESC").fetchall()
         return jsonify([row_to_dict(r) for r in rows]), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500

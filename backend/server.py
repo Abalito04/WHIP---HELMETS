@@ -378,7 +378,27 @@ def update_product(pid: int):
                     return jsonify({"error": "El porcentaje de descuento debe estar entre 0 y 100"}), 400
             except Exception:
                 return jsonify({"error": "El campo 'porcentaje_descuento' debe ser numérico"}), 400
-        set_field("porcentaje_descuento", porcentaje_descuento)
+        # Verificar si la columna existe antes de intentar actualizarla
+        try:
+            conn_check = get_conn()
+            try:
+                cursor_check = conn_check.cursor()
+                cursor_check.execute("""
+                    SELECT column_name 
+                    FROM information_schema.columns 
+                    WHERE table_name = 'productos' AND column_name = 'porcentaje_descuento'
+                """)
+                column_exists = cursor_check.fetchone() is not None
+                if column_exists:
+                    set_field("porcentaje_descuento", porcentaje_descuento)
+                else:
+                    print(f"WARNING: Columna porcentaje_descuento no existe, saltando actualización")
+            finally:
+                conn_check.close()
+        except Exception as e:
+            print(f"WARNING: Error verificando columna porcentaje_descuento: {e}")
+            # Si no podemos verificar, intentar de todas formas
+            set_field("porcentaje_descuento", porcentaje_descuento)
 
     if "category" in data:
         set_field("category", (data.get("category") or "").strip())
@@ -433,11 +453,40 @@ def update_product(pid: int):
         conn.commit()  # Confirmar la transacción
         
         print(f"DEBUG: Producto {pid} actualizado exitosamente")
-        row = execute_query(conn, "SELECT id, name, brand, price, COALESCE(porcentaje_descuento, NULL) as porcentaje_descuento, category, sizes, stock, image, images, status, created_at, updated_at FROM productos WHERE id = %s", (pid,)).fetchone()
-        print(f"DEBUG: Row obtenida: {row}")
-        result = row_to_dict(row)
-        print(f"DEBUG: Resultado final: {result}")
-        return jsonify(result), 200
+        
+        # Verificar si la columna porcentaje_descuento existe antes de hacer SELECT
+        try:
+            cursor_check = conn.cursor()
+            cursor_check.execute("""
+                SELECT column_name 
+                FROM information_schema.columns 
+                WHERE table_name = 'productos' AND column_name = 'porcentaje_descuento'
+            """)
+            column_exists = cursor_check.fetchone() is not None
+            
+            if column_exists:
+                query = "SELECT id, name, brand, price, COALESCE(porcentaje_descuento, NULL) as porcentaje_descuento, category, sizes, stock, image, images, status, created_at, updated_at FROM productos WHERE id = %s"
+            else:
+                print("WARNING: Usando query sin porcentaje_descuento")
+                query = "SELECT id, name, brand, price, NULL as porcentaje_descuento, category, sizes, stock, image, images, status, created_at, updated_at FROM productos WHERE id = %s"
+            
+            row = execute_query(conn, query, (pid,)).fetchone()
+            print(f"DEBUG: Row obtenida: {row}")
+            result = row_to_dict(row)
+            print(f"DEBUG: Resultado final: {result}")
+            return jsonify(result), 200
+        except Exception as select_error:
+            print(f"ERROR en SELECT: {select_error}")
+            # Fallback: usar query básica
+            row = execute_query(conn, "SELECT id, name, brand, price, category, sizes, stock, image, images, status, created_at, updated_at FROM productos WHERE id = %s", (pid,)).fetchone()
+            if row:
+                # Agregar porcentaje_descuento como None
+                row_dict = row._asdict() if hasattr(row, '_asdict') else dict(zip(['id', 'name', 'brand', 'price', 'category', 'sizes', 'stock', 'image', 'images', 'status', 'created_at', 'updated_at'], row))
+                row_dict['porcentaje_descuento'] = None
+                result = row_to_dict(type('obj', (object,), row_dict)())
+                return jsonify(result), 200
+            else:
+                return jsonify({"error": "Producto no encontrado después de actualizar"}), 404
     finally:
         conn.close()
     except Exception as e:

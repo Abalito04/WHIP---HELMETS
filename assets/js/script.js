@@ -211,17 +211,10 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   };
 
-  // Función para actualizar la UI de login
+  // Función para actualizar la UI de login (DEPRECATED - usar updateLoginButton)
   const updateLoginUI = () => {
-    if (loginLink) {
-      if (isLoggedIn) {
-        loginLink.textContent = `Cerrar Sesión (${userEmail})`;
-        loginLink.href = "#logout";
-      } else {
-        loginLink.textContent = "Iniciar Sesión";
-        loginLink.href = "#login";
-      }
-    }
+    // Esta función está deprecada, usar updateLoginButton en su lugar
+    updateLoginButton();
   };
 
   // Función para manejar login
@@ -367,24 +360,41 @@ document.addEventListener("DOMContentLoaded", () => {
     const token = localStorage.getItem('authToken');
     const userInfo = localStorage.getItem('userInfo');
     
+    console.log('Verificando estado de autenticación...', { token: !!token, userInfo: !!userInfo });
+    
     if (token && userInfo) {
       try {
         currentUser = JSON.parse(userInfo);
+        console.log('Usuario encontrado:', currentUser);
         updateLoginButton();
       } catch (e) {
+        console.error('Error al parsear userInfo:', e);
         localStorage.removeItem('authToken');
         localStorage.removeItem('userInfo');
       }
+    } else {
+      console.log('No hay sesión activa');
+      updateLoginButton();
     }
   }
 
   function updateLoginButton() {
-    if (currentUser) {
-      loginLink.textContent = `👤 ${currentUser.username}`;
-      loginLink.onclick = showUserMenu;
+    console.log('Actualizando botón de login...', { loginLink: !!loginLink, currentUser });
+    
+    if (loginLink) {
+      if (currentUser) {
+        loginLink.textContent = `👤 ${currentUser.username}`;
+        loginLink.href = "#";
+        loginLink.onclick = showUserMenu;
+        console.log('Botón actualizado para usuario:', currentUser.username);
+      } else {
+        loginLink.textContent = 'Iniciar Sesión';
+        loginLink.href = "#login";
+        loginLink.onclick = showLoginModal;
+        console.log('Botón actualizado para login');
+      }
     } else {
-      loginLink.textContent = 'Iniciar Sesión';
-      loginLink.onclick = showLoginModal;
+      console.error('loginLink no encontrado en el DOM');
     }
   }
 
@@ -646,5 +656,5 @@ document.addEventListener("DOMContentLoaded", () => {
   updateCartCount();
   renderCartItems();
   updateMiniCart();
-  updateLoginUI();
+  // updateLoginButton() ya se llama en checkAuthStatus()
 });

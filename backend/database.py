@@ -39,6 +39,7 @@ def init_postgresql_tables():
     
     with get_conn() as conn:
         cursor = conn.cursor()
+        print("DEBUG: Cursor created successfully")
         
         # Crear tabla de productos
         cursor.execute("""
@@ -120,6 +121,15 @@ def init_postgresql_tables():
         
         conn.commit()
         print("Tablas de PostgreSQL creadas correctamente")
+        
+        # Verificar que las tablas se crearon
+        cursor.execute("""
+            SELECT table_name 
+            FROM information_schema.tables 
+            WHERE table_schema = 'public'
+        """)
+        tables = cursor.fetchall()
+        print(f"DEBUG: Tables created: {[t[0] for t in tables]}")
 
 def insert_sample_products():
     """Inserta productos de ejemplo en PostgreSQL"""
@@ -131,7 +141,17 @@ def insert_sample_products():
         # Verificar si ya hay productos
         cursor.execute("SELECT COUNT(*) FROM productos")
         result = cursor.fetchone()
-        count = result[0] if result else 0
+        print(f"DEBUG: Result from COUNT query: {result}")
+        print(f"DEBUG: Result type: {type(result)}")
+        
+        if result is None:
+            print("DEBUG: No result from COUNT query, assuming 0 products")
+            count = 0
+        elif isinstance(result, (list, tuple)) and len(result) > 0:
+            count = result[0]
+        else:
+            print(f"DEBUG: Unexpected result format: {result}")
+            count = 0
         
         if count == 0:
             sample_products = [
@@ -176,7 +196,17 @@ def insert_sample_users():
         # Verificar si ya hay usuarios
         cursor.execute("SELECT COUNT(*) FROM users")
         result = cursor.fetchone()
-        count = result[0] if result else 0
+        print(f"DEBUG: Result from users COUNT query: {result}")
+        print(f"DEBUG: Result type: {type(result)}")
+        
+        if result is None:
+            print("DEBUG: No result from users COUNT query, assuming 0 users")
+            count = 0
+        elif isinstance(result, (list, tuple)) and len(result) > 0:
+            count = result[0]
+        else:
+            print(f"DEBUG: Unexpected result format for users: {result}")
+            count = 0
         
         if count == 0:
             import hashlib

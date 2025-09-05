@@ -4,6 +4,7 @@ import sqlite3
 import os
 import re
 from contextlib import closing
+from database import get_conn, init_postgresql
 from datetime import datetime, timedelta
 import hashlib
 
@@ -65,19 +66,49 @@ CORS(app)
 
 # ---------------------- Database helpers ----------------------
 def get_conn():
-    conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row
-    return conn
+    """Obtiene conexión a la base de datos (PostgreSQL o SQLite)"""
+    from config import DATABASE_URL
+    if DATABASE_URL:
+        # Usar PostgreSQL
+        from database import get_conn as get_pg_conn
+        return get_pg_conn()
+    else:
+        # Usar SQLite
+        conn = sqlite3.connect(DB_PATH)
+        conn.row_factory = sqlite3.Row
+        return conn
+
+def is_postgresql():
+    """Verifica si estamos usando PostgreSQL"""
+    from config import DATABASE_URL
+    return bool(DATABASE_URL)
+
+def get_placeholder():
+    """Retorna el placeholder correcto para la base de datos actual"""
+    return "%s" if is_postgresql() else "?"
+
+def execute_query(conn, query, params=None):
+    """Ejecuta una query con los placeholders correctos"""
+    if params is None:
+        return conn.execute(query)
+    else:
+        return conn.execute(query, params)
 
 def init_db():
     """Inicializar todas las bases de datos"""
     print("Inicializando bases de datos...")
     
-    # Inicializar base de datos de productos
-    init_products_db()
-    
-    # Inicializar base de datos de usuarios
-    init_users_db()
+    # Verificar si tenemos PostgreSQL configurado
+    from config import DATABASE_URL
+    if DATABASE_URL:
+        print("Usando PostgreSQL...")
+        init_postgresql()
+    else:
+        print("Usando SQLite (desarrollo local)...")
+        # Inicializar base de datos de productos
+        init_products_db()
+        # Inicializar base de datos de usuarios
+        init_users_db()
 
 def init_products_db():
     """Inicializar base de datos de productos"""
@@ -124,10 +155,11 @@ def init_products_db():
                 ("Antiparras CROSS", "Fox", 80000, "Accesorios", "Único", 30, "assets/images/products/antiparras 2.png", "Activo")
             ]
             
+            placeholder = get_placeholder()
             conn.executemany(
-                """
+                f"""
                 INSERT INTO productos (name, brand, price, category, sizes, stock, image, status)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                VALUES ({placeholder}, {placeholder}, {placeholder}, {placeholder}, {placeholder}, {placeholder}, {placeholder}, {placeholder})
                 """,
                 sample_products
             )
@@ -184,8 +216,9 @@ def init_users_db():
         if not admin_exists:
             import hashlib
             password_hash = hashlib.sha256('admin123'.encode()).hexdigest()
-            conn.execute(
-                "INSERT INTO users (username, password_hash, role) VALUES (?, ?, ?)",
+            placeholder = get_placeholder()
+            execute_query(conn,
+                f"INSERT INTO users (username, password_hash, role) VALUES ({placeholder}, {placeholder}, {placeholder})",
                 ('admin', password_hash, 'admin')
             )
             print("Usuario admin creado: admin / admin123")
@@ -198,8 +231,8 @@ def init_users_db():
         if not user_exists:
             import hashlib
             password_hash = hashlib.sha256('user123'.encode()).hexdigest()
-            conn.execute(
-                "INSERT INTO users (username, password_hash, role) VALUES (?, ?, ?)",
+            execute_query(conn,
+                f"INSERT INTO users (username, password_hash, role) VALUES ({placeholder}, {placeholder}, {placeholder})",
                 ('usuario', password_hash, 'user')
             )
             print("Usuario normal creado: usuario / user123")
@@ -207,8 +240,13 @@ def init_users_db():
         conn.commit()
         print("Base de datos de usuarios inicializada")
             
-def row_to_dict(row: sqlite3.Row):
-    d = dict(row)
+def row_to_dict(row):
+    """Convierte una fila de base de datos a diccionario (PostgreSQL o SQLite)"""
+    if hasattr(row, 'keys'):  # PostgreSQL RealDictRow
+        d = dict(row)
+    else:  # SQLite Row
+        d = dict(row)
+    
     # sizes: CSV -> lista
     if d.get("sizes"):
         d["sizes"] = [s.strip() for s in d["sizes"].split(",") if s.strip()]
@@ -297,7 +335,8 @@ def list_products():
 @app.route("/api/products/<int:pid>", methods=["GET"])
 def get_product(pid: int):
     with closing(get_conn()) as conn:
-        row = conn.execute("SELECT * FROM productos WHERE id = ?", (pid,)).fetchone()
+        placeholder = get_placeholder()
+        row = execute_query(conn, f"SELECT * FROM productos WHERE id = {placeholder}", (pid,)).fetchone()
         if not row:
             return jsonify({"error": "Producto no encontrado"}), 404
         return jsonify(row_to_dict(row)), 200
@@ -333,16 +372,17 @@ def create_product():
     status = (data.get("status") or "Activo").strip() or "Activo"
 
     with closing(get_conn()) as conn, conn:
-        cur = conn.execute(
-            """
+        placeholder = get_placeholder()
+        cur = execute_query(conn,
+            f"""
             INSERT INTO productos (name, brand, price, category, sizes, stock, image, status)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES ({placeholder}, {placeholder}, {placeholder}, {placeholder}, {placeholder}, {placeholder}, {placeholder}, {placeholder})
             """,
             (name, brand, price, category, sizes_csv, stock, image, status),
         )
-        new_id = cur.lastrowid
+        new_id = cur.lastrowid if not is_postgresql() else cur.fetchone()[0] if hasattr(cur, 'fetchone') else None
 
-        row = conn.execute("SELECT * FROM productos WHERE id = ?", (new_id,)).fetchone()
+        row = execute_query(conn, f"SELECT * FROM productos WHERE id = {placeholder}", (new_id,)).fetchone()
 
     return jsonify(row_to_dict(row)), 201
 
@@ -403,10 +443,11 @@ def update_product(pid: int):
     params.append(pid)
 
     with closing(get_conn()) as conn, conn:
-        cur = conn.execute(f"UPDATE productos SET {', '.join(fields)} WHERE id = ?", params)
+        placeholder = get_placeholder()
+        cur = execute_query(conn, f"UPDATE productos SET {', '.join(fields)} WHERE id = {placeholder}", params)
         if cur.rowcount == 0:
             return jsonify({"error": "Producto no encontrado"}), 404
-        row = conn.execute("SELECT * FROM productos WHERE id = ?", (pid,)).fetchone()
+        row = execute_query(conn, f"SELECT * FROM productos WHERE id = {placeholder}", (pid,)).fetchone()
 
     return jsonify(row_to_dict(row)), 200
 
@@ -414,7 +455,8 @@ def update_product(pid: int):
 @app.route("/api/products/<int:pid>", methods=["DELETE"])
 def delete_product(pid: int):
     with closing(get_conn()) as conn, conn:
-        cur = conn.execute("DELETE FROM productos WHERE id = ?", (pid,))
+        placeholder = get_placeholder()
+        cur = execute_query(conn, f"DELETE FROM productos WHERE id = {placeholder}", (pid,))
         if cur.rowcount == 0:
             return jsonify({"error": "Producto no encontrado"}), 404
     return jsonify({"ok": True}), 200
@@ -530,26 +572,6 @@ def upload_image():
         print(f"Error al subir imagen a Cloudinary: {e}")
         return jsonify({"error": f"Error al subir imagen: {str(e)}"}), 500
 
-# Función para convertir filas de base de datos a diccionarios
-def row_to_dict(row: sqlite3.Row):
-    d = dict(row)
-    # sizes: CSV -> lista
-    if d.get("sizes"):
-        d["sizes"] = [s.strip() for s in d["sizes"].split(",") if s.strip()]
-    else:
-        d["sizes"] = []
-    # price a 2 decimales
-    try:
-        d["price"] = float(d["price"])
-    except Exception:
-        d["price"] = 0.0
-    # stock a entero
-    try:
-        d["stock"] = int(d["stock"])
-    except Exception:
-        d["stock"] = 0
-    
-    return d
 
 # ---------------------- RUTAS DE AUTENTICACIÓN ----------------------
 

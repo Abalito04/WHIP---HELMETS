@@ -28,6 +28,14 @@ WEBHOOK_URL = f"{BASE_URL}/api/payment/webhook"
 DEBUG = os.environ.get('DEBUG', 'False').lower() == 'true'
 SECRET_KEY = os.environ.get('SECRET_KEY', 'cambia-esta-clave-secreta-en-produccion')
 
+# Configuración de PostgreSQL
+DATABASE_URL = os.environ.get('DATABASE_URL', '')
+PGHOST = os.environ.get('PGHOST', 'localhost')
+PGPORT = os.environ.get('PGPORT', '5432')
+PGDATABASE = os.environ.get('PGDATABASE', 'whip_helmets')
+PGUSER = os.environ.get('PGUSER', 'postgres')
+PGPASSWORD = os.environ.get('PGPASSWORD', '')
+
 # Configuración de la base de datos
 DATABASE_PATH = os.environ.get('DATABASE_PATH', 'productos.db')
 USERS_DATABASE_PATH = os.environ.get('USERS_DATABASE_PATH', 'users.db')

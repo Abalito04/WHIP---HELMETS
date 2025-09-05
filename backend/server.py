@@ -190,7 +190,7 @@ def list_products():
         min_price = request.args.get("min_price", "").strip()
         max_price = request.args.get("max_price", "").strip()
 
-        query = "SELECT * FROM productos WHERE 1=1"
+        query = "SELECT id, name, brand, price, COALESCE(precio_efectivo, NULL) as precio_efectivo, category, sizes, stock, image, images, status, created_at, updated_at FROM productos WHERE 1=1"
         params = []
 
         if q:
@@ -245,7 +245,7 @@ def list_products():
 def get_product(pid: int):
     conn = get_conn()
     try:
-        row = execute_query(conn, "SELECT * FROM productos WHERE id = %s", (pid,)).fetchone()
+        row = execute_query(conn, "SELECT id, name, brand, price, COALESCE(precio_efectivo, NULL) as precio_efectivo, category, sizes, stock, image, images, status, created_at, updated_at FROM productos WHERE id = %s", (pid,)).fetchone()
         if not row:
             return jsonify({"error": "Producto no encontrado"}), 404
         return jsonify(row_to_dict(row)), 200
@@ -322,7 +322,7 @@ def create_product():
         new_id = cur.fetchone()[0]
         conn.commit()  # Confirmar la transacción
 
-        row = execute_query(conn, "SELECT * FROM productos WHERE id = %s", (new_id,)).fetchone()
+        row = execute_query(conn, "SELECT id, name, brand, price, COALESCE(precio_efectivo, NULL) as precio_efectivo, category, sizes, stock, image, images, status, created_at, updated_at FROM productos WHERE id = %s", (new_id,)).fetchone()
         return jsonify(row_to_dict(row)), 201
     finally:
         conn.close()
@@ -413,7 +413,7 @@ def update_product(pid: int):
         if cur.rowcount == 0:
             return jsonify({"error": "Producto no encontrado"}), 404
         conn.commit()  # Confirmar la transacción
-        row = execute_query(conn, "SELECT * FROM productos WHERE id = %s", (pid,)).fetchone()
+        row = execute_query(conn, "SELECT id, name, brand, price, COALESCE(precio_efectivo, NULL) as precio_efectivo, category, sizes, stock, image, images, status, created_at, updated_at FROM productos WHERE id = %s", (pid,)).fetchone()
         return jsonify(row_to_dict(row)), 200
     finally:
         conn.close()
@@ -874,7 +874,7 @@ def list_products_admin():
     try:
         conn = get_conn()
         try:
-            rows = execute_query(conn, "SELECT * FROM productos ORDER BY id DESC").fetchall()
+            rows = execute_query(conn, "SELECT id, name, brand, price, COALESCE(precio_efectivo, NULL) as precio_efectivo, category, sizes, stock, image, images, status, created_at, updated_at FROM productos ORDER BY id DESC").fetchall()
             return jsonify([row_to_dict(r) for r in rows]), 200
         finally:
             conn.close()

@@ -20,7 +20,15 @@ Asegúrate de que tu repositorio contenga:
 4. Selecciona "Deploy from GitHub repo"
 5. Selecciona tu repositorio
 
-### 3. Configurar Variables de Entorno
+### 3. Configurar Base de Datos PostgreSQL
+
+**Paso 3a: Agregar base de datos PostgreSQL**
+1. En tu proyecto de Railway, haz clic en **"New"**
+2. Selecciona **"Database"** → **"PostgreSQL"**
+3. Railway creará automáticamente la variable `DATABASE_URL`
+4. Espera a que la base de datos esté lista (aparecerá como "Deployed")
+
+### 4. Configurar Variables de Entorno
 
 En Railway, ve a la pestaña "Variables" y agrega:
 
@@ -48,21 +56,21 @@ CLOUDINARY_API_SECRET=pSrCsNF60-t5bSP_YUA2iGrTvBA
 # PGUSER=tu-usuario
 # PGPASSWORD=tu-password
 
-# Forzar uso de PostgreSQL (solo si tienes una base de datos PostgreSQL configurada)
-# FORCE_POSTGRESQL=true
+# Forzar uso de PostgreSQL (recomendado para producción)
+FORCE_POSTGRESQL=true
 
 # URLs (Railway las configura automáticamente)
 RAILWAY_STATIC_URL=https://tu-app.railway.app
 ```
 
-### 4. Obtener credenciales de MercadoPago
+### 5. Obtener credenciales de MercadoPago
 
 1. Ve a [MercadoPago Developers](https://www.mercadopago.com.ar/developers/panel/credentials)
 2. Crea una cuenta o inicia sesión
 3. Ve a "Credenciales" en el panel
 4. Copia tu **Access Token** (usa el de "Production" para producción)
 
-### 5. Configurar Cloudinary (para subida de imágenes)
+### 6. Configurar Cloudinary (para subida de imágenes)
 
 1. Ve a [Cloudinary Console](https://cloudinary.com/console)
 2. Crea una cuenta gratuita (25GB gratis)

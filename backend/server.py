@@ -69,16 +69,19 @@ def get_conn():
     """Obtiene conexión a la base de datos (PostgreSQL o SQLite)"""
     from config import DATABASE_URL, FORCE_POSTGRESQL
     
-    # En producción, usar PostgreSQL por defecto
+    # Intentar PostgreSQL primero si está configurado
     if FORCE_POSTGRESQL or DATABASE_URL:
-        # Usar PostgreSQL
-        from database import get_conn as get_pg_conn
-        return get_pg_conn()
-    else:
-        # Usar SQLite solo en desarrollo local
-        conn = sqlite3.connect(DB_PATH)
-        conn.row_factory = sqlite3.Row
-        return conn
+        try:
+            from database import get_conn as get_pg_conn
+            return get_pg_conn()
+        except Exception as e:
+            print(f"Error al conectar con PostgreSQL: {e}")
+            print("Usando SQLite como respaldo...")
+    
+    # Usar SQLite como respaldo
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    return conn
 
 def is_postgresql():
     """Verifica si estamos usando PostgreSQL"""
@@ -134,7 +137,13 @@ def init_db():
 def init_products_db():
     """Inicializar base de datos de productos"""
     print("Inicializando base de datos de productos...")
-    with closing(get_conn()) as conn:
+    
+    # Usar SQLite directamente para evitar conflictos
+    import sqlite3
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    
+    try:
         conn.execute(
             """
             CREATE TABLE IF NOT EXISTS productos (
@@ -177,16 +186,24 @@ def init_products_db():
                 ("Antiparras CROSS", "Fox", 80000, "Accesorios", "Único", 30, "assets/images/products/antiparras 2.png", "Activo")
             ]
             
-            placeholder = get_placeholder()
             conn.executemany(
-                f"""
-                INSERT INTO productos (name, brand, price, category, sizes, stock, image, status)
-                VALUES ({placeholder}, {placeholder}, {placeholder}, {placeholder}, {placeholder}, {placeholder}, {placeholder}, {placeholder})
+                """
+                INSERT INTO productos (name, brand, price, category, sizes, stock, image, images, status)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
-                sample_products
+                [(p[0], p[1], p[2], p[3], p[4], p[5], p[6], '[]', p[7]) for p in sample_products]
             )
             print(f"{len(sample_products)} productos de ejemplo insertados")
             
+        conn.commit()
+        print("Base de datos de productos inicializada")
+        
+    except Exception as e:
+        print(f"Error al inicializar productos: {e}")
+        raise e
+    finally:
+        conn.close()
+
 def init_users_db():
     """Inicializar base de datos de usuarios"""
     print("Inicializando base de datos de usuarios...")

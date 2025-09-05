@@ -59,7 +59,7 @@ def init_postgresql_tables():
             name VARCHAR(255) NOT NULL,
             brand VARCHAR(100),
             price DECIMAL(10,2) NOT NULL DEFAULT 0,
-            precio_efectivo DECIMAL(10,2) DEFAULT NULL,
+            porcentaje_descuento DECIMAL(5,2) DEFAULT NULL,
             category VARCHAR(100),
             sizes TEXT,
             stock INTEGER DEFAULT 0,
@@ -71,10 +71,27 @@ def init_postgresql_tables():
         )
     """)
     
-    # Agregar columna precio_efectivo si no existe (para bases de datos existentes)
+    # Agregar columna porcentaje_descuento si no existe (para bases de datos existentes)
     cursor.execute("""
         ALTER TABLE productos 
-        ADD COLUMN IF NOT EXISTS precio_efectivo DECIMAL(10,2) DEFAULT NULL
+        ADD COLUMN IF NOT EXISTS porcentaje_descuento DECIMAL(5,2) DEFAULT NULL
+    """)
+    
+    # Migrar datos de precio_efectivo a porcentaje_descuento si existe la columna anterior
+    cursor.execute("""
+        DO $$
+        BEGIN
+            IF EXISTS (SELECT 1 FROM information_schema.columns 
+                      WHERE table_name = 'productos' AND column_name = 'precio_efectivo') THEN
+                -- Calcular porcentaje basado en precio_efectivo y price
+                UPDATE productos 
+                SET porcentaje_descuento = ROUND(((price - precio_efectivo) / price * 100), 2)
+                WHERE precio_efectivo IS NOT NULL AND price > 0;
+                
+                -- Eliminar columna precio_efectivo
+                ALTER TABLE productos DROP COLUMN IF EXISTS precio_efectivo;
+            END IF;
+        END $$;
     """)
     
     # Crear tabla de usuarios
@@ -198,27 +215,27 @@ def insert_sample_products():
     
     if count == 0:
         sample_products = [
-            ("Casco FOX V3", "Fox", 895000, 800000, "Cascos", "S,M,L,XL", 15, "assets/images/products/Fox V3 lateral.png", "Activo"),
-            ("Casco FOX V3 RS", "Fox", 950000, 850000, "Cascos", "S,M,L,XL", 8, "assets/images/products/Fox V3 RS MC lateral.png", "Activo"),
-            ("Casco FOX V1", "Fox", 500000, 450000, "Cascos", "S,M,L,XL", 22, "assets/images/products/Fox V1 lateral.png", "Activo"),
-            ("Casco FLY Racing F2", "Fly Racing", 450000, 400000, "Cascos", "S,M,L,XL", 12, "assets/images/products/Fly Racing F2 lateral.png", "Activo"),
-            ("Casco Bell Moto-9 Flex", "Bell", 650000, 580000, "Cascos", "M,L", 5, "assets/images/products/Bell Moto-9 Flex lateral.png", "Activo"),
-            ("Casco Bell Moto-9 Flex 2", "Bell", 700000, 620000, "Cascos", "S,M,L,XL", 7, "assets/images/products/Bell Moto-9 Flex 2.png", "Activo"),
-            ("Casco Alpinestars SM5", "Alpinestars", 550000, 490000, "Cascos", "S,M,L,XL", 18, "assets/images/products/Alpinestars SM5 lateral.png", "Activo"),
-            ("Casco Aircraft 2 Carbono", "Aircraft", 1200000, 1050000, "Cascos", "S,M,L", 3, "assets/images/products/Aircraft 2 Carbono.png", "Activo"),
-            ("Casco Bell MX-9 Mips", "Bell", 480000, 430000, "Cascos", "S,M,L,XL", 10, "assets/images/products/Bell MX-9 Mips.png", "Activo"),
-            ("Casco FOX V1 Interfere", "Fox", 520000, 470000, "Cascos", "S,M,L,XL", 14, "assets/images/products/Fox V1 Interfere.png", "Activo"),
-            ("Casco Troy Lee Design D4", "Troy Lee Design", 850000, 760000, "Cascos", "S,M,L", 6, "assets/images/products/Troy Lee Design D4 lateral.png", "Activo"),
-            ("Casco FOX V3 Moth LE Copper", "Fox", 1000000, 900000, "Cascos", "S,M,L,XL", 2, "assets/images/products/Fox V3 Moth LE Copper.png", "Activo"),
-            ("Casco FOX V1 MATTE", "Fox", 530000, 480000, "Cascos", "S,M,L,XL", 9, "assets/images/products/FOX V1 MATTE.png", "Activo"),
-            ("Casco Alpinestars SM5 amarillo", "Alpinestars", 560000, 500000, "Cascos", "S,M,L", 11, "assets/images/products/Alpinestars SM5 amarillo lateral.png", "Activo"),
-            ("Guantes CROSS", "Fox", 50000, 45000, "Accesorios", "S,M,L", 25, "assets/images/products/Guantes FOX.png", "Activo"),
-            ("Antiparras CROSS", "Fox", 80000, 72000, "Accesorios", "Único", 30, "assets/images/products/antiparras 2.png", "Activo")
+            ("Casco FOX V3", "Fox", 895000, 10.61, "Cascos", "S,M,L,XL", 15, "assets/images/products/Fox V3 lateral.png", "Activo"),
+            ("Casco FOX V3 RS", "Fox", 950000, 10.53, "Cascos", "S,M,L,XL", 8, "assets/images/products/Fox V3 RS MC lateral.png", "Activo"),
+            ("Casco FOX V1", "Fox", 500000, 10.00, "Cascos", "S,M,L,XL", 22, "assets/images/products/Fox V1 lateral.png", "Activo"),
+            ("Casco FLY Racing F2", "Fly Racing", 450000, 11.11, "Cascos", "S,M,L,XL", 12, "assets/images/products/Fly Racing F2 lateral.png", "Activo"),
+            ("Casco Bell Moto-9 Flex", "Bell", 650000, 10.77, "Cascos", "M,L", 5, "assets/images/products/Bell Moto-9 Flex lateral.png", "Activo"),
+            ("Casco Bell Moto-9 Flex 2", "Bell", 700000, 11.43, "Cascos", "S,M,L,XL", 7, "assets/images/products/Bell Moto-9 Flex 2.png", "Activo"),
+            ("Casco Alpinestars SM5", "Alpinestars", 550000, 10.91, "Cascos", "S,M,L,XL", 18, "assets/images/products/Alpinestars SM5 lateral.png", "Activo"),
+            ("Casco Aircraft 2 Carbono", "Aircraft", 1200000, 12.50, "Cascos", "S,M,L", 3, "assets/images/products/Aircraft 2 Carbono.png", "Activo"),
+            ("Casco Bell MX-9 Mips", "Bell", 480000, 10.42, "Cascos", "S,M,L,XL", 10, "assets/images/products/Bell MX-9 Mips.png", "Activo"),
+            ("Casco FOX V1 Interfere", "Fox", 520000, 9.62, "Cascos", "S,M,L,XL", 14, "assets/images/products/Fox V1 Interfere.png", "Activo"),
+            ("Casco Troy Lee Design D4", "Troy Lee Design", 850000, 10.59, "Cascos", "S,M,L", 6, "assets/images/products/Troy Lee Design D4 lateral.png", "Activo"),
+            ("Casco FOX V3 Moth LE Copper", "Fox", 1000000, 10.00, "Cascos", "S,M,L,XL", 2, "assets/images/products/Fox V3 Moth LE Copper.png", "Activo"),
+            ("Casco FOX V1 MATTE", "Fox", 530000, 9.43, "Cascos", "S,M,L,XL", 9, "assets/images/products/FOX V1 MATTE.png", "Activo"),
+            ("Casco Alpinestars SM5 amarillo", "Alpinestars", 560000, 10.71, "Cascos", "S,M,L", 11, "assets/images/products/Alpinestars SM5 amarillo lateral.png", "Activo"),
+            ("Guantes CROSS", "Fox", 50000, 10.00, "Accesorios", "S,M,L", 25, "assets/images/products/Guantes FOX.png", "Activo"),
+            ("Antiparras CROSS", "Fox", 80000, 10.00, "Accesorios", "Único", 30, "assets/images/products/antiparras 2.png", "Activo")
         ]
         
         cursor.executemany(
             """
-            INSERT INTO productos (name, brand, price, precio_efectivo, category, sizes, stock, image, images, status)
+            INSERT INTO productos (name, brand, price, porcentaje_descuento, category, sizes, stock, image, images, status)
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             """,
             [(p[0], p[1], p[2], p[3], p[4], p[5], p[6], p[7], '[]', p[8]) for p in sample_products]

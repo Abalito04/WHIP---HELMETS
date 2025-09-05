@@ -113,7 +113,7 @@ def row_to_dict(row):
     else:
         # Si no tiene _asdict, crear diccionario manualmente
         d = {}
-        columns = ['id', 'name', 'brand', 'price', 'precio_efectivo', 'category', 'sizes', 'stock', 'image', 'images', 'status']
+        columns = ['id', 'name', 'brand', 'price', 'porcentaje_descuento', 'category', 'sizes', 'stock', 'image', 'images', 'status']
         for i, col in enumerate(columns):
             if i < len(row):
                 d[col] = row[i]
@@ -140,14 +140,22 @@ def row_to_dict(row):
     except Exception:
         d["price"] = 0.0
     
-    # precio_efectivo a float (puede ser None)
-    if d.get("precio_efectivo") is not None:
+    # porcentaje_descuento a float (puede ser None)
+    if d.get("porcentaje_descuento") is not None:
         try:
-            d["precio_efectivo"] = float(d["precio_efectivo"])
+            d["porcentaje_descuento"] = float(d["porcentaje_descuento"])
+            # Calcular precio_efectivo basado en el porcentaje
+            if d["porcentaje_descuento"] > 0:
+                descuento = d["price"] * (d["porcentaje_descuento"] / 100)
+                d["precio_efectivo"] = round(d["price"] - descuento, 2)
+            else:
+                d["precio_efectivo"] = d["price"]
         except Exception:
-            d["precio_efectivo"] = None
+            d["porcentaje_descuento"] = None
+            d["precio_efectivo"] = d["price"]
     else:
-        d["precio_efectivo"] = None
+        d["porcentaje_descuento"] = None
+        d["precio_efectivo"] = d["price"]
     
     # stock a entero
     try:
@@ -190,7 +198,7 @@ def list_products():
         min_price = request.args.get("min_price", "").strip()
         max_price = request.args.get("max_price", "").strip()
 
-        query = "SELECT id, name, brand, price, COALESCE(precio_efectivo, NULL) as precio_efectivo, category, sizes, stock, image, images, status, created_at, updated_at FROM productos WHERE 1=1"
+        query = "SELECT id, name, brand, price, COALESCE(porcentaje_descuento, NULL) as porcentaje_descuento, category, sizes, stock, image, images, status, created_at, updated_at FROM productos WHERE 1=1"
         params = []
 
         if q:
@@ -245,7 +253,7 @@ def list_products():
 def get_product(pid: int):
     conn = get_conn()
     try:
-        row = execute_query(conn, "SELECT id, name, brand, price, COALESCE(precio_efectivo, NULL) as precio_efectivo, category, sizes, stock, image, images, status, created_at, updated_at FROM productos WHERE id = %s", (pid,)).fetchone()
+        row = execute_query(conn, "SELECT id, name, brand, price, COALESCE(porcentaje_descuento, NULL) as porcentaje_descuento, category, sizes, stock, image, images, status, created_at, updated_at FROM productos WHERE id = %s", (pid,)).fetchone()
         if not row:
             return jsonify({"error": "Producto no encontrado"}), 404
         return jsonify(row_to_dict(row)), 200
@@ -260,7 +268,7 @@ def create_product():
     # Validaciones mínimas
     name = (data.get("name") or "").strip()
     price = data.get("price", 0)
-    precio_efectivo = data.get("precio_efectivo")
+    porcentaje_descuento = data.get("porcentaje_descuento")
     if not name:
         return jsonify({"error": "El campo 'name' es obligatorio"}), 400
     try:
@@ -268,12 +276,14 @@ def create_product():
     except Exception:
         return jsonify({"error": "El campo 'price' debe ser numérico"}), 400
     
-    # Validar precio_efectivo si se proporciona
-    if precio_efectivo is not None:
+    # Validar porcentaje_descuento si se proporciona
+    if porcentaje_descuento is not None:
         try:
-            precio_efectivo = float(precio_efectivo)
+            porcentaje_descuento = float(porcentaje_descuento)
+            if porcentaje_descuento < 0 or porcentaje_descuento > 100:
+                return jsonify({"error": "El porcentaje de descuento debe estar entre 0 y 100"}), 400
         except Exception:
-            return jsonify({"error": "El campo 'precio_efectivo' debe ser numérico"}), 400
+            return jsonify({"error": "El campo 'porcentaje_descuento' debe ser numérico"}), 400
 
     brand = (data.get("brand") or "").strip()
     category = (data.get("category") or "").strip()
@@ -311,18 +321,18 @@ def create_product():
     try:
         cur = execute_query(conn,
             """
-            INSERT INTO productos (name, brand, price, precio_efectivo, category, sizes, stock, image, images, status)
+            INSERT INTO productos (name, brand, price, porcentaje_descuento, category, sizes, stock, image, images, status)
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             RETURNING id
             """,
-            (name, brand, price, precio_efectivo, category, sizes_csv, stock, image, images_json, status),
+            (name, brand, price, porcentaje_descuento, category, sizes_csv, stock, image, images_json, status),
         )
         
         # PostgreSQL: obtener el ID del último insert
         new_id = cur.fetchone()[0]
         conn.commit()  # Confirmar la transacción
 
-        row = execute_query(conn, "SELECT id, name, brand, price, COALESCE(precio_efectivo, NULL) as precio_efectivo, category, sizes, stock, image, images, status, created_at, updated_at FROM productos WHERE id = %s", (new_id,)).fetchone()
+        row = execute_query(conn, "SELECT id, name, brand, price, COALESCE(porcentaje_descuento, NULL) as porcentaje_descuento, category, sizes, stock, image, images, status, created_at, updated_at FROM productos WHERE id = %s", (new_id,)).fetchone()
         return jsonify(row_to_dict(row)), 201
     finally:
         conn.close()
@@ -356,14 +366,16 @@ def update_product(pid: int):
             return jsonify({"error": "El campo 'price' debe ser numérico"}), 400
         set_field("price", price)
 
-    if "precio_efectivo" in data:
-        precio_efectivo = data.get("precio_efectivo")
-        if precio_efectivo is not None and precio_efectivo != "":
+    if "porcentaje_descuento" in data:
+        porcentaje_descuento = data.get("porcentaje_descuento")
+        if porcentaje_descuento is not None and porcentaje_descuento != "":
             try:
-                precio_efectivo = float(precio_efectivo)
+                porcentaje_descuento = float(porcentaje_descuento)
+                if porcentaje_descuento < 0 or porcentaje_descuento > 100:
+                    return jsonify({"error": "El porcentaje de descuento debe estar entre 0 y 100"}), 400
             except Exception:
-                return jsonify({"error": "El campo 'precio_efectivo' debe ser numérico"}), 400
-        set_field("precio_efectivo", precio_efectivo)
+                return jsonify({"error": "El campo 'porcentaje_descuento' debe ser numérico"}), 400
+        set_field("porcentaje_descuento", porcentaje_descuento)
 
     if "category" in data:
         set_field("category", (data.get("category") or "").strip())
@@ -413,7 +425,7 @@ def update_product(pid: int):
         if cur.rowcount == 0:
             return jsonify({"error": "Producto no encontrado"}), 404
         conn.commit()  # Confirmar la transacción
-        row = execute_query(conn, "SELECT id, name, brand, price, COALESCE(precio_efectivo, NULL) as precio_efectivo, category, sizes, stock, image, images, status, created_at, updated_at FROM productos WHERE id = %s", (pid,)).fetchone()
+        row = execute_query(conn, "SELECT id, name, brand, price, COALESCE(porcentaje_descuento, NULL) as porcentaje_descuento, category, sizes, stock, image, images, status, created_at, updated_at FROM productos WHERE id = %s", (pid,)).fetchone()
         return jsonify(row_to_dict(row)), 200
     finally:
         conn.close()
@@ -874,7 +886,7 @@ def list_products_admin():
     try:
         conn = get_conn()
         try:
-            rows = execute_query(conn, "SELECT id, name, brand, price, COALESCE(precio_efectivo, NULL) as precio_efectivo, category, sizes, stock, image, images, status, created_at, updated_at FROM productos ORDER BY id DESC").fetchall()
+            rows = execute_query(conn, "SELECT id, name, brand, price, COALESCE(porcentaje_descuento, NULL) as porcentaje_descuento, category, sizes, stock, image, images, status, created_at, updated_at FROM productos ORDER BY id DESC").fetchall()
             return jsonify([row_to_dict(r) for r in rows]), 200
         finally:
             conn.close()

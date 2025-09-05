@@ -62,6 +62,7 @@ def check_rate_limit(ip, action, limit=5, window=300):
 DB_PATH = "productos.db"
 
 app = Flask(__name__)
+app.config['DEBUG'] = True
 CORS(app)
 
 # ---------------------- Database helpers ----------------------
@@ -340,46 +341,62 @@ def list_products():
     Opcional: filtros por querystring
     ?q=texto&brand=Fox&category=Cascos&status=Activo&min_price=0&max_price=1000000
     """
-    q = request.args.get("q", "").strip()
-    brand = request.args.get("brand", "").strip()
-    category = request.args.get("category", "").strip()
-    status = request.args.get("status", "").strip()
-    min_price = request.args.get("min_price", "").strip()
-    max_price = request.args.get("max_price", "").strip()
+    try:
+        q = request.args.get("q", "").strip()
+        brand = request.args.get("brand", "").strip()
+        category = request.args.get("category", "").strip()
+        status = request.args.get("status", "").strip()
+        min_price = request.args.get("min_price", "").strip()
+        max_price = request.args.get("max_price", "").strip()
 
-    query = "SELECT * FROM productos WHERE 1=1"
-    params = []
+        query = "SELECT * FROM productos WHERE 1=1"
+        params = []
 
-    if q:
-        query += " AND (LOWER(name) LIKE ? OR LOWER(brand) LIKE ? OR LOWER(category) LIKE ?)"
-        like = f"%{q.lower()}%"
-        params.extend([like, like, like])
+        if q:
+            query += " AND (LOWER(name) LIKE ? OR LOWER(brand) LIKE ? OR LOWER(category) LIKE ?)"
+            like = f"%{q.lower()}%"
+            params.extend([like, like, like])
 
-    if brand:
-        query += " AND LOWER(brand) = ?"
-        params.append(brand.lower())
+        if brand:
+            query += " AND LOWER(brand) = ?"
+            params.append(brand.lower())
 
-    if category:
-        query += " AND LOWER(category) = ?"
-        params.append(category.lower())
+        if category:
+            query += " AND LOWER(category) = ?"
+            params.append(category.lower())
 
-    if status:
-        query += " AND LOWER(status) = ?"
-        params.append(status.lower())
+        if status:
+            query += " AND LOWER(status) = ?"
+            params.append(status.lower())
 
-    if min_price:
-        query += " AND price >= ?"
-        params.append(float(min_price))
+        if min_price:
+            query += " AND price >= ?"
+            params.append(float(min_price))
 
-    if max_price:
-        query += " AND price <= ?"
-        params.append(float(max_price))
+        if max_price:
+            query += " AND price <= ?"
+            params.append(float(max_price))
 
-    query += " ORDER BY id DESC"
+        query += " ORDER BY id DESC"
 
-    with closing(get_conn()) as conn:
-        rows = execute_query(conn, query, params).fetchall()
-    return jsonify([row_to_dict(r) for r in rows]), 200
+        print(f"DEBUG: Query: {query}")
+        print(f"DEBUG: Params: {params}")
+
+        with closing(get_conn()) as conn:
+            rows = execute_query(conn, query, params).fetchall()
+        
+        print(f"DEBUG: Rows found: {len(rows)}")
+        
+        result = [row_to_dict(r) for r in rows]
+        print(f"DEBUG: Result length: {len(result)}")
+        
+        return jsonify(result), 200
+        
+    except Exception as e:
+        print(f"ERROR in list_products: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({"error": str(e)}), 500
 
 
 @app.route("/api/products/<int:pid>", methods=["GET"])

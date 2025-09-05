@@ -75,10 +75,11 @@ class AuthManager:
             with get_conn() as conn:
                 cursor = conn.cursor()
                 # Verificar si el usuario ya existe
-                existing_user = cursor.execute(
+                cursor.execute(
                     "SELECT id FROM users WHERE username = %s OR email = %s",
                     (username, email)
-                ).fetchone()
+                )
+                existing_user = cursor.fetchone()
                 
                 if existing_user:
                     return {"success": False, "error": "El usuario o email ya existe"}
@@ -102,10 +103,11 @@ class AuthManager:
         """Autenticar usuario"""
         with get_conn() as conn:
             cursor = conn.cursor()
-            user = cursor.execute(
+            cursor.execute(
                 "SELECT id, username, password_hash, role FROM users WHERE username = %s",
                 (username,)
-            ).fetchone()
+            )
+            user = cursor.fetchone()
             
             if user and self.verify_password(password, user[2]):
                 return {
@@ -190,14 +192,15 @@ class AuthManager:
         """Obtener usuario por ID"""
         with get_conn() as conn:
             cursor = conn.cursor()
-            user = cursor.execute(
+            cursor.execute(
                 """
                 SELECT id, username, role, nombre, apellido, dni, telefono, 
                        direccion, codigo_postal, email, created_at, updated_at
                 FROM users WHERE id = %s
                 """,
                 (user_id,)
-            ).fetchone()
+            )
+            user = cursor.fetchone()
             
             if user:
                 return {
@@ -224,10 +227,11 @@ class AuthManager:
                 cursor = conn.cursor()
                 
                 # Verificar si el usuario existe
-                user_exists = cursor.execute(
+                cursor.execute(
                     "SELECT id FROM users WHERE id = %s",
                     (user_id,)
-                ).fetchone()
+                )
+                user_exists = cursor.fetchone()
                 
                 if not user_exists:
                     return {"success": False, "error": "Usuario no encontrado"}
@@ -289,10 +293,11 @@ class AuthManager:
             with get_conn() as conn:
                 cursor = conn.cursor()
                 # Verificar si el usuario existe
-                user_exists = cursor.execute(
+                cursor.execute(
                     "SELECT id FROM users WHERE id = %s",
                     (user_id,)
-                ).fetchone()
+                )
+                user_exists = cursor.fetchone()
                 
                 if not user_exists:
                     return {"success": False, "error": "Usuario no encontrado"}
@@ -314,10 +319,11 @@ class AuthManager:
             with get_conn() as conn:
                 cursor = conn.cursor()
                 # Verificar si el usuario existe
-                user_exists = cursor.execute(
+                cursor.execute(
                     "SELECT id FROM users WHERE id = %s",
                     (user_id,)
-                ).fetchone()
+                )
+                user_exists = cursor.fetchone()
                 
                 if not user_exists:
                     return {"success": False, "error": "Usuario no encontrado"}

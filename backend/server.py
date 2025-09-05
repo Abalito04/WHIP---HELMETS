@@ -951,7 +951,7 @@ def list_products_admin():
         conn = get_conn()
         try:
             rows = execute_query(conn, "SELECT id, name, brand, price, COALESCE(porcentaje_descuento, NULL) as porcentaje_descuento, category, sizes, stock, image, images, status, created_at, updated_at FROM productos ORDER BY id DESC").fetchall()
-        return jsonify([row_to_dict(r) for r in rows]), 200
+            return jsonify([row_to_dict(r) for r in rows]), 200
         finally:
             conn.close()
     except Exception as e:

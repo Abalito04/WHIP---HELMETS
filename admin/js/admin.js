@@ -190,13 +190,14 @@ async function saveAllChanges() {
 // ==================== EXPORTAR DATOS ====================
 function exportData() {
   // Crear contenido CSV
-  let csvContent = "Nombre,Marca,Precio,Categoría,Talles,Stock,Estado,Imagen\n";
+  let csvContent = "Nombre,Marca,Precio Normal,Precio Efectivo,Categoría,Talles,Stock,Estado,Imagen\n";
   
   productsData.forEach(product => {
     const row = [
       `"${product.name.replace(/"/g, '""')}"`,
       `"${product.brand}"`,
       product.price,
+      product.precio_efectivo || '',
       `"${product.category}"`,
       `"${Array.isArray(product.sizes) ? product.sizes.join(',') : product.sizes}"`,
       product.stock || 0,
@@ -258,6 +259,7 @@ function renderProducts() {
       <td><input type="text" value="${product.name}" data-field="name" data-id="${product.id}"></td>
       <td><input type="text" value="${product.brand}" data-field="brand" data-id="${product.id}"></td>
       <td><input type="number" value="${product.price}" data-field="price" data-id="${product.id}"></td>
+      <td><input type="number" value="${product.precio_efectivo || ''}" data-field="precio_efectivo" data-id="${product.id}" placeholder="Opcional"></td>
       <td><input type="text" value="${product.category}" data-field="category" data-id="${product.id}"></td>
       <td><input type="text" value="${product.sizes ? product.sizes.join(",") : ""}" data-field="sizes" data-id="${product.id}"></td>
       <td>
@@ -683,6 +685,7 @@ function setupEventListeners() {
       name: document.getElementById("new-name").value,
       brand: document.getElementById("new-brand").value,
       price: parseFloat(document.getElementById("new-price").value),
+      precio_efectivo: document.getElementById("new-precio-efectivo").value ? parseFloat(document.getElementById("new-precio-efectivo").value) : null,
       category: document.getElementById("new-category").value,
       sizes: document.getElementById("new-sizes").value.split(",").map(s => s.trim()),
       stock: parseInt(document.getElementById("new-stock").value) || 0,

@@ -15,7 +15,7 @@ except ImportError:
     print("⚠️  Módulo de autenticación no disponible")
 
 # Procesamiento de imágenes deshabilitado
-    IMAGE_PROCESSING_AVAILABLE = False
+IMAGE_PROCESSING_AVAILABLE = False
 
 # Importar el manejador de pagos
 try:
@@ -341,33 +341,33 @@ def create_product():
 @app.route("/api/products/<int:pid>", methods=["PUT", "PATCH"])
 def update_product(pid: int):
     try:
-    data = request.get_json(force=True) or {}
+        data = request.get_json(force=True) or {}
         print(f"DEBUG: Actualizando producto {pid} con datos: {data}")
 
-    fields = []
-    params = []
+        fields = []
+        params = []
 
-    def set_field(key, value):
+        def set_field(key, value):
             fields.append(f"{key} = %s")
-        params.append(value)
+            params.append(value)
             print(f"DEBUG: Campo {key} = {value}")
 
-    # Campos opcionales
-    if "name" in data:
-        name = (data.get("name") or "").strip()
-        if not name:
-            return jsonify({"error": "El campo 'name' no puede estar vacío"}), 400
-        set_field("name", name)
+        # Campos opcionales
+        if "name" in data:
+            name = (data.get("name") or "").strip()
+            if not name:
+                return jsonify({"error": "El campo 'name' no puede estar vacío"}), 400
+            set_field("name", name)
 
-    if "brand" in data:
-        set_field("brand", (data.get("brand") or "").strip())
+        if "brand" in data:
+            set_field("brand", (data.get("brand") or "").strip())
 
-    if "price" in data:
-        try:
-            price = float(data.get("price"))
-        except Exception:
-            return jsonify({"error": "El campo 'price' debe ser numérico"}), 400
-        set_field("price", price)
+        if "price" in data:
+            try:
+                price = float(data.get("price"))
+            except Exception:
+                return jsonify({"error": "El campo 'price' debe ser numérico"}), 400
+            set_field("price", price)
 
         if "porcentaje_descuento" in data:
             porcentaje_descuento = data.get("porcentaje_descuento")
@@ -952,7 +952,7 @@ def list_products_admin():
         conn = get_conn()
         try:
             rows = execute_query(conn, "SELECT id, name, brand, price, COALESCE(porcentaje_descuento, NULL) as porcentaje_descuento, category, sizes, stock, image, images, status, created_at, updated_at FROM productos ORDER BY id DESC").fetchall()
-        return jsonify([row_to_dict(r) for r in rows]), 200
+            return jsonify([row_to_dict(r) for r in rows]), 200
         finally:
             conn.close()
     except Exception as e:

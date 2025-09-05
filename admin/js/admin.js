@@ -66,12 +66,18 @@ async function fetchProducts() {
 
 async function updateProduct(id, updates) {
   try {
+    console.log(`Actualizando producto ${id}:`, updates);
     const res = await fetch(`${API_BASE}/api/products/${id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(updates),
     });
-    if (!res.ok) throw new Error("Error al actualizar");
+    console.log(`Respuesta para producto ${id}:`, res.status, res.statusText);
+    if (!res.ok) {
+      const errorText = await res.text();
+      console.error(`Error detallado para producto ${id}:`, errorText);
+      throw new Error(`Error al actualizar: ${res.status} ${res.statusText}`);
+    }
     return { success: true, id };
   } catch (err) {
     console.error("Error al actualizar producto:", err);
@@ -156,6 +162,10 @@ async function saveAllChanges() {
       productUpdates[productId].updates[field] = input.value.split(',').map(s => s.trim());
     } else if (field === 'stock') {
       productUpdates[productId].updates[field] = parseInt(input.value) || 0;
+    } else if (field === 'precio_efectivo') {
+      // Manejar precio_efectivo: si está vacío, enviar null
+      const value = input.value.trim();
+      productUpdates[productId].updates[field] = value === '' ? null : parseFloat(value);
     } else {
       productUpdates[productId].updates[field] = input.value;
     }

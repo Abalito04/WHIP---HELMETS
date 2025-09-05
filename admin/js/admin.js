@@ -243,7 +243,7 @@ function renderProducts() {
 
     row.innerHTML = `
       <td class="product-image-cell">
-        <img src="/${product.image}" alt="${product.name}" class="product-image" onclick="openGallery(${product.id}, '${product.name}')"
+        <img src="${product.image.startsWith('http') ? product.image : '/' + product.image}" alt="${product.name}" class="product-image" onclick="openGallery(${product.id}, '${product.name}')"
           onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIGZpbGw9IiNFRUVFRUUiLz48cGF0aCBkPSJNMTUgMzBINjBWNDBIMzVWMzBIMjVWMTVIMjBWMzBIMTVaIiBmaWxsPSIjOTk5Ii8+PC9zdmc+'">
         <button class="product-image-gallery-btn" onclick="openGallery(${product.id}, '${product.name}')" title="Ver galería">📷</button>
       </td>
@@ -420,11 +420,13 @@ function setupEventListeners() {
 
   // Botón de subir imagen
   document.getElementById("upload-image-btn").addEventListener("click", () => {
+    console.log("Botón de subir imagen clickeado");
     document.getElementById("image-file-input").click();
   });
 
   // Manejar selección de archivo
   document.getElementById("image-file-input").addEventListener("change", async (e) => {
+    console.log("Archivo seleccionado:", e.target.files[0]);
     const file = e.target.files[0];
     if (!file) return;
 
@@ -439,6 +441,7 @@ function setupEventListeners() {
 
     // Subir archivo
     try {
+      console.log("Iniciando subida a Cloudinary...");
       const formData = new FormData();
       formData.append('file', file);
 
@@ -447,7 +450,9 @@ function setupEventListeners() {
         body: formData
       });
 
+      console.log("Respuesta del servidor:", response.status);
       const result = await response.json();
+      console.log("Resultado:", result);
 
       if (result.success) {
         // Actualizar el campo de imagen con la ruta del archivo subido
@@ -458,6 +463,7 @@ function setupEventListeners() {
         preview.style.display = "none";
       }
     } catch (error) {
+      console.error("Error en subida:", error);
       showNotification(`Error al subir imagen: ${error.message}`, "error");
       preview.style.display = "none";
     }
@@ -550,15 +556,11 @@ function showNotification(message, type = "success") {
 function init() {
   console.log("Inicializando panel de administración...");
   
-  // Verificar conectividad antes de cargar productos
-  checkConnectivity().then(isConnected => {
-    if (isConnected) {
-      fetchProducts();
-      setupEventListeners();
-    } else {
-      showNotification("No se puede conectar al servidor. Verifica que esté ejecutándose.", "error");
-    }
-  });
+  // Configurar event listeners primero
+  setupEventListeners();
+  
+  // Intentar cargar productos
+  fetchProducts();
 }
 
 // Función para verificar conectividad

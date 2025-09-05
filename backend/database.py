@@ -39,8 +39,16 @@ def init_postgresql_tables():
     
     # Usar cursor normal para operaciones de inicialización
     import psycopg2
-    from config import get_connection_string
-    conn = psycopg2.connect(get_connection_string())
+    from config import DATABASE_URL, PGHOST, PGPORT, PGDATABASE, PGUSER, PGPASSWORD, check_database_config
+    
+    # Verificar configuración
+    check_database_config()
+    
+    # Construir cadena de conexión
+    if DATABASE_URL:
+        conn = psycopg2.connect(DATABASE_URL)
+    else:
+        conn = psycopg2.connect(f"host={PGHOST} port={PGPORT} dbname={PGDATABASE} user={PGUSER} password={PGPASSWORD}")
     cursor = conn.cursor()
     print("DEBUG: Cursor created successfully")
     
@@ -154,8 +162,16 @@ def insert_sample_products():
     
     # Usar cursor normal para operaciones de inicialización
     import psycopg2
-    from config import get_connection_string
-    conn = psycopg2.connect(get_connection_string())
+    from config import DATABASE_URL, PGHOST, PGPORT, PGDATABASE, PGUSER, PGPASSWORD, check_database_config
+    
+    # Verificar configuración
+    check_database_config()
+    
+    # Construir cadena de conexión
+    if DATABASE_URL:
+        conn = psycopg2.connect(DATABASE_URL)
+    else:
+        conn = psycopg2.connect(f"host={PGHOST} port={PGPORT} dbname={PGDATABASE} user={PGUSER} password={PGPASSWORD}")
     cursor = conn.cursor()
     
     # Verificar si ya hay productos
@@ -214,8 +230,16 @@ def insert_sample_users():
     
     # Usar cursor normal para operaciones de inicialización
     import psycopg2
-    from config import get_connection_string
-    conn = psycopg2.connect(get_connection_string())
+    from config import DATABASE_URL, PGHOST, PGPORT, PGDATABASE, PGUSER, PGPASSWORD, check_database_config
+    
+    # Verificar configuración
+    check_database_config()
+    
+    # Construir cadena de conexión
+    if DATABASE_URL:
+        conn = psycopg2.connect(DATABASE_URL)
+    else:
+        conn = psycopg2.connect(f"host={PGHOST} port={PGPORT} dbname={PGDATABASE} user={PGUSER} password={PGPASSWORD}")
     cursor = conn.cursor()
     
     # Verificar si ya hay usuarios

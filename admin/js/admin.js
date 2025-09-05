@@ -672,8 +672,8 @@ function addImages() {
   document.getElementById('gallery-file-input').click();
 }
 
-// Eventos de la galería
-document.addEventListener('DOMContentLoaded', () => {
+// Eventos de la galería (movidos a setupEventListeners)
+// document.addEventListener('DOMContentLoaded', () => {
   // Cerrar galería
   document.querySelector('.gallery-close').addEventListener('click', closeGallery);
   
@@ -1004,8 +1004,8 @@ function formatDate(dateString) {
   });
 }
 
-// Event listeners para gestión de usuarios
-document.addEventListener("DOMContentLoaded", () => {
+// Event listeners para gestión de usuarios (movidos a setupEventListeners)
+// document.addEventListener("DOMContentLoaded", () => {
   // Botón para cambiar entre paneles
   manageUsersBtn.addEventListener("click", () => {
     if (usersPanel.style.display === "none") {
@@ -1080,6 +1080,6 @@ document.addEventListener("DOMContentLoaded", () => {
       closeDeleteUserModal();
     }
   });
-});
+// });
 
 document.addEventListener("DOMContentLoaded", init);

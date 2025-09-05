@@ -287,6 +287,25 @@ const API_BASE = (() => {
         async function loadProfile() {
             try {
                 const token = localStorage.getItem('authToken');
+                console.log('Token encontrado:', token ? token.substring(0, 10) + '...' : 'No hay token');
+                
+                // Debug: Verificar el token
+                if (token) {
+                    try {
+                        const debugResponse = await fetch(`${API_BASE}/api/debug/validate-token`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({ token: token })
+                        });
+                        const debugResult = await debugResponse.json();
+                        console.log('Debug token:', debugResult);
+                    } catch (debugError) {
+                        console.log('Error en debug:', debugError);
+                    }
+                }
+                
                 const response = await fetch(`${API_BASE}/api/profile`, {
                     headers: {
                         'Authorization': `Bearer ${token}`
@@ -299,7 +318,38 @@ const API_BASE = (() => {
                     populateForm(user);
                     showCurrentInfo(user);
                 } else {
-                    throw new Error('Error al cargar el perfil');
+                    const errorData = await response.json();
+                    console.log('Error del servidor:', errorData);
+                    
+                    // Si el token está expirado, intentar renovarlo
+                    if (response.status === 401 && token) {
+                        console.log('Intentando renovar token...');
+                        try {
+                            const refreshResponse = await fetch(`${API_BASE}/api/auth/refresh`, {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify({ token: token })
+                            });
+                            
+                            if (refreshResponse.ok) {
+                                const refreshData = await refreshResponse.json();
+                                console.log('Token renovado exitosamente');
+                                
+                                // Guardar el nuevo token
+                                localStorage.setItem('authToken', refreshData.session_token);
+                                localStorage.setItem('currentUser', JSON.stringify(refreshData.user));
+                                
+                                // Intentar cargar el perfil nuevamente
+                                return loadProfile();
+                            }
+                        } catch (refreshError) {
+                            console.log('Error al renovar token:', refreshError);
+                        }
+                    }
+                    
+                    throw new Error(errorData.error || 'Error al cargar el perfil');
                 }
             } catch (error) {
                 console.error('Error:', error);
@@ -380,6 +430,34 @@ const API_BASE = (() => {
                         loadProfile();
                     }, 1000);
                 } else {
+                    // Si el token está expirado, intentar renovarlo
+                    if (response.status === 401) {
+                        console.log('Token expirado, intentando renovar...');
+                        try {
+                            const refreshResponse = await fetch(`${API_BASE}/api/auth/refresh`, {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify({ token: token })
+                            });
+                            
+                            if (refreshResponse.ok) {
+                                const refreshData = await refreshResponse.json();
+                                console.log('Token renovado exitosamente');
+                                
+                                // Guardar el nuevo token
+                                localStorage.setItem('authToken', refreshData.session_token);
+                                localStorage.setItem('currentUser', JSON.stringify(refreshData.user));
+                                
+                                // Intentar actualizar el perfil nuevamente
+                                return updateProfile(formData);
+                            }
+                        } catch (refreshError) {
+                            console.log('Error al renovar token:', refreshError);
+                        }
+                    }
+                    
                     throw new Error(result.error || 'Error al actualizar perfil');
                 }
             } catch (error) {

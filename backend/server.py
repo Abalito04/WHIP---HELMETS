@@ -957,6 +957,102 @@ def list_products_admin():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+# ---------------------- RUTAS DE DEBUG ----------------------
+
+@app.route("/api/debug/sessions", methods=["GET"])
+def debug_sessions():
+    """Debug: Ver todas las sesiones activas"""
+    try:
+        conn = get_conn()
+        cursor = conn.cursor()
+        
+        # Obtener todas las sesiones
+        cursor.execute("""
+            SELECT s.token, s.expires_at, u.username, u.role
+            FROM sessions s
+            JOIN users u ON s.user_id = u.id
+            ORDER BY s.expires_at DESC
+        """)
+        sessions = cursor.fetchall()
+        
+        result = []
+        for session in sessions:
+            result.append({
+                'token': session[0][:10] + '...',  # Solo mostrar los primeros 10 caracteres
+                'expires_at': session[1].isoformat() if session[1] else None,
+                'username': session[2],
+                'role': session[3],
+                'is_expired': session[1] < datetime.now() if session[1] else True
+            })
+        
+        return jsonify({
+            'total_sessions': len(result),
+            'sessions': result
+        }), 200
+        
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    finally:
+        conn.close()
+
+@app.route("/api/debug/validate-token", methods=["POST"])
+def debug_validate_token():
+    """Debug: Validar un token específico"""
+    try:
+        data = request.get_json()
+        token = data.get('token')
+        
+        if not token:
+            return jsonify({"error": "Token requerido"}), 400
+        
+        # Validar el token usando el auth_manager
+        user = auth_manager.validate_session(token)
+        
+        if user:
+            return jsonify({
+                "valid": True,
+                "user": user
+            }), 200
+        else:
+            return jsonify({
+                "valid": False,
+                "error": "Token inválido o expirado"
+            }), 401
+            
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/api/auth/refresh", methods=["POST"])
+def refresh_token():
+    """Renovar token de sesión"""
+    try:
+        data = request.get_json()
+        old_token = data.get('token')
+        
+        if not old_token:
+            return jsonify({"error": "Token requerido"}), 400
+        
+        # Validar el token actual
+        user = auth_manager.validate_session(old_token)
+        
+        if user:
+            # Crear nueva sesión
+            new_token = auth_manager.create_session(user['user_id'])
+            
+            # Eliminar la sesión antigua
+            auth_manager.logout_user(old_token)
+            
+            return jsonify({
+                "success": True,
+                "session_token": new_token,
+                "user": user
+            }), 200
+        else:
+            return jsonify({"error": "Token inválido o expirado"}), 401
+            
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 # ---------------------- RUTAS DE PAGOS ----------------------
 
 @app.route("/api/payment/create-preference", methods=["POST"])

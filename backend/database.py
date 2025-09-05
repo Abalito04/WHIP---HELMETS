@@ -130,7 +130,8 @@ def insert_sample_products():
         
         # Verificar si ya hay productos
         cursor.execute("SELECT COUNT(*) FROM productos")
-        count = cursor.fetchone()[0]
+        result = cursor.fetchone()
+        count = result[0] if result else 0
         
         if count == 0:
             sample_products = [
@@ -174,7 +175,8 @@ def insert_sample_users():
         
         # Verificar si ya hay usuarios
         cursor.execute("SELECT COUNT(*) FROM users")
-        count = cursor.fetchone()[0]
+        result = cursor.fetchone()
+        count = result[0] if result else 0
         
         if count == 0:
             import hashlib
@@ -201,10 +203,18 @@ def insert_sample_users():
 def init_postgresql():
     """Inicializa completamente PostgreSQL"""
     try:
+        print("Creando tablas...")
         init_postgresql_tables()
+        
+        print("Insertando productos de ejemplo...")
         insert_sample_products()
+        
+        print("Insertando usuarios de ejemplo...")
         insert_sample_users()
-        print("PostgreSQL inicializado correctamente")
+        
+        print("✅ PostgreSQL inicializado correctamente")
     except Exception as e:
-        print(f"Error al inicializar PostgreSQL: {e}")
+        print(f"❌ Error al inicializar PostgreSQL: {e}")
+        import traceback
+        traceback.print_exc()
         raise e

@@ -13,11 +13,14 @@
     const authToken = localStorage.getItem('authToken');
     const userInfo = localStorage.getItem('userInfo');
     
-    if (!authToken || !userInfo) {
+    // Para desarrollo, permitir acceso sin autenticación estricta
+    const isDevelopment = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    
+    if (!isDevelopment && (!authToken || !userInfo)) {
         // No hay token o información de usuario, redirigir al login principal
         window.location.href = '/';
         alert('Debes iniciar sesión primero');
-    } else {
+    } else if (!isDevelopment) {
         try {
             const user = JSON.parse(userInfo);
             if (user.role !== 'admin') {

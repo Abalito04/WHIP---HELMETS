@@ -46,15 +46,17 @@ async function fetchProducts() {
     showNotification(`Error al cargar productos: ${err.message}`, "error");
     
     // Mostrar datos de ejemplo si la API no está disponible
-    productsBody.innerHTML = `
-      <tr>
-        <td colspan="9" style="text-align: center; color: red;">
-          Error al conectar con el servidor. Verifica que el servidor esté ejecutándose en ${API_BASE}
-          <br><br>
-          <button onclick="location.reload()" style="padding: 5px 10px;">Reintentar</button>
-        </td>
-      </tr>
-    `;
+    if (productsBody) {
+      productsBody.innerHTML = `
+        <tr>
+          <td colspan="9" style="text-align: center; color: red;">
+            Error al conectar con el servidor. Verifica que el servidor esté ejecutándose en ${API_BASE}
+            <br><br>
+            <button onclick="location.reload()" style="padding: 5px 10px;">Reintentar</button>
+          </td>
+        </tr>
+      `;
+    }
   }
 }
 
@@ -221,6 +223,11 @@ function exportData() {
 
 // ==================== RENDER ====================
 function renderProducts() {
+  if (!productsBody) {
+    console.error("productsBody no encontrado en el DOM");
+    return;
+  }
+  
   productsBody.innerHTML = "";
 
   const startIndex = (currentPage - 1) * productsPerPage;
@@ -356,16 +363,40 @@ function closeAddProductModal() {
 
 // ==================== EVENTOS ====================
 function setupEventListeners() {
-  document.getElementById("apply-filters").addEventListener("click", applyFilters);
-  document.getElementById("reset-filters").addEventListener("click", resetFilters);
-  document.getElementById("add-product").addEventListener("click", openAddProductModal);
-  document.getElementById("save-all").addEventListener("click", saveAllChanges);
-  document.getElementById("export-data").addEventListener("click", exportData);
+  // Verificar que los elementos existan antes de agregar event listeners
+  const applyFiltersBtn = document.getElementById("apply-filters");
+  const resetFiltersBtn = document.getElementById("reset-filters");
+  const addProductBtn = document.getElementById("add-product");
+  const saveAllBtn = document.getElementById("save-all");
+  const exportDataBtn = document.getElementById("export-data");
+  const imageStatsBtn = document.getElementById("image-stats");
+
+  if (applyFiltersBtn) {
+    applyFiltersBtn.addEventListener("click", applyFilters);
+  }
+  
+  if (resetFiltersBtn) {
+    resetFiltersBtn.addEventListener("click", resetFilters);
+  }
+  
+  if (addProductBtn) {
+    addProductBtn.addEventListener("click", openAddProductModal);
+  }
+  
+  if (saveAllBtn) {
+    saveAllBtn.addEventListener("click", saveAllChanges);
+  }
+  
+  if (exportDataBtn) {
+    exportDataBtn.addEventListener("click", exportData);
+  }
   
   // Ver estadísticas de productos
-  document.getElementById("image-stats").addEventListener("click", () => {
-    getProductStats();
-  });
+  if (imageStatsBtn) {
+    imageStatsBtn.addEventListener("click", () => {
+      getProductStats();
+    });
+  }
 
   // Cerrar modales con botones X
   document.querySelectorAll(".close").forEach(closeBtn => {
@@ -420,13 +451,84 @@ function setupEventListeners() {
   });
 
   // Botón de subir imagen
-  document.getElementById("upload-image-btn").addEventListener("click", () => {
-    console.log("Botón de subir imagen clickeado");
-    document.getElementById("image-file-input").click();
-  });
+  const uploadImageBtn = document.getElementById("upload-image-btn");
+  if (uploadImageBtn) {
+    uploadImageBtn.addEventListener("click", () => {
+      console.log("Botón de subir imagen clickeado");
+      const fileInput = document.getElementById("image-file-input");
+      if (fileInput) {
+        fileInput.click();
+      }
+    });
+  }
+
+  // Event listeners de galería (movidos desde DOMContentLoaded)
+  const galleryClose = document.querySelector('.gallery-close');
+  const galleryModal = document.getElementById('gallery-modal');
+  const setMainImageBtn = document.getElementById('set-main-image');
+  const deleteImageBtn = document.getElementById('delete-image');
+  const addImagesBtn = document.getElementById('add-images');
+  const galleryFileInput = document.getElementById('gallery-file-input');
+  const uploadArea = document.getElementById('gallery-upload');
+
+  if (galleryClose) {
+    galleryClose.addEventListener('click', closeGallery);
+  }
+  
+  if (galleryModal) {
+    galleryModal.addEventListener('click', (e) => {
+      if (e.target.id === 'gallery-modal') {
+        closeGallery();
+      }
+    });
+  }
+  
+  if (setMainImageBtn) {
+    setMainImageBtn.addEventListener('click', setMainImage);
+  }
+  
+  if (deleteImageBtn) {
+    deleteImageBtn.addEventListener('click', deleteImage);
+  }
+  
+  if (addImagesBtn) {
+    addImagesBtn.addEventListener('click', addImages);
+  }
+  
+  if (galleryFileInput) {
+    galleryFileInput.addEventListener('change', (e) => {
+      const files = Array.from(e.target.files);
+      if (files.length > 0) {
+        showNotification(`${files.length} imagen(es) agregada(s)`, 'success');
+        e.target.value = '';
+      }
+    });
+  }
+  
+  if (uploadArea) {
+    uploadArea.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      uploadArea.classList.add('dragover');
+    });
+    
+    uploadArea.addEventListener('dragleave', () => {
+      uploadArea.classList.remove('dragover');
+    });
+    
+    uploadArea.addEventListener('drop', (e) => {
+      e.preventDefault();
+      uploadArea.classList.remove('dragover');
+      const files = Array.from(e.dataTransfer.files);
+      if (files.length > 0) {
+        showNotification(`${files.length} imagen(es) agregada(s)`, 'success');
+      }
+    });
+  }
 
   // Manejar selección de archivo
-  document.getElementById("image-file-input").addEventListener("change", async (e) => {
+  const imageFileInput = document.getElementById("image-file-input");
+  if (imageFileInput) {
+    imageFileInput.addEventListener("change", async (e) => {
     console.log("Archivo seleccionado:", e.target.files[0]);
     const file = e.target.files[0];
     if (!file) return;
@@ -469,6 +571,7 @@ function setupEventListeners() {
       preview.style.display = "none";
     }
   });
+  }
 
   // Formulario para nuevo producto
   newProductForm.addEventListener("submit", (e) => {
@@ -537,6 +640,11 @@ function setupEventListeners() {
 
 // ==================== NOTIFICACIONES ====================
 function showNotification(message, type = "success") {
+  if (!notificationElement) {
+    console.error("notificationElement no encontrado en el DOM");
+    return;
+  }
+  
   notificationElement.textContent = message;
   notificationElement.className = `notification ${type}`;
   
@@ -556,6 +664,16 @@ function showNotification(message, type = "success") {
 // ==================== INIT ====================
 function init() {
   console.log("Inicializando panel de administración...");
+  
+  // Verificar que los elementos críticos existan
+  if (!productsBody) {
+    console.error("productsBody no encontrado - el panel no se puede inicializar");
+    return;
+  }
+  
+  if (!notificationElement) {
+    console.error("notificationElement no encontrado - las notificaciones no funcionarán");
+  }
   
   // Configurar event listeners primero
   setupEventListeners();
@@ -718,7 +836,7 @@ function addImages() {
       showNotification(`${files.length} imagen(es) agregada(s)`, 'success');
     }
   });
-});
+// });
 
 // ==================== GESTIÓN DE USUARIOS ====================
 

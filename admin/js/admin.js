@@ -308,11 +308,15 @@ function applyFilters() {
   const brandFilter = document.getElementById("brand").value.toLowerCase();
   const stockFilter = document.getElementById("stock-filter").value;
   const priceFilter = parseInt(document.getElementById("price-range").value);
+  const statusFilter = document.getElementById("status-filter").value;
 
   filteredProducts = productsData.filter((product) => {
     if (searchTerm && !product.name.toLowerCase().includes(searchTerm)) return false;
     if (categoryFilter !== "all" && product.category.toLowerCase() !== categoryFilter) return false;
     if (brandFilter !== "all" && product.brand.toLowerCase() !== brandFilter) return false;
+    
+    // Filtrar por estado
+    if (statusFilter !== "all" && product.status !== statusFilter) return false;
     
     // Filtrar por stock
     if (stockFilter !== "all") {
@@ -336,6 +340,7 @@ function resetFilters() {
   document.getElementById("category").value = "all";
   document.getElementById("brand").value = "all";
   document.getElementById("stock-filter").value = "all";
+  document.getElementById("status-filter").value = "all";
   document.getElementById("price-range").value = document.getElementById("price-range").max;
   filteredProducts = [...productsData];
   currentPage = 1;

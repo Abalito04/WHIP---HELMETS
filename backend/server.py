@@ -113,7 +113,7 @@ def row_to_dict(row):
     else:
         # Si no tiene _asdict, crear diccionario manualmente
         d = {}
-        columns = ['id', 'name', 'brand', 'price', 'category', 'sizes', 'stock', 'image', 'images', 'status']
+        columns = ['id', 'name', 'brand', 'price', 'precio_efectivo', 'category', 'sizes', 'stock', 'image', 'images', 'status']
         for i, col in enumerate(columns):
             if i < len(row):
                 d[col] = row[i]
@@ -250,12 +250,20 @@ def create_product():
     # Validaciones mínimas
     name = (data.get("name") or "").strip()
     price = data.get("price", 0)
+    precio_efectivo = data.get("precio_efectivo")
     if not name:
         return jsonify({"error": "El campo 'name' es obligatorio"}), 400
     try:
         price = float(price)
     except Exception:
         return jsonify({"error": "El campo 'price' debe ser numérico"}), 400
+    
+    # Validar precio_efectivo si se proporciona
+    if precio_efectivo is not None:
+        try:
+            precio_efectivo = float(precio_efectivo)
+        except Exception:
+            return jsonify({"error": "El campo 'precio_efectivo' debe ser numérico"}), 400
 
     brand = (data.get("brand") or "").strip()
     category = (data.get("category") or "").strip()
@@ -293,11 +301,11 @@ def create_product():
     try:
         cur = execute_query(conn,
             """
-            INSERT INTO productos (name, brand, price, category, sizes, stock, image, images, status)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+            INSERT INTO productos (name, brand, price, precio_efectivo, category, sizes, stock, image, images, status)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             RETURNING id
             """,
-            (name, brand, price, category, sizes_csv, stock, image, images_json, status),
+            (name, brand, price, precio_efectivo, category, sizes_csv, stock, image, images_json, status),
         )
         
         # PostgreSQL: obtener el ID del último insert
@@ -337,6 +345,15 @@ def update_product(pid: int):
         except Exception:
             return jsonify({"error": "El campo 'price' debe ser numérico"}), 400
         set_field("price", price)
+
+    if "precio_efectivo" in data:
+        precio_efectivo = data.get("precio_efectivo")
+        if precio_efectivo is not None and precio_efectivo != "":
+            try:
+                precio_efectivo = float(precio_efectivo)
+            except Exception:
+                return jsonify({"error": "El campo 'precio_efectivo' debe ser numérico"}), 400
+        set_field("precio_efectivo", precio_efectivo)
 
     if "category" in data:
         set_field("category", (data.get("category") or "").strip())

@@ -59,6 +59,7 @@ def init_postgresql_tables():
             name VARCHAR(255) NOT NULL,
             brand VARCHAR(100),
             price DECIMAL(10,2) NOT NULL DEFAULT 0,
+            precio_efectivo DECIMAL(10,2) DEFAULT NULL,
             category VARCHAR(100),
             sizes TEXT,
             stock INTEGER DEFAULT 0,
@@ -68,6 +69,12 @@ def init_postgresql_tables():
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
+    """)
+    
+    # Agregar columna precio_efectivo si no existe (para bases de datos existentes)
+    cursor.execute("""
+        ALTER TABLE productos 
+        ADD COLUMN IF NOT EXISTS precio_efectivo DECIMAL(10,2) DEFAULT NULL
     """)
     
     # Crear tabla de usuarios
@@ -191,30 +198,30 @@ def insert_sample_products():
     
     if count == 0:
         sample_products = [
-            ("Casco FOX V3", "Fox", 895000, "Cascos", "S,M,L,XL", 15, "assets/images/products/Fox V3 lateral.png", "Activo"),
-            ("Casco FOX V3 RS", "Fox", 950000, "Cascos", "S,M,L,XL", 8, "assets/images/products/Fox V3 RS MC lateral.png", "Activo"),
-            ("Casco FOX V1", "Fox", 500000, "Cascos", "S,M,L,XL", 22, "assets/images/products/Fox V1 lateral.png", "Activo"),
-            ("Casco FLY Racing F2", "Fly Racing", 450000, "Cascos", "S,M,L,XL", 12, "assets/images/products/Fly Racing F2 lateral.png", "Activo"),
-            ("Casco Bell Moto-9 Flex", "Bell", 650000, "Cascos", "M,L", 5, "assets/images/products/Bell Moto-9 Flex lateral.png", "Activo"),
-            ("Casco Bell Moto-9 Flex 2", "Bell", 700000, "Cascos", "S,M,L,XL", 7, "assets/images/products/Bell Moto-9 Flex 2.png", "Activo"),
-            ("Casco Alpinestars SM5", "Alpinestars", 550000, "Cascos", "S,M,L,XL", 18, "assets/images/products/Alpinestars SM5 lateral.png", "Activo"),
-            ("Casco Aircraft 2 Carbono", "Aircraft", 1200000, "Cascos", "S,M,L", 3, "assets/images/products/Aircraft 2 Carbono.png", "Activo"),
-            ("Casco Bell MX-9 Mips", "Bell", 480000, "Cascos", "S,M,L,XL", 10, "assets/images/products/Bell MX-9 Mips.png", "Activo"),
-            ("Casco FOX V1 Interfere", "Fox", 520000, "Cascos", "S,M,L,XL", 14, "assets/images/products/Fox V1 Interfere.png", "Activo"),
-            ("Casco Troy Lee Design D4", "Troy Lee Design", 850000, "Cascos", "S,M,L", 6, "assets/images/products/Troy Lee Design D4 lateral.png", "Activo"),
-            ("Casco FOX V3 Moth LE Copper", "Fox", 1000000, "Cascos", "S,M,L,XL", 2, "assets/images/products/Fox V3 Moth LE Copper.png", "Activo"),
-            ("Casco FOX V1 MATTE", "Fox", 530000, "Cascos", "S,M,L,XL", 9, "assets/images/products/FOX V1 MATTE.png", "Activo"),
-            ("Casco Alpinestars SM5 amarillo", "Alpinestars", 560000, "Cascos", "S,M,L", 11, "assets/images/products/Alpinestars SM5 amarillo lateral.png", "Activo"),
-            ("Guantes CROSS", "Fox", 50000, "Accesorios", "S,M,L", 25, "assets/images/products/Guantes FOX.png", "Activo"),
-            ("Antiparras CROSS", "Fox", 80000, "Accesorios", "Único", 30, "assets/images/products/antiparras 2.png", "Activo")
+            ("Casco FOX V3", "Fox", 895000, 800000, "Cascos", "S,M,L,XL", 15, "assets/images/products/Fox V3 lateral.png", "Activo"),
+            ("Casco FOX V3 RS", "Fox", 950000, 850000, "Cascos", "S,M,L,XL", 8, "assets/images/products/Fox V3 RS MC lateral.png", "Activo"),
+            ("Casco FOX V1", "Fox", 500000, 450000, "Cascos", "S,M,L,XL", 22, "assets/images/products/Fox V1 lateral.png", "Activo"),
+            ("Casco FLY Racing F2", "Fly Racing", 450000, 400000, "Cascos", "S,M,L,XL", 12, "assets/images/products/Fly Racing F2 lateral.png", "Activo"),
+            ("Casco Bell Moto-9 Flex", "Bell", 650000, 580000, "Cascos", "M,L", 5, "assets/images/products/Bell Moto-9 Flex lateral.png", "Activo"),
+            ("Casco Bell Moto-9 Flex 2", "Bell", 700000, 620000, "Cascos", "S,M,L,XL", 7, "assets/images/products/Bell Moto-9 Flex 2.png", "Activo"),
+            ("Casco Alpinestars SM5", "Alpinestars", 550000, 490000, "Cascos", "S,M,L,XL", 18, "assets/images/products/Alpinestars SM5 lateral.png", "Activo"),
+            ("Casco Aircraft 2 Carbono", "Aircraft", 1200000, 1050000, "Cascos", "S,M,L", 3, "assets/images/products/Aircraft 2 Carbono.png", "Activo"),
+            ("Casco Bell MX-9 Mips", "Bell", 480000, 430000, "Cascos", "S,M,L,XL", 10, "assets/images/products/Bell MX-9 Mips.png", "Activo"),
+            ("Casco FOX V1 Interfere", "Fox", 520000, 470000, "Cascos", "S,M,L,XL", 14, "assets/images/products/Fox V1 Interfere.png", "Activo"),
+            ("Casco Troy Lee Design D4", "Troy Lee Design", 850000, 760000, "Cascos", "S,M,L", 6, "assets/images/products/Troy Lee Design D4 lateral.png", "Activo"),
+            ("Casco FOX V3 Moth LE Copper", "Fox", 1000000, 900000, "Cascos", "S,M,L,XL", 2, "assets/images/products/Fox V3 Moth LE Copper.png", "Activo"),
+            ("Casco FOX V1 MATTE", "Fox", 530000, 480000, "Cascos", "S,M,L,XL", 9, "assets/images/products/FOX V1 MATTE.png", "Activo"),
+            ("Casco Alpinestars SM5 amarillo", "Alpinestars", 560000, 500000, "Cascos", "S,M,L", 11, "assets/images/products/Alpinestars SM5 amarillo lateral.png", "Activo"),
+            ("Guantes CROSS", "Fox", 50000, 45000, "Accesorios", "S,M,L", 25, "assets/images/products/Guantes FOX.png", "Activo"),
+            ("Antiparras CROSS", "Fox", 80000, 72000, "Accesorios", "Único", 30, "assets/images/products/antiparras 2.png", "Activo")
         ]
         
         cursor.executemany(
             """
-            INSERT INTO productos (name, brand, price, category, sizes, stock, image, images, status)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+            INSERT INTO productos (name, brand, price, precio_efectivo, category, sizes, stock, image, images, status)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             """,
-            [(p[0], p[1], p[2], p[3], p[4], p[5], p[6], '[]', p[7]) for p in sample_products]
+            [(p[0], p[1], p[2], p[3], p[4], p[5], p[6], p[7], '[]', p[8]) for p in sample_products]
         )
         
         conn.commit()

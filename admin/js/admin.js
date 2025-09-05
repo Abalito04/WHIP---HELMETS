@@ -367,11 +367,20 @@ function setupEventListeners() {
     getProductStats();
   });
 
-  // Cerrar modales
+  // Cerrar modales con botones X
   document.querySelectorAll(".close").forEach(closeBtn => {
-    closeBtn.addEventListener("click", () => {
-      addProductModal.style.display = "none";
-      imageStatsModal.style.display = "none";
+    closeBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      console.log("Botón cerrar clickeado");
+      // Cerrar el modal más cercano
+      const modal = closeBtn.closest('.modal');
+      if (modal) {
+        modal.style.display = "none";
+        // Si es el modal de agregar producto, limpiar formulario
+        if (modal.id === 'add-product-modal') {
+          closeAddProductModal();
+        }
+      }
     });
   });
 
@@ -385,6 +394,7 @@ function setupEventListeners() {
     }
   });
 
+  // Logout
   document.getElementById("logout").addEventListener("click", () => {
     if (confirm("¿Estás seguro de que deseas cerrar sesión?")) {
         // Cerrar sesión en el servidor
@@ -406,15 +416,6 @@ function setupEventListeners() {
         
         // Redirigir a la página principal
         window.location.href = '/';
-    }
-});
-
-  document.querySelector(".close").addEventListener("click", closeAddProductModal);
-
-  // Cerrar modal al hacer clic fuera
-  window.addEventListener("click", (event) => {
-    if (event.target === addProductModal) {
-      closeAddProductModal();
     }
   });
 

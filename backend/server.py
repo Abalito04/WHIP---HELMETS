@@ -1094,6 +1094,13 @@ def debug_users():
 def create_test_users():
     """Debug: Crear usuarios de prueba"""
     try:
+        # Primero eliminar usuarios existentes
+        conn = get_conn()
+        cursor = conn.cursor()
+        cursor.execute("DELETE FROM users WHERE username IN ('admin', 'usuario')")
+        conn.commit()
+        conn.close()
+        
         # Crear usuario admin
         admin_result = auth_manager.register_user(
             username="admin",
@@ -1169,6 +1176,37 @@ def debug_check_password():
                 "is_valid": is_valid,
                 "user_id": user[0],
                 "role": user[3]
+            }), 200
+        else:
+            return jsonify({"error": "Usuario no encontrado"}), 404
+            
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    finally:
+        conn.close()
+
+@app.route("/api/debug/user-hash/<username>", methods=["GET"])
+def debug_user_hash(username):
+    """Debug: Ver el hash de contraseña de un usuario"""
+    try:
+        conn = get_conn()
+        cursor = conn.cursor()
+        
+        cursor.execute(
+            "SELECT id, username, password_hash, role, nombre, apellido, email FROM users WHERE username = %s",
+            (username,)
+        )
+        user = cursor.fetchone()
+        
+        if user:
+            return jsonify({
+                "id": user[0],
+                "username": user[1],
+                "password_hash": user[2],
+                "role": user[3],
+                "nombre": user[4],
+                "apellido": user[5],
+                "email": user[6]
             }), 200
         else:
             return jsonify({"error": "Usuario no encontrado"}), 404

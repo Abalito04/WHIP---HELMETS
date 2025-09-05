@@ -119,13 +119,13 @@ def row_to_dict(row):
                 d[col] = row[i]
     
     # sizes: CSV -> lista
-    if d.get("sizes"):
+    if d.get("sizes") and isinstance(d["sizes"], str):
         d["sizes"] = [s.strip() for s in d["sizes"].split(",") if s.strip()]
     else:
         d["sizes"] = []
     
     # images: JSON string -> lista
-    if d.get("images"):
+    if d.get("images") and isinstance(d["images"], str):
         try:
             import json
             d["images"] = json.loads(d["images"])
@@ -139,6 +139,16 @@ def row_to_dict(row):
         d["price"] = float(d["price"])
     except Exception:
         d["price"] = 0.0
+    
+    # precio_efectivo a float (puede ser None)
+    if d.get("precio_efectivo") is not None:
+        try:
+            d["precio_efectivo"] = float(d["precio_efectivo"])
+        except Exception:
+            d["precio_efectivo"] = None
+    else:
+        d["precio_efectivo"] = None
+    
     # stock a entero
     try:
         d["stock"] = int(d["stock"])

@@ -333,7 +333,7 @@ def create_product():
         conn.commit()  # Confirmar la transacción
 
         row = execute_query(conn, "SELECT id, name, brand, price, COALESCE(porcentaje_descuento, NULL) as porcentaje_descuento, category, sizes, stock, image, images, status, created_at, updated_at FROM productos WHERE id = %s", (new_id,)).fetchone()
-    return jsonify(row_to_dict(row)), 201
+        return jsonify(row_to_dict(row)), 201
     finally:
         conn.close()
 

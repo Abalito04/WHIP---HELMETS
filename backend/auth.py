@@ -45,7 +45,7 @@ class AuthManager:
                 ('direccion', 'TEXT'),
                 ('codigo_postal', 'TEXT'),
                 ('email', 'TEXT'),
-                ('updated_at', 'TIMESTAMP DEFAULT CURRENT_TIMESTAMP')
+                ('updated_at', 'TIMESTAMP')
             ]
             
             # Agregar columnas faltantes

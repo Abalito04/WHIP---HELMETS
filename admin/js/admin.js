@@ -16,6 +16,7 @@ let productsData = [];
 let filteredProducts = [];
 let currentPage = 1;
 const productsPerPage = 5;
+let selectedImages = []; // Para almacenar múltiples imágenes seleccionadas
 
 // ==================== ELEMENTOS DEL DOM ====================
 const productsBody = document.getElementById("products-body");
@@ -357,7 +358,17 @@ function closeAddProductModal() {
     URL.revokeObjectURL(previewImg.src);
   }
   preview.style.display = "none";
+  
+  // Limpiar múltiples imágenes
+  const multiplePreview = document.getElementById("multiple-images-preview");
+  const imagesList = document.getElementById("images-list");
+  imagesList.innerHTML = "";
+  multiplePreview.style.display = "none";
+  selectedImages = [];
+  
+  // Limpiar inputs
   document.getElementById("image-file-input").value = "";
+  document.getElementById("multiple-images-input").value = "";
 }
 
 
@@ -462,6 +473,18 @@ function setupEventListeners() {
     });
   }
 
+  // Botón de subir múltiples imágenes
+  const uploadMultipleBtn = document.getElementById("upload-multiple-btn");
+  if (uploadMultipleBtn) {
+    uploadMultipleBtn.addEventListener("click", () => {
+      console.log("Botón de subir múltiples imágenes clickeado");
+      const fileInput = document.getElementById("multiple-images-input");
+      if (fileInput) {
+        fileInput.click();
+      }
+    });
+  }
+
   // Event listeners de galería (movidos desde DOMContentLoaded)
   const galleryClose = document.querySelector('.gallery-close');
   const galleryModal = document.getElementById('gallery-modal');
@@ -496,10 +519,10 @@ function setupEventListeners() {
   }
   
   if (galleryFileInput) {
-    galleryFileInput.addEventListener('change', (e) => {
+    galleryFileInput.addEventListener('change', async (e) => {
       const files = Array.from(e.target.files);
       if (files.length > 0) {
-        showNotification(`${files.length} imagen(es) agregada(s)`, 'success');
+        await uploadImagesToGallery(files);
         e.target.value = '';
       }
     });
@@ -515,17 +538,17 @@ function setupEventListeners() {
       uploadArea.classList.remove('dragover');
     });
     
-    uploadArea.addEventListener('drop', (e) => {
+    uploadArea.addEventListener('drop', async (e) => {
       e.preventDefault();
       uploadArea.classList.remove('dragover');
       const files = Array.from(e.dataTransfer.files);
       if (files.length > 0) {
-        showNotification(`${files.length} imagen(es) agregada(s)`, 'success');
+        await uploadImagesToGallery(files);
       }
     });
   }
 
-  // Manejar selección de archivo
+  // Manejar selección de archivo individual
   const imageFileInput = document.getElementById("image-file-input");
   if (imageFileInput) {
     imageFileInput.addEventListener("change", async (e) => {
@@ -573,6 +596,80 @@ function setupEventListeners() {
   });
   }
 
+  // Manejar selección de múltiples archivos
+  const multipleImagesInput = document.getElementById("multiple-images-input");
+  if (multipleImagesInput) {
+    multipleImagesInput.addEventListener("change", async (e) => {
+      const files = Array.from(e.target.files);
+      if (files.length === 0) return;
+
+      console.log(`${files.length} archivos seleccionados`);
+      
+      // Mostrar vista previa de múltiples imágenes
+      const multiplePreview = document.getElementById("multiple-images-preview");
+      const imagesList = document.getElementById("images-list");
+      
+      multiplePreview.style.display = "block";
+      imagesList.innerHTML = "";
+
+      // Subir archivos uno por uno
+      selectedImages = [];
+      let uploadedCount = 0;
+
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        
+        // Crear elemento de vista previa
+        const imageItem = document.createElement("div");
+        imageItem.className = "image-item";
+        imageItem.innerHTML = `
+          <div class="image-preview-item">
+            <img src="${URL.createObjectURL(file)}" alt="${file.name}">
+            <div class="image-info">
+              <span class="image-name">${file.name}</span>
+              <div class="upload-status" id="status-${i}">⏳ Subiendo...</div>
+            </div>
+          </div>
+        `;
+        imagesList.appendChild(imageItem);
+
+        // Subir archivo
+        try {
+          const formData = new FormData();
+          formData.append('file', file);
+
+          const response = await fetch(`${API_BASE}/api/upload`, {
+            method: 'POST',
+            body: formData
+          });
+
+          const result = await response.json();
+
+          if (result.success) {
+            selectedImages.push(result.file_path);
+            document.getElementById(`status-${i}`).innerHTML = "✅ Subida";
+            uploadedCount++;
+          } else {
+            document.getElementById(`status-${i}`).innerHTML = `❌ Error: ${result.error}`;
+          }
+        } catch (error) {
+          document.getElementById(`status-${i}`).innerHTML = `❌ Error: ${error.message}`;
+        }
+      }
+
+      // Actualizar campo de imagen principal con la primera imagen subida
+      if (selectedImages.length > 0) {
+        document.getElementById("new-image").value = selectedImages[0];
+        showNotification(`${uploadedCount} de ${files.length} imágenes subidas correctamente`, "success");
+      } else {
+        showNotification("Error al subir las imágenes", "error");
+      }
+
+      // Limpiar input
+      e.target.value = "";
+    });
+  }
+
   // Formulario para nuevo producto
   newProductForm.addEventListener("submit", (e) => {
     e.preventDefault();
@@ -585,6 +682,7 @@ function setupEventListeners() {
       sizes: document.getElementById("new-sizes").value.split(",").map(s => s.trim()),
       stock: parseInt(document.getElementById("new-stock").value) || 0,
       image: document.getElementById("new-image").value,
+      images: selectedImages.length > 0 ? selectedImages : [document.getElementById("new-image").value], // Incluir múltiples imágenes
       status: document.getElementById("new-status").value
     };
     
@@ -714,11 +812,15 @@ function openGallery(productId, productName) {
 }
 
 function loadProductImages(productId) {
-  // Por ahora, simulamos las imágenes. En un caso real, esto vendría de la API
+  // Cargar imágenes del producto desde la API
   const product = productsData.find(p => p.id == productId);
   if (product) {
-    // Usar solo la imagen principal
-    currentGalleryImages = [product.image];
+    // Si el producto tiene múltiples imágenes, usarlas; si no, usar solo la principal
+    if (product.images && Array.isArray(product.images) && product.images.length > 0) {
+      currentGalleryImages = product.images;
+    } else {
+      currentGalleryImages = [product.image];
+    }
     
     renderGallery();
   }
@@ -733,7 +835,8 @@ function renderGallery() {
   
   // Mostrar imagen principal
   const mainImg = document.getElementById('gallery-main-img');
-  mainImg.src = `/${currentGalleryImages[selectedImageIndex]}`;
+  const mainImageUrl = currentGalleryImages[selectedImageIndex];
+  mainImg.src = mainImageUrl.startsWith('http') ? mainImageUrl : `/${mainImageUrl}`;
   
   // Renderizar miniaturas
   const thumbnailsContainer = document.getElementById('gallery-thumbnails');
@@ -741,7 +844,8 @@ function renderGallery() {
   
   currentGalleryImages.forEach((image, index) => {
     const thumbnail = document.createElement('img');
-    thumbnail.src = `/${image}`;
+    const imageUrl = image.startsWith('http') ? image : `/${image}`;
+    thumbnail.src = imageUrl;
     thumbnail.className = `gallery-thumbnail ${index === selectedImageIndex ? 'active' : ''}`;
     thumbnail.onclick = () => selectImage(index);
     thumbnail.onerror = () => {
@@ -763,11 +867,32 @@ function closeGallery() {
   selectedImageIndex = 0;
 }
 
-function setMainImage() {
-  if (currentGalleryImages.length > 0) {
+async function setMainImage() {
+  if (currentGalleryImages.length > 0 && currentGalleryProduct) {
     const newMainImage = currentGalleryImages[selectedImageIndex];
-    // Aquí actualizarías la base de datos
-    showNotification('Imagen principal actualizada', 'success');
+    
+    try {
+      const response = await fetch(`${API_BASE}/api/products/${currentGalleryProduct}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          image: newMainImage
+        })
+      });
+
+      if (response.ok) {
+        showNotification('Imagen principal actualizada', 'success');
+        // Recargar la lista de productos para reflejar los cambios
+        fetchProducts();
+      } else {
+        const error = await response.json();
+        showNotification(`Error: ${error.error}`, 'error');
+      }
+    } catch (error) {
+      showNotification(`Error al actualizar imagen principal: ${error.message}`, 'error');
+    }
   }
 }
 
@@ -788,6 +913,48 @@ function deleteImage() {
 
 function addImages() {
   document.getElementById('gallery-file-input').click();
+}
+
+async function uploadImagesToGallery(files) {
+  if (!currentGalleryProduct) {
+    showNotification('Error: No hay producto seleccionado', 'error');
+    return;
+  }
+
+  const progressElement = document.getElementById('upload-progress');
+  const progressFill = document.getElementById('progress-fill');
+  const progressText = document.getElementById('progress-text');
+  
+  progressElement.style.display = 'block';
+  progressText.textContent = 'Subiendo imágenes...';
+  
+  try {
+    const formData = new FormData();
+    files.forEach(file => {
+      formData.append('files', file);
+    });
+
+    const response = await fetch(`${API_BASE}/api/products/${currentGalleryProduct}/images`, {
+      method: 'POST',
+      body: formData
+    });
+
+    const result = await response.json();
+
+    if (result.success) {
+      showNotification(result.message, 'success');
+      // Recargar las imágenes de la galería
+      loadProductImages(currentGalleryProduct);
+      // Recargar la lista de productos para reflejar los cambios
+      fetchProducts();
+    } else {
+      showNotification(`Error: ${result.error}`, 'error');
+    }
+  } catch (error) {
+    showNotification(`Error al subir imágenes: ${error.message}`, 'error');
+  } finally {
+    progressElement.style.display = 'none';
+  }
 }
 
 // Eventos de la galería (movidos a setupEventListeners)

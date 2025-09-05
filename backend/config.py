@@ -54,6 +54,9 @@ SMTP_USERNAME = os.environ.get('SMTP_USERNAME', '')
 SMTP_PASSWORD = os.environ.get('SMTP_PASSWORD', '')
 
 # Configuración de Cloudinary
-CLOUDINARY_CLOUD_NAME = os.environ.get('CLOUDINARY_CLOUD_NAME', '')
-CLOUDINARY_API_KEY = os.environ.get('CLOUDINARY_API_KEY', '')
-CLOUDINARY_API_SECRET = os.environ.get('CLOUDINARY_API_SECRET', '')
+CLOUDINARY_CLOUD_NAME = os.environ.get('CLOUDINARY_CLOUD_NAME', 'ddowcuhlu')
+CLOUDINARY_API_KEY = os.environ.get('CLOUDINARY_API_KEY', '291494695985798')
+CLOUDINARY_API_SECRET = os.environ.get('CLOUDINARY_API_SECRET', 'pSrCsNF60-t5bSP_YUA2iGrTvBA')
+
+# También soporte para CLOUDINARY_URL (formato completo)
+CLOUDINARY_URL = os.environ.get('CLOUDINARY_URL', '')

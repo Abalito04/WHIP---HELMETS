@@ -74,9 +74,9 @@ def get_conn():
         return get_pg_conn()
     else:
         # Usar SQLite
-        conn = sqlite3.connect(DB_PATH)
-        conn.row_factory = sqlite3.Row
-        return conn
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    return conn
 
 def is_postgresql():
     """Verifica si estamos usando PostgreSQL"""
@@ -124,7 +124,8 @@ def init_products_db():
                 category TEXT,
                 sizes TEXT,           -- CSV ej: "S,M,L,XL"
                 stock INTEGER DEFAULT 0,  -- Nuevo campo: cantidad en stock
-                image TEXT,           -- URL o ruta de imagen
+                image TEXT,           -- URL o ruta de imagen principal
+                images TEXT,          -- JSON array de URLs de imágenes adicionales
                 status TEXT           -- ej: "Activo", "Agotado", "Oculto"
             );
             """
@@ -164,7 +165,7 @@ def init_products_db():
                 sample_products
             )
             print(f"{len(sample_products)} productos de ejemplo insertados")
-
+            
 def init_users_db():
     """Inicializar base de datos de usuarios"""
     print("Inicializando base de datos de usuarios...")
@@ -243,7 +244,7 @@ def init_users_db():
 def row_to_dict(row):
     """Convierte una fila de base de datos a diccionario (PostgreSQL o SQLite)"""
     if hasattr(row, 'keys'):  # PostgreSQL RealDictRow
-        d = dict(row)
+    d = dict(row)
     else:  # SQLite Row
         d = dict(row)
     
@@ -252,6 +253,17 @@ def row_to_dict(row):
         d["sizes"] = [s.strip() for s in d["sizes"].split(",") if s.strip()]
     else:
         d["sizes"] = []
+    
+    # images: JSON string -> lista
+    if d.get("images"):
+        try:
+            import json
+            d["images"] = json.loads(d["images"])
+        except Exception:
+            d["images"] = []
+    else:
+        d["images"] = []
+    
     # price a 2 decimales
     try:
         d["price"] = float(d["price"])
@@ -369,16 +381,33 @@ def create_product():
     except Exception:
         stock = 0
     image = (data.get("image") or "").strip()
+    
+    # Manejar múltiples imágenes
+    images_list = data.get("images") or []
+    if isinstance(images_list, str):
+        # Si viene como string, intentar parsear como JSON
+        try:
+            import json
+            images_list = json.loads(images_list)
+        except Exception:
+            images_list = [images_list] if images_list else []
+    elif not isinstance(images_list, list):
+        images_list = []
+    
+    # Convertir a JSON string para almacenar en la base de datos
+    import json
+    images_json = json.dumps(images_list)
+    
     status = (data.get("status") or "Activo").strip() or "Activo"
 
     with closing(get_conn()) as conn, conn:
         placeholder = get_placeholder()
         cur = execute_query(conn,
             f"""
-            INSERT INTO productos (name, brand, price, category, sizes, stock, image, status)
-            VALUES ({placeholder}, {placeholder}, {placeholder}, {placeholder}, {placeholder}, {placeholder}, {placeholder}, {placeholder})
+            INSERT INTO productos (name, brand, price, category, sizes, stock, image, images, status)
+            VALUES ({placeholder}, {placeholder}, {placeholder}, {placeholder}, {placeholder}, {placeholder}, {placeholder}, {placeholder}, {placeholder})
             """,
-            (name, brand, price, category, sizes_csv, stock, image, status),
+            (name, brand, price, category, sizes_csv, stock, image, images_json, status),
         )
         new_id = cur.lastrowid if not is_postgresql() else cur.fetchone()[0] if hasattr(cur, 'fetchone') else None
 
@@ -434,6 +463,21 @@ def update_product(pid: int):
     if "image" in data:
         set_field("image", (data.get("image") or "").strip())
 
+    if "images" in data:
+        images_list = data.get("images") or []
+        if isinstance(images_list, str):
+            try:
+                import json
+                images_list = json.loads(images_list)
+            except Exception:
+                images_list = [images_list] if images_list else []
+        elif not isinstance(images_list, list):
+            images_list = []
+        
+        import json
+        images_json = json.dumps(images_list)
+        set_field("images", images_json)
+
     if "status" in data:
         set_field("status", (data.get("status") or "").strip())
 
@@ -460,6 +504,118 @@ def delete_product(pid: int):
         if cur.rowcount == 0:
             return jsonify({"error": "Producto no encontrado"}), 404
     return jsonify({"ok": True}), 200
+
+
+@app.route("/api/products/<int:pid>/images", methods=["GET"])
+def get_product_images(pid: int):
+    """Obtener todas las imágenes de un producto"""
+    with closing(get_conn()) as conn:
+        placeholder = get_placeholder()
+        row = execute_query(conn, f"SELECT image, images FROM productos WHERE id = {placeholder}", (pid,)).fetchone()
+        if not row:
+            return jsonify({"error": "Producto no encontrado"}), 404
+        
+        product_dict = row_to_dict(row)
+        all_images = [product_dict["image"]] + product_dict["images"]
+        # Filtrar imágenes vacías
+        all_images = [img for img in all_images if img and img.strip()]
+        
+        return jsonify({"images": all_images}), 200
+
+
+@app.route("/api/products/<int:pid>/images", methods=["POST"])
+def add_product_images(pid: int):
+    """Agregar nuevas imágenes a un producto"""
+    try:
+        if 'files' not in request.files:
+            return jsonify({"error": "No se encontraron archivos"}), 400
+        
+        files = request.files.getlist('files')
+        if not files or all(f.filename == '' for f in files):
+            return jsonify({"error": "No se seleccionaron archivos"}), 400
+        
+        uploaded_urls = []
+        
+        # Verificar configuración de Cloudinary
+        if not CLOUDINARY_CLOUD_NAME or not CLOUDINARY_API_KEY or not CLOUDINARY_API_SECRET:
+            return jsonify({"error": "Cloudinary no configurado"}), 500
+        
+        # Configurar Cloudinary
+        import cloudinary
+        import cloudinary.uploader
+        
+        cloudinary.config(
+            cloud_name=CLOUDINARY_CLOUD_NAME,
+            api_key=CLOUDINARY_API_KEY,
+            api_secret=CLOUDINARY_API_SECRET
+        )
+        
+        # Subir cada archivo
+        for file in files:
+            if file.filename == '':
+                continue
+                
+            # Verificar que sea una imagen
+            if not file.filename.lower().endswith(('.png', '.jpg', '.jpeg', '.gif', '.webp')):
+                continue
+            
+            try:
+                # Subir imagen a Cloudinary
+                result = cloudinary.uploader.upload(
+                    file,
+                    folder=f"whip-helmets/products/{pid}",  # Organizar por producto
+                    public_id=None,
+                    resource_type="image",
+                    transformation=[
+                        {"width": 800, "height": 800, "crop": "limit"},
+                        {"quality": "auto"}
+                    ]
+                )
+                
+                uploaded_urls.append(result['secure_url'])
+                
+            except Exception as e:
+                print(f"Error al subir imagen {file.filename}: {e}")
+                continue
+        
+        if not uploaded_urls:
+            return jsonify({"error": "No se pudieron subir las imágenes"}), 500
+        
+        # Actualizar el producto con las nuevas imágenes
+        with closing(get_conn()) as conn:
+            placeholder = get_placeholder()
+            row = execute_query(conn, f"SELECT images FROM productos WHERE id = {placeholder}", (pid,)).fetchone()
+            if not row:
+                return jsonify({"error": "Producto no encontrado"}), 404
+            
+            # Obtener imágenes existentes
+            existing_images = []
+            if row[0]:
+                try:
+                    import json
+                    existing_images = json.loads(row[0])
+                except Exception:
+                    existing_images = []
+            
+            # Agregar nuevas imágenes
+            all_images = existing_images + uploaded_urls
+            
+            # Actualizar en la base de datos
+            import json
+            images_json = json.dumps(all_images)
+            execute_query(conn, f"UPDATE productos SET images = {placeholder} WHERE id = {placeholder}", (images_json, pid))
+            conn.commit()
+        
+        return jsonify({
+            "success": True,
+            "message": f"{len(uploaded_urls)} imágenes agregadas correctamente",
+            "uploaded_urls": uploaded_urls,
+            "total_images": len(all_images)
+        }), 200
+        
+    except Exception as e:
+        print(f"Error al agregar imágenes: {e}")
+        return jsonify({"error": f"Error al agregar imágenes: {str(e)}"}), 500
 
 
 # ---------------------- Seed opcional ----------------------
@@ -533,7 +689,32 @@ def upload_image():
         
         # Verificar configuración de Cloudinary
         if not CLOUDINARY_CLOUD_NAME or not CLOUDINARY_API_KEY or not CLOUDINARY_API_SECRET:
-            return jsonify({"error": "Cloudinary no está configurado. Contacta al administrador."}), 500
+            # Modo temporal: guardar en local y devolver URL relativa
+            import uuid
+            import os
+            
+            # Crear directorio si no existe
+            upload_dir = "../assets/images/products/uploaded"
+            os.makedirs(upload_dir, exist_ok=True)
+            
+            # Generar nombre único
+            file_extension = file.filename.split('.')[-1]
+            unique_filename = f"{uuid.uuid4()}.{file_extension}"
+            file_path = os.path.join(upload_dir, unique_filename)
+            
+            # Guardar archivo
+            file.save(file_path)
+            
+            # Devolver URL relativa
+            relative_path = f"assets/images/products/uploaded/{unique_filename}"
+            
+            return jsonify({
+                "success": True,
+                "message": "Imagen subida correctamente (modo temporal)",
+                "file_path": relative_path,
+                "filename": file.filename,
+                "note": "Cloudinary no configurado - usando almacenamiento temporal"
+            }), 200
         
         # Configurar Cloudinary
         import cloudinary

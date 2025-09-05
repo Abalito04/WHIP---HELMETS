@@ -33,9 +33,12 @@ SECRET_KEY=tu_clave_secreta_unica_aqui
 DEBUG=False
 
 # Credenciales de Cloudinary (para subida de imágenes)
-CLOUDINARY_CLOUD_NAME=tu_cloud_name_aqui
-CLOUDINARY_API_KEY=tu_api_key_aqui
-CLOUDINARY_API_SECRET=tu_api_secret_aqui
+CLOUDINARY_CLOUD_NAME=ddowcuhlu
+CLOUDINARY_API_KEY=291494695985798
+CLOUDINARY_API_SECRET=pSrCsNF60-t5bSP_YUA2iGrTvBA
+
+# O alternativamente, usar la URL completa:
+# CLOUDINARY_URL=cloudinary://291494695985798:pSrCsNF60-t5bSP_YUA2iGrTvBA@ddowcuhlu
 
 # URLs (Railway las configura automáticamente)
 RAILWAY_STATIC_URL=https://tu-app.railway.app

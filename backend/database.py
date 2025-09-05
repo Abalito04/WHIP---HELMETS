@@ -37,9 +37,12 @@ def init_postgresql_tables():
     """Inicializa las tablas en PostgreSQL"""
     print("Inicializando tablas de PostgreSQL...")
     
-    with get_conn() as conn:
-        cursor = conn.cursor()
-        print("DEBUG: Cursor created successfully")
+    # Usar cursor normal para operaciones de inicialización
+    import psycopg2
+    from config import get_connection_string
+    conn = psycopg2.connect(get_connection_string())
+    cursor = conn.cursor()
+    print("DEBUG: Cursor created successfully")
         
         # Crear tabla de productos
         cursor.execute("""
@@ -129,14 +132,31 @@ def init_postgresql_tables():
             WHERE table_schema = 'public'
         """)
         tables = cursor.fetchall()
-        print(f"DEBUG: Tables created: {[t[0] for t in tables]}")
+        print(f"DEBUG: Tables result: {tables}")
+        print(f"DEBUG: Tables type: {type(tables)}")
+        
+        if tables:
+            table_names = []
+            for table in tables:
+                if isinstance(table, (list, tuple)) and len(table) > 0:
+                    table_names.append(table[0])
+                else:
+                    print(f"DEBUG: Unexpected table format: {table}")
+            print(f"DEBUG: Tables created: {table_names}")
+        else:
+            print("DEBUG: No tables found")
+        
+        conn.close()
 
 def insert_sample_products():
     """Inserta productos de ejemplo en PostgreSQL"""
     print("Insertando productos de ejemplo...")
     
-    with get_conn() as conn:
-        cursor = conn.cursor()
+    # Usar cursor normal para operaciones de inicialización
+    import psycopg2
+    from config import get_connection_string
+    conn = psycopg2.connect(get_connection_string())
+    cursor = conn.cursor()
         
         # Verificar si ya hay productos
         cursor.execute("SELECT COUNT(*) FROM productos")
@@ -185,13 +205,18 @@ def insert_sample_products():
             print(f"{len(sample_products)} productos insertados en PostgreSQL")
         else:
             print(f"Ya existen {count} productos en la base de datos")
+        
+        conn.close()
 
 def insert_sample_users():
     """Inserta usuarios de ejemplo en PostgreSQL"""
     print("Insertando usuarios de ejemplo...")
     
-    with get_conn() as conn:
-        cursor = conn.cursor()
+    # Usar cursor normal para operaciones de inicialización
+    import psycopg2
+    from config import get_connection_string
+    conn = psycopg2.connect(get_connection_string())
+    cursor = conn.cursor()
         
         # Verificar si ya hay usuarios
         cursor.execute("SELECT COUNT(*) FROM users")
@@ -229,6 +254,8 @@ def insert_sample_users():
             print("Usuarios de ejemplo insertados: admin/admin123, usuario/user123")
         else:
             print(f"Ya existen {count} usuarios en la base de datos")
+        
+        conn.close()
 
 def init_postgresql():
     """Inicializa completamente PostgreSQL"""

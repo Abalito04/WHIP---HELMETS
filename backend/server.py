@@ -340,14 +340,17 @@ def create_product():
 
 @app.route("/api/products/<int:pid>", methods=["PUT", "PATCH"])
 def update_product(pid: int):
-    data = request.get_json(force=True) or {}
+    try:
+        data = request.get_json(force=True) or {}
+        print(f"DEBUG: Actualizando producto {pid} con datos: {data}")
 
-    fields = []
-    params = []
+        fields = []
+        params = []
 
-    def set_field(key, value):
-        fields.append(f"{key} = %s")
-        params.append(value)
+        def set_field(key, value):
+            fields.append(f"{key} = %s")
+            params.append(value)
+            print(f"DEBUG: Campo {key} = {value}")
 
     # Campos opcionales
     if "name" in data:
@@ -421,14 +424,27 @@ def update_product(pid: int):
 
     conn = get_conn()
     try:
+        print(f"DEBUG: Query: UPDATE productos SET {', '.join(fields)} WHERE id = %s")
+        print(f"DEBUG: Params: {params}")
+        
         cur = execute_query(conn, f"UPDATE productos SET {', '.join(fields)} WHERE id = %s", params)
         if cur.rowcount == 0:
             return jsonify({"error": "Producto no encontrado"}), 404
         conn.commit()  # Confirmar la transacción
+        
+        print(f"DEBUG: Producto {pid} actualizado exitosamente")
         row = execute_query(conn, "SELECT id, name, brand, price, COALESCE(porcentaje_descuento, NULL) as porcentaje_descuento, category, sizes, stock, image, images, status, created_at, updated_at FROM productos WHERE id = %s", (pid,)).fetchone()
-        return jsonify(row_to_dict(row)), 200
+        print(f"DEBUG: Row obtenida: {row}")
+        result = row_to_dict(row)
+        print(f"DEBUG: Resultado final: {result}")
+        return jsonify(result), 200
     finally:
         conn.close()
+    except Exception as e:
+        print(f"ERROR en update_product: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({"error": f"Error interno del servidor: {str(e)}"}), 500
 
 
 @app.route("/api/products/<int:pid>", methods=["DELETE"])

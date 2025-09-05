@@ -1216,6 +1216,30 @@ def debug_user_hash(username):
     finally:
         conn.close()
 
+@app.route("/api/debug/test-hash", methods=["POST"])
+def debug_test_hash():
+    """Debug: Probar hash de contraseña"""
+    try:
+        data = request.get_json()
+        password = data.get('password', 'admin123')
+        
+        # Generar hash de la contraseña
+        import hashlib
+        password_hash = hashlib.sha256(password.encode()).hexdigest()
+        
+        # Verificar con el hash del usuario admin
+        admin_hash = "240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9"
+        
+        return jsonify({
+            "password": password,
+            "generated_hash": password_hash,
+            "admin_hash": admin_hash,
+            "matches": password_hash == admin_hash
+        }), 200
+        
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 # ---------------------- RUTAS DE PAGOS ----------------------
 
 @app.route("/api/payment/create-preference", methods=["POST"])

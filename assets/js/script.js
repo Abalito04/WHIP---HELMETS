@@ -635,6 +635,53 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  // Botón para probar hash
+  const testHashBtn = document.getElementById('test-hash');
+  if (testHashBtn) {
+    testHashBtn.addEventListener('click', async () => {
+      const password = document.getElementById('password').value || 'admin123';
+      
+      try {
+        testHashBtn.disabled = true;
+        testHashBtn.textContent = '⏳ Probando...';
+        
+        const API_BASE = (() => {
+          if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+            return window.location.origin;
+          }
+          return "http://127.0.0.1:5000";
+        })();
+        
+        const response = await fetch(`${API_BASE}/api/debug/test-hash`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ password })
+        });
+        
+        const result = await response.json();
+        
+        if (response.ok) {
+          if (result.matches) {
+            showMessage('✅ Hash coincide con admin123', 'success');
+          } else {
+            showMessage('❌ Hash NO coincide', 'error');
+          }
+          console.log('Resultado del hash:', result);
+        } else {
+          showMessage('❌ Error: ' + result.error, 'error');
+        }
+        
+      } catch (error) {
+        showMessage('❌ Error de conexión: ' + error.message, 'error');
+      } finally {
+        testHashBtn.disabled = false;
+        testHashBtn.textContent = '🔐 Probar Hash';
+      }
+    });
+  }
+
   function showUserMenu() {
     const menu = `
       <div class="user-menu">

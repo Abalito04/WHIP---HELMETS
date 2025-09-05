@@ -37,7 +37,8 @@ PGUSER = os.environ.get('PGUSER', 'postgres')
 PGPASSWORD = os.environ.get('PGPASSWORD', '')
 
 # Forzar uso de PostgreSQL en producción
-FORCE_POSTGRESQL = os.environ.get('FORCE_POSTGRESQL', 'false').lower() == 'true'
+# En Railway, usar PostgreSQL por defecto si DATABASE_URL está disponible
+FORCE_POSTGRESQL = os.environ.get('FORCE_POSTGRESQL', 'true' if os.environ.get('DATABASE_URL') else 'false').lower() == 'true'
 
 # Configuración de la base de datos
 DATABASE_PATH = os.environ.get('DATABASE_PATH', 'productos.db')

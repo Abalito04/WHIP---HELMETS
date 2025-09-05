@@ -155,9 +155,37 @@ Para actualizar:
 - Las imágenes deben estar en el repositorio
 - Las rutas son relativas al directorio del proyecto
 
+## 🔄 Migración de Datos de SQLite a PostgreSQL
+
+Si tienes datos en SQLite local que quieres migrar a PostgreSQL:
+
+### Opción 1: Script de migración automática
+1. **Ejecuta el script de migración localmente:**
+   ```bash
+   cd backend
+   python migrate_to_postgresql.py
+   ```
+
+2. **Configura las variables de entorno en Railway:**
+   - `FORCE_POSTGRESQL=true`
+   - `DATABASE_URL=tu_url_de_postgresql` (Railway la configura automáticamente)
+   - `SECRET_KEY=tu_clave_secreta`
+   - `CLOUDINARY_*` (tus credenciales)
+
+### Opción 2: Migración manual
+1. **Exporta tus productos desde el admin local**
+2. **Configura PostgreSQL en Railway**
+3. **Importa los productos desde el admin en Railway**
+
+### ⚠️ Importante
+- **Los archivos `.db` se borran** en cada commit porque están en `.gitignore`
+- **PostgreSQL en Railway es persistente** - los datos se mantienen entre deployments
+- **Configura `FORCE_POSTGRESQL=true`** en Railway para usar PostgreSQL
+
 ## 📞 Soporte
 
 Si tienes problemas:
 1. Revisa los logs en Railway
 2. Verifica las variables de entorno
 3. Comprueba que todas las dependencias estén en `requirements.txt`
+4. Asegúrate de que `FORCE_POSTGRESQL=true` esté configurado en Railway

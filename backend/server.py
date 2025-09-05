@@ -302,6 +302,7 @@ def create_product():
         
         # PostgreSQL: obtener el ID del último insert
         new_id = cur.fetchone()[0]
+        conn.commit()  # Confirmar la transacción
 
         row = execute_query(conn, "SELECT * FROM productos WHERE id = %s", (new_id,)).fetchone()
         return jsonify(row_to_dict(row)), 201
@@ -384,6 +385,7 @@ def update_product(pid: int):
         cur = execute_query(conn, f"UPDATE productos SET {', '.join(fields)} WHERE id = %s", params)
         if cur.rowcount == 0:
             return jsonify({"error": "Producto no encontrado"}), 404
+        conn.commit()  # Confirmar la transacción
         row = execute_query(conn, "SELECT * FROM productos WHERE id = %s", (pid,)).fetchone()
         return jsonify(row_to_dict(row)), 200
     finally:
@@ -397,6 +399,7 @@ def delete_product(pid: int):
         cur = execute_query(conn, "DELETE FROM productos WHERE id = %s", (pid,))
         if cur.rowcount == 0:
             return jsonify({"error": "Producto no encontrado"}), 404
+        conn.commit()  # Confirmar la transacción
         return jsonify({"ok": True}), 200
     finally:
         conn.close()

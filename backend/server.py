@@ -104,25 +104,37 @@ def init_db():
     from config import DATABASE_URL, FORCE_POSTGRESQL
     
     if FORCE_POSTGRESQL or DATABASE_URL:
-        print("Usando PostgreSQL...")
+        print("Intentando conectar con PostgreSQL...")
         try:
+            # Verificar conexión a PostgreSQL
+            from database import get_conn as get_pg_conn
+            with get_pg_conn() as conn:
+                cursor = conn.cursor()
+                cursor.execute("SELECT 1")
+                print("✅ Conexión a PostgreSQL exitosa")
+            
+            # Si la conexión funciona, inicializar PostgreSQL
             init_postgresql()
+            return
+            
         except Exception as e:
-            print(f"Error al conectar con PostgreSQL: {e}")
-            print("Intentando con SQLite como respaldo...")
-            init_products_db()
-            init_users_db()
-    else:
-        print("Usando SQLite (desarrollo local)...")
-        # Inicializar base de datos de productos
+            print(f"❌ Error al conectar con PostgreSQL: {e}")
+            print("🔄 Cambiando a SQLite como respaldo...")
+    
+    # Usar SQLite como respaldo
+    print("Usando SQLite...")
+    try:
         init_products_db()
-        # Inicializar base de datos de usuarios
         init_users_db()
+        print("✅ SQLite inicializado correctamente")
+    except Exception as e:
+        print(f"❌ Error al inicializar SQLite: {e}")
+        raise e
 
 def init_products_db():
     """Inicializar base de datos de productos"""
     print("Inicializando base de datos de productos...")
-    with closing(get_conn()) as conn, conn:
+    with closing(get_conn()) as conn:
         conn.execute(
             """
             CREATE TABLE IF NOT EXISTS productos (

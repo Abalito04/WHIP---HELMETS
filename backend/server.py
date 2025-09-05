@@ -332,7 +332,7 @@ def create_product():
         conn.commit()  # Confirmar la transacción
 
         row = execute_query(conn, "SELECT id, name, brand, price, COALESCE(porcentaje_descuento, NULL) as porcentaje_descuento, category, sizes, stock, image, images, status, created_at, updated_at FROM productos WHERE id = %s", (new_id,)).fetchone()
-    return jsonify(row_to_dict(row)), 201
+        return jsonify(row_to_dict(row)), 201
     finally:
         conn.close()
 
@@ -340,33 +340,33 @@ def create_product():
 @app.route("/api/products/<int:pid>", methods=["PUT", "PATCH"])
 def update_product(pid: int):
     try:
-    data = request.get_json(force=True) or {}
+        data = request.get_json(force=True) or {}
         print(f"DEBUG: Actualizando producto {pid} con datos: {data}")
 
-    fields = []
-    params = []
+        fields = []
+        params = []
 
-    def set_field(key, value):
+        def set_field(key, value):
             fields.append(f"{key} = %s")
-        params.append(value)
+            params.append(value)
             print(f"DEBUG: Campo {key} = {value}")
 
-    # Campos opcionales
-    if "name" in data:
-        name = (data.get("name") or "").strip()
-        if not name:
-            return jsonify({"error": "El campo 'name' no puede estar vacío"}), 400
-        set_field("name", name)
+        # Campos opcionales
+        if "name" in data:
+            name = (data.get("name") or "").strip()
+            if not name:
+                return jsonify({"error": "El campo 'name' no puede estar vacío"}), 400
+            set_field("name", name)
 
-    if "brand" in data:
-        set_field("brand", (data.get("brand") or "").strip())
+        if "brand" in data:
+            set_field("brand", (data.get("brand") or "").strip())
 
-    if "price" in data:
-        try:
-            price = float(data.get("price"))
-        except Exception:
-            return jsonify({"error": "El campo 'price' debe ser numérico"}), 400
-        set_field("price", price)
+        if "price" in data:
+            try:
+                price = float(data.get("price"))
+            except Exception:
+                return jsonify({"error": "El campo 'price' debe ser numérico"}), 400
+            set_field("price", price)
 
         if "porcentaje_descuento" in data:
             porcentaje_descuento = data.get("porcentaje_descuento")
@@ -399,24 +399,24 @@ def update_product(pid: int):
                 # Si no podemos verificar, intentar de todas formas
                 set_field("porcentaje_descuento", porcentaje_descuento)
 
-    if "category" in data:
-        set_field("category", (data.get("category") or "").strip())
+        if "category" in data:
+            set_field("category", (data.get("category") or "").strip())
 
-    if "sizes" in data:
-        sizes_list = data.get("sizes") or []
-        if isinstance(sizes_list, str):
-            sizes_list = [s.strip() for s in sizes_list.split(",") if s.strip()]
-        set_field("sizes", ",".join(sizes_list))
+        if "sizes" in data:
+            sizes_list = data.get("sizes") or []
+            if isinstance(sizes_list, str):
+                sizes_list = [s.strip() for s in sizes_list.split(",") if s.strip()]
+            set_field("sizes", ",".join(sizes_list))
 
-    if "stock" in data:
-        try:
-            stock = int(data.get("stock"))
-        except Exception:
-            return jsonify({"error": "El campo 'stock' debe ser numérico"}), 400
-        set_field("stock", stock)
+        if "stock" in data:
+            try:
+                stock = int(data.get("stock"))
+            except Exception:
+                return jsonify({"error": "El campo 'stock' debe ser numérico"}), 400
+            set_field("stock", stock)
 
-    if "image" in data:
-        set_field("image", (data.get("image") or "").strip())
+        if "image" in data:
+            set_field("image", (data.get("image") or "").strip())
 
         if "images" in data:
             images_list = data.get("images") or []
@@ -433,13 +433,13 @@ def update_product(pid: int):
             images_json = json.dumps(images_list)
             set_field("images", images_json)
 
-    if "status" in data:
-        set_field("status", (data.get("status") or "").strip())
+        if "status" in data:
+            set_field("status", (data.get("status") or "").strip())
 
-    if not fields:
-        return jsonify({"error": "Nada para actualizar"}), 400
+        if not fields:
+            return jsonify({"error": "Nada para actualizar"}), 400
 
-    params.append(pid)
+        params.append(pid)
 
         conn = get_conn()
         try:
@@ -447,8 +447,8 @@ def update_product(pid: int):
             print(f"DEBUG: Params: {params}")
             
             cur = execute_query(conn, f"UPDATE productos SET {', '.join(fields)} WHERE id = %s", params)
-        if cur.rowcount == 0:
-            return jsonify({"error": "Producto no encontrado"}), 404
+            if cur.rowcount == 0:
+                return jsonify({"error": "Producto no encontrado"}), 404
             conn.commit()  # Confirmar la transacción
             
             print(f"DEBUG: Producto {pid} actualizado exitosamente")
@@ -503,7 +503,7 @@ def delete_product(pid: int):
         if cur.rowcount == 0:
             return jsonify({"error": "Producto no encontrado"}), 404
         conn.commit()  # Confirmar la transacción
-    return jsonify({"ok": True}), 200
+        return jsonify({"ok": True}), 200
     finally:
         conn.close()
 

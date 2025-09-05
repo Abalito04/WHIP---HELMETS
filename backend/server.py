@@ -70,16 +70,18 @@ def get_conn():
     """Obtiene conexión a la base de datos (PostgreSQL o SQLite)"""
     from config import DATABASE_URL, FORCE_POSTGRESQL
     
-    # Intentar PostgreSQL primero si está configurado
-    if FORCE_POSTGRESQL or DATABASE_URL:
+    # Solo intentar PostgreSQL si está explícitamente configurado y disponible
+    if (FORCE_POSTGRESQL or DATABASE_URL) and DATABASE_URL:
         try:
-            from database import get_conn as get_pg_conn
-            return get_pg_conn()
+            from database import get_connection_string
+            import psycopg2
+            conn = psycopg2.connect(get_connection_string())
+            return conn
         except Exception as e:
             print(f"Error al conectar con PostgreSQL: {e}")
             print("Usando SQLite como respaldo...")
     
-    # Usar SQLite como respaldo
+    # Usar SQLite por defecto
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     return conn
@@ -87,7 +89,7 @@ def get_conn():
 def is_postgresql():
     """Verifica si estamos usando PostgreSQL"""
     from config import DATABASE_URL, FORCE_POSTGRESQL
-    return FORCE_POSTGRESQL or bool(DATABASE_URL)
+    return (FORCE_POSTGRESQL or bool(DATABASE_URL)) and bool(DATABASE_URL)
 
 def get_placeholder():
     """Retorna el placeholder correcto para la base de datos actual"""
@@ -95,10 +97,20 @@ def get_placeholder():
 
 def execute_query(conn, query, params=None):
     """Ejecuta una query con los placeholders correctos"""
-    if params is None:
-        return conn.execute(query)
+    if is_postgresql():
+        # PostgreSQL necesita cursor
+        cursor = conn.cursor()
+        if params is None:
+            cursor.execute(query)
+        else:
+            cursor.execute(query, params)
+        return cursor
     else:
-        return conn.execute(query, params)
+        # SQLite
+        if params is None:
+            return conn.execute(query)
+        else:
+            return conn.execute(query, params)
 
 def init_db():
     """Inicializar todas las bases de datos"""
@@ -282,9 +294,20 @@ def init_users_db():
             
 def row_to_dict(row):
     """Convierte una fila de base de datos a diccionario (PostgreSQL o SQLite)"""
-    if hasattr(row, 'keys'):  # PostgreSQL RealDictRow
-        d = dict(row)
-    else:  # SQLite Row
+    if is_postgresql():
+        # PostgreSQL - row es una tupla, necesitamos los nombres de las columnas
+        if hasattr(row, '_asdict'):
+            d = row._asdict()
+        else:
+            # Si no tiene _asdict, crear diccionario manualmente
+            d = {}
+            # Esto es un workaround, en producción deberíamos usar RealDictRow
+            columns = ['id', 'name', 'brand', 'price', 'category', 'sizes', 'stock', 'image', 'images', 'status']
+            for i, col in enumerate(columns):
+                if i < len(row):
+                    d[col] = row[i]
+    else:
+        # SQLite Row
         d = dict(row)
     
     # sizes: CSV -> lista

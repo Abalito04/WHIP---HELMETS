@@ -244,7 +244,7 @@ def init_users_db():
 def row_to_dict(row):
     """Convierte una fila de base de datos a diccionario (PostgreSQL o SQLite)"""
     if hasattr(row, 'keys'):  # PostgreSQL RealDictRow
-    d = dict(row)
+        d = dict(row)
     else:  # SQLite Row
         d = dict(row)
     

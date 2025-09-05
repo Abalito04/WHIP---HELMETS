@@ -819,30 +819,51 @@ def auth_register():
 @app.route("/api/auth/login", methods=["POST"])
 def auth_login():
     """Endpoint para login de usuarios con rate limiting"""
+    print(f"DEBUG: Iniciando proceso de login")
+    
     if not AUTH_AVAILABLE:
+        print(f"DEBUG: Sistema de autenticación no disponible")
         return jsonify({"error": "Sistema de autenticación no disponible"}), 503
     
     try:
         # Rate limiting básico
         client_ip = request.remote_addr
+        print(f"DEBUG: IP del cliente: {client_ip}")
+        
         if not check_rate_limit(client_ip, 'login', limit=5, window=300):
+            print(f"DEBUG: Rate limit excedido para IP: {client_ip}")
             return jsonify({"error": "Demasiados intentos de login. Intenta en 5 minutos."}), 429
         
         data = request.get_json()
+        print(f"DEBUG: Datos recibidos: {data}")
+        
         username = sanitize_input(data.get('username', ''))
         password = data.get('password', '')
         
+        print(f"DEBUG: Usuario sanitizado: '{username}', Contraseña: {'*' * len(password)}")
+        
         if not username or not password:
+            print(f"DEBUG: Usuario o contraseña vacíos")
             return jsonify({"error": "Usuario y contraseña requeridos"}), 400
         
         # Validar longitud mínima
         if len(username) < 3 or len(password) < 6:
+            print(f"DEBUG: Longitud insuficiente - Usuario: {len(username)}, Contraseña: {len(password)}")
             return jsonify({"error": "Usuario y contraseña deben tener al menos 3 y 6 caracteres respectivamente"}), 400
         
+        print(f"DEBUG: Llamando a auth_manager.login con: {username}")
         result = auth_manager.login(username, password)
-        return jsonify(result), 200 if result['success'] else 401
+        print(f"DEBUG: Resultado del login: {result}")
+        
+        status_code = 200 if result['success'] else 401
+        print(f"DEBUG: Retornando status code: {status_code}")
+        
+        return jsonify(result), status_code
         
     except Exception as e:
+        print(f"DEBUG: Error en auth_login: {str(e)}")
+        import traceback
+        traceback.print_exc()
         return jsonify({"error": "Error interno del servidor"}), 500
 
 @app.route("/api/auth/logout", methods=["POST"])

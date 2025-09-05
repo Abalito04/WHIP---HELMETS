@@ -363,20 +363,33 @@ window.openProductGallery = function(productId, productName) {
     document.body.style.overflow = 'hidden';
 };
 
-function loadProductImages(productId) {
-    const product = products.find(p => p.id == productId);
-    if (product) {
-        // Simular múltiples imágenes basadas en la imagen principal
-        currentGalleryImages = [
-            product.image,
-            product.image.replace('_medium.webp', '_small.webp'),
-            product.image.replace('_medium.webp', '_large.webp'),
-            product.image.replace('_medium.webp', '_thumb.webp')
-        ].filter(img => img !== product.image); // Remover duplicados
+async function loadProductImages(productId) {
+    try {
+        // Cargar imágenes reales desde la API
+        const response = await fetch(`/api/products/${productId}/images`);
+        if (response.ok) {
+            const data = await response.json();
+            currentGalleryImages = data.images || [];
+        } else {
+            // Fallback: usar solo la imagen principal del producto
+            const product = products.find(p => p.id == productId);
+            if (product && product.image) {
+                currentGalleryImages = [product.image];
+            } else {
+                currentGalleryImages = [];
+            }
+        }
         
-        // Agregar la imagen principal al inicio
-        currentGalleryImages.unshift(product.image);
-        
+        renderGallery();
+    } catch (error) {
+        console.error('Error al cargar imágenes:', error);
+        // Fallback: usar solo la imagen principal del producto
+        const product = products.find(p => p.id == productId);
+        if (product && product.image) {
+            currentGalleryImages = [product.image];
+        } else {
+            currentGalleryImages = [];
+        }
         renderGallery();
     }
 }
@@ -390,7 +403,19 @@ function renderGallery() {
     
     // Mostrar imagen principal
     const mainImg = document.getElementById('gallery-main-img');
-    mainImg.src = `/${currentGalleryImages[selectedImageIndex]}`;
+    const currentImage = currentGalleryImages[selectedImageIndex];
+    
+    // Manejar diferentes tipos de URLs
+    if (currentImage.startsWith('http')) {
+        // URL completa (Cloudinary)
+        mainImg.src = currentImage;
+    } else if (currentImage.startsWith('/')) {
+        // Ruta absoluta
+        mainImg.src = currentImage;
+    } else {
+        // Ruta relativa
+        mainImg.src = `/${currentImage}`;
+    }
     
     // Renderizar miniaturas
     const thumbnailsContainer = document.getElementById('gallery-thumbnails');
@@ -398,7 +423,19 @@ function renderGallery() {
     
     currentGalleryImages.forEach((image, index) => {
         const thumbnail = document.createElement('img');
-        thumbnail.src = `/${image}`;
+        
+        // Manejar diferentes tipos de URLs para miniaturas
+        if (image.startsWith('http')) {
+            // URL completa (Cloudinary)
+            thumbnail.src = image;
+        } else if (image.startsWith('/')) {
+            // Ruta absoluta
+            thumbnail.src = image;
+        } else {
+            // Ruta relativa
+            thumbnail.src = `/${image}`;
+        }
+        
         thumbnail.className = `gallery-thumbnail ${index === selectedImageIndex ? 'active' : ''}`;
         thumbnail.onclick = () => selectImage(index);
         thumbnail.onerror = () => {

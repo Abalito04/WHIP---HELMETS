@@ -19,7 +19,7 @@ def get_conn():
     """Context manager para conexiones a PostgreSQL"""
     conn = None
     try:
-        conn = psycopg2.connect(get_connection_string())
+        conn = psycopg2.connect(get_connection_string(), cursor_factory=RealDictCursor)
         conn.autocommit = False
         yield conn
     except Exception as e:

@@ -116,12 +116,57 @@ class AuthManager:
         
         return None
     
+    def login(self, username, password):
+        """Login de usuario con creación de sesión"""
+        try:
+            # Autenticar usuario
+            user = self.authenticate_user(username, password)
+            
+            if user:
+                # Crear sesión
+                token = self.create_session(user['id'])
+                
+                # Obtener datos completos del usuario
+                user_data = self.get_user_by_id(user['id'])
+                
+                return {
+                    'success': True,
+                    'message': 'Login exitoso',
+                    'session_token': token,
+                    'user': user_data
+                }
+            else:
+                return {
+                    'success': False,
+                    'error': 'Credenciales inválidas'
+                }
+                
+        except Exception as e:
+            return {
+                'success': False,
+                'error': f'Error al hacer login: {str(e)}'
+            }
+    
     def logout_user(self, token):
         """Cerrar sesión"""
         with get_conn() as conn:
             cursor = conn.cursor()
             cursor.execute("DELETE FROM sessions WHERE token = %s", (token,))
             conn.commit()
+    
+    def logout(self, token):
+        """Logout de usuario"""
+        try:
+            self.logout_user(token)
+            return {
+                'success': True,
+                'message': 'Logout exitoso'
+            }
+        except Exception as e:
+            return {
+                'success': False,
+                'error': f'Error al hacer logout: {str(e)}'
+            }
     
     def get_users(self):
         """Obtener lista de usuarios (solo admin)"""

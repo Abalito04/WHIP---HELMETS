@@ -1053,6 +1053,43 @@ def refresh_token():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route("/api/debug/users", methods=["GET"])
+def debug_users():
+    """Debug: Ver todos los usuarios"""
+    try:
+        conn = get_conn()
+        cursor = conn.cursor()
+        
+        # Obtener todos los usuarios
+        cursor.execute("""
+            SELECT id, username, role, nombre, apellido, email, created_at
+            FROM users
+            ORDER BY created_at DESC
+        """)
+        users = cursor.fetchall()
+        
+        result = []
+        for user in users:
+            result.append({
+                'id': user[0],
+                'username': user[1],
+                'role': user[2],
+                'nombre': user[3],
+                'apellido': user[4],
+                'email': user[5],
+                'created_at': user[6].isoformat() if user[6] else None
+            })
+        
+        return jsonify({
+            'total_users': len(result),
+            'users': result
+        }), 200
+        
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    finally:
+        conn.close()
+
 # ---------------------- RUTAS DE PAGOS ----------------------
 
 @app.route("/api/payment/create-preference", methods=["POST"])

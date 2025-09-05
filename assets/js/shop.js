@@ -106,8 +106,25 @@ function createProductCard(product) {
     // Crear imágenes (usar imagen por defecto si no hay)
     const imageUrl = product.image || "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIGZpbGw9IiNFRUVFRUUiLz48cGF0aCBkPSJNMTUgMzBINjBWNDBIMzVWMzBIMjVWMTVIMjBWMzBIMTVaIiBmaWxsPSIjOTk5Ii8+PC9zdmc+";
     
-    // Formatear precio con símbolo $
+    // Formatear precios
     const formattedPrice = '$' + new Intl.NumberFormat('es-ES').format(product.price);
+    const hasDiscount = product.porcentaje_descuento && product.porcentaje_descuento > 0;
+    let priceDisplay = '';
+    
+    if (hasDiscount) {
+        const discountAmount = product.price * (product.porcentaje_descuento / 100);
+        const effectivePrice = product.price - discountAmount;
+        const formattedEffectivePrice = '$' + new Intl.NumberFormat('es-ES').format(Math.round(effectivePrice));
+        priceDisplay = `
+            <div class="price-container">
+                <p class="price original-price">${formattedPrice}</p>
+                <p class="price effective-price">${formattedEffectivePrice}</p>
+                <p class="discount-badge">-${product.porcentaje_descuento}%</p>
+            </div>
+        `;
+    } else {
+        priceDisplay = `<p class="price">${formattedPrice}</p>`;
+    }
     
     // Determinar estado del stock
     const stock = product.stock || 0;
@@ -132,7 +149,7 @@ function createProductCard(product) {
             <button class="gallery-btn" onclick="openProductGallery(${product.id}, '${product.name}')" title="Ver galería">📷</button>
         </div>
         <h3>${product.name}</h3>
-        <p class="price">${formattedPrice}</p>
+        ${priceDisplay}
         <p class="stock ${stockClass}">${stockText}</p>
         <div class="product-options">
             <label for="talles-${product.id}">Talle:</label>
@@ -195,8 +212,15 @@ function initProductEvents() {
             const product = products.find(p => p.id == productId);
             
             if (product) {
+                // Calcular precio efectivo si hay descuento
+                let priceToUse = product.price;
+                if (product.porcentaje_descuento && product.porcentaje_descuento > 0) {
+                    const discountAmount = product.price * (product.porcentaje_descuento / 100);
+                    priceToUse = product.price - discountAmount;
+                }
+                
                 // Usar la función global para agregar al carrito
-                window.addToCart(product.name, product.price, size, productId);
+                window.addToCart(product.name, priceToUse, size, productId);
             }
         });
     });

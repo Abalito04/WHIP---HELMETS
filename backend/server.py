@@ -1,9 +1,7 @@
 from flask import Flask, request, jsonify, send_from_directory, g
 from flask_cors import CORS
-import sqlite3
 import os
 import re
-from contextlib import closing
 from database import get_conn, init_postgresql
 from datetime import datetime, timedelta
 import hashlib
@@ -59,257 +57,61 @@ def check_rate_limit(ip, action, limit=5, window=300):
     login_attempts[key].append(now)
     return True
 
-DB_PATH = "productos.db"
-
 app = Flask(__name__)
 app.config['DEBUG'] = True
 CORS(app)
 
 # ---------------------- Database helpers ----------------------
 def get_conn():
-    """Obtiene conexión a la base de datos (PostgreSQL o SQLite)"""
-    from config import DATABASE_URL, FORCE_POSTGRESQL
-    
-    # Solo intentar PostgreSQL si está explícitamente configurado y disponible
-    if (FORCE_POSTGRESQL or DATABASE_URL) and DATABASE_URL:
-        try:
-            from database import get_connection_string
-            import psycopg2
-            conn = psycopg2.connect(get_connection_string())
-            return conn
-        except Exception as e:
-            print(f"Error al conectar con PostgreSQL: {e}")
-            print("Usando SQLite como respaldo...")
-    
-    # Usar SQLite por defecto
-    conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row
+    """Obtiene conexión a PostgreSQL"""
+    from database import get_connection_string
+    import psycopg2
+    conn = psycopg2.connect(get_connection_string())
     return conn
 
-def is_postgresql():
-    """Verifica si estamos usando PostgreSQL"""
-    from config import DATABASE_URL, FORCE_POSTGRESQL
-    return (FORCE_POSTGRESQL or bool(DATABASE_URL)) and bool(DATABASE_URL)
-
-def get_placeholder():
-    """Retorna el placeholder correcto para la base de datos actual"""
-    return "%s" if is_postgresql() else "?"
-
 def execute_query(conn, query, params=None):
-    """Ejecuta una query con los placeholders correctos"""
-    if is_postgresql():
-        # PostgreSQL necesita cursor
-        cursor = conn.cursor()
-        if params is None:
-            cursor.execute(query)
-        else:
-            cursor.execute(query, params)
-        return cursor
+    """Ejecuta una query en PostgreSQL"""
+    cursor = conn.cursor()
+    if params is None:
+        cursor.execute(query)
     else:
-        # SQLite
-        if params is None:
-            return conn.execute(query)
-        else:
-            return conn.execute(query, params)
+        cursor.execute(query, params)
+    return cursor
 
 def init_db():
-    """Inicializar todas las bases de datos"""
-    print("Inicializando bases de datos...")
-    
-    # Verificar si tenemos PostgreSQL configurado
-    from config import DATABASE_URL, FORCE_POSTGRESQL
-    
-    if FORCE_POSTGRESQL or DATABASE_URL:
-        print("Intentando conectar con PostgreSQL...")
-        try:
-            # Verificar conexión a PostgreSQL
-            from database import get_conn as get_pg_conn
-            with get_pg_conn() as conn:
-                cursor = conn.cursor()
-                cursor.execute("SELECT 1")
-                print("✅ Conexión a PostgreSQL exitosa")
-            
-            # Si la conexión funciona, inicializar PostgreSQL
-            from database import init_postgresql
-            init_postgresql()
-            return
-            
-        except Exception as e:
-            print(f"❌ Error al conectar con PostgreSQL: {e}")
-            print("🔄 Cambiando a SQLite como respaldo...")
-    
-    # Usar SQLite como respaldo
-    print("Usando SQLite...")
-    try:
-        init_products_db()
-        init_users_db()
-        print("✅ SQLite inicializado correctamente")
-    except Exception as e:
-        print(f"❌ Error al inicializar SQLite: {e}")
-        raise e
-
-def init_products_db():
-    """Inicializar base de datos de productos"""
-    print("Inicializando base de datos de productos...")
-    
-    # Usar SQLite directamente para evitar conflictos
-    import sqlite3
-    conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row
+    """Inicializar PostgreSQL"""
+    print("Inicializando PostgreSQL...")
     
     try:
-        conn.execute(
-            """
-            CREATE TABLE IF NOT EXISTS productos (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                name TEXT NOT NULL,
-                brand TEXT,
-                price REAL NOT NULL DEFAULT 0,
-                category TEXT,
-                sizes TEXT,           -- CSV ej: "S,M,L,XL"
-                stock INTEGER DEFAULT 0,  -- Nuevo campo: cantidad en stock
-                image TEXT,           -- URL o ruta de imagen principal
-                images TEXT,          -- JSON array de URLs de imágenes adicionales
-                status TEXT           -- ej: "Activo", "Agotado", "Oculto"
-            );
-            """
-        )
-        print("Tabla 'productos' creada o ya existente")
+        # Verificar conexión a PostgreSQL
+        from database import get_conn as get_pg_conn
+        with get_pg_conn() as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT 1")
+            print("✅ Conexión a PostgreSQL exitosa")
         
-        # Verificar si la tabla está vacía y agregar datos de ejemplo
-        cursor = conn.execute("SELECT COUNT(*) FROM productos")
-        count = cursor.fetchone()[0]
-        
-        if count == 0:
-            sample_products = [
-                ("Casco FOX V3", "Fox", 895000, "Cascos", "S,M,L,XL", 15, "assets/images/products/Fox V3 lateral.png", "Activo"),
-                ("Casco FOX V3 RS", "Fox", 950000, "Cascos", "S,M,L,XL", 8, "assets/images/products/Fox V3 RS MC lateral.png", "Activo"),
-                ("Casco FOX V1", "Fox", 500000, "Cascos", "S,M,L,XL", 22, "assets/images/products/Fox V1 lateral.png", "Activo"),
-                ("Casco FLY Racing F2", "Fly Racing", 450000, "Cascos", "S,M,L,XL", 12, "assets/images/products/Fly Racing F2 lateral.png", "Activo"),
-                ("Casco Bell Moto-9 Flex", "Bell", 650000, "Cascos", "M,L", 5, "assets/images/products/Bell Moto-9 Flex lateral.png", "Activo"),
-                ("Casco Bell Moto-9 Flex 2", "Bell", 700000, "Cascos", "S,M,L,XL", 7, "assets/images/products/Bell Moto-9 Flex 2.png", "Activo"),
-                ("Casco Alpinestars SM5", "Alpinestars", 550000, "Cascos", "S,M,L,XL", 18, "assets/images/products/Alpinestars SM5 lateral.png", "Activo"),
-                ("Casco Aircraft 2 Carbono", "Aircraft", 1200000, "Cascos", "S,M,L", 3, "assets/images/products/Aircraft 2 Carbono.png", "Activo"),
-                ("Casco Bell MX-9 Mips", "Bell", 480000, "Cascos", "S,M,L,XL", 10, "assets/images/products/Bell MX-9 Mips.png", "Activo"),
-                ("Casco FOX V1 Interfere", "Fox", 520000, "Cascos", "S,M,L,XL", 14, "assets/images/products/Fox V1 Interfere.png", "Activo"),
-                ("Casco Troy Lee Design D4", "Troy Lee Design", 850000, "Cascos", "S,M,L", 6, "assets/images/products/Troy Lee Design D4 lateral.png", "Activo"),
-                ("Casco FOX V3 Moth LE Copper", "Fox", 1000000, "Cascos", "S,M,L,XL", 2, "assets/images/products/Fox V3 Moth LE Copper.png", "Activo"),
-                ("Casco FOX V1 MATTE", "Fox", 530000, "Cascos", "S,M,L,XL", 9, "assets/images/products/FOX V1 MATTE.png", "Activo"),
-                ("Casco Alpinestars SM5 amarillo", "Alpinestars", 560000, "Cascos", "S,M,L", 11, "assets/images/products/Alpinestars SM5 amarillo lateral.png", "Activo"),
-                ("Guantes CROSS", "Fox", 50000, "Accesorios", "S,M,L", 25, "assets/images/products/Guantes FOX.png", "Activo"),
-                ("Antiparras CROSS", "Fox", 80000, "Accesorios", "Único", 30, "assets/images/products/antiparras 2.png", "Activo")
-            ]
-            
-            conn.executemany(
-                """
-                INSERT INTO productos (name, brand, price, category, sizes, stock, image, images, status)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """,
-                [(p[0], p[1], p[2], p[3], p[4], p[5], p[6], '[]', p[7]) for p in sample_products]
-            )
-            print(f"{len(sample_products)} productos de ejemplo insertados")
-            
-        conn.commit()
-        print("Base de datos de productos inicializada")
+        # Inicializar PostgreSQL
+        from database import init_postgresql
+        init_postgresql()
+        print("✅ PostgreSQL inicializado correctamente")
         
     except Exception as e:
-        print(f"Error al inicializar productos: {e}")
+        print(f"❌ Error al inicializar PostgreSQL: {e}")
         raise e
-    finally:
-        conn.close()
 
-def init_users_db():
-    """Inicializar base de datos de usuarios"""
-    print("Inicializando base de datos de usuarios...")
-    
-    # Importar config para obtener la ruta de la base de datos de usuarios
-    try:
-        from config import USERS_DATABASE_PATH
-        users_db_path = USERS_DATABASE_PATH
-    except ImportError:
-        users_db_path = "users.db"
-    
-    with sqlite3.connect(users_db_path) as conn:
-        # Crear tabla de usuarios
-        conn.execute('''
-            CREATE TABLE IF NOT EXISTS users (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                username TEXT UNIQUE NOT NULL,
-                password_hash TEXT NOT NULL,
-                role TEXT NOT NULL DEFAULT 'user',
-                nombre TEXT,
-                apellido TEXT,
-                dni TEXT,
-                telefono TEXT,
-                direccion TEXT,
-                codigo_postal TEXT,
-                email TEXT,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            )
-        ''')
-        
-        # Crear tabla de sesiones
-        conn.execute('''
-            CREATE TABLE IF NOT EXISTS sessions (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                user_id INTEGER NOT NULL,
-                token TEXT UNIQUE NOT NULL,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                expires_at TIMESTAMP NOT NULL,
-                FOREIGN KEY (user_id) REFERENCES users (id)
-            )
-        ''')
-        
-        # Crear usuario admin por defecto si no existe
-        admin_exists = conn.execute(
-            "SELECT id FROM users WHERE username = 'admin'"
-        ).fetchone()
-        
-        if not admin_exists:
-            import hashlib
-            password_hash = hashlib.sha256('admin123'.encode()).hexdigest()
-            placeholder = get_placeholder()
-            execute_query(conn,
-                f"INSERT INTO users (username, password_hash, role) VALUES ({placeholder}, {placeholder}, {placeholder})",
-                ('admin', password_hash, 'admin')
-            )
-            print("Usuario admin creado: admin / admin123")
-        
-        # Crear usuario normal por defecto si no existe
-        user_exists = conn.execute(
-            "SELECT id FROM users WHERE username = 'usuario'"
-        ).fetchone()
-        
-        if not user_exists:
-            import hashlib
-            password_hash = hashlib.sha256('user123'.encode()).hexdigest()
-            execute_query(conn,
-                f"INSERT INTO users (username, password_hash, role) VALUES ({placeholder}, {placeholder}, {placeholder})",
-                ('usuario', password_hash, 'user')
-            )
-            print("Usuario normal creado: usuario / user123")
-        
-        conn.commit()
-        print("Base de datos de usuarios inicializada")
             
 def row_to_dict(row):
-    """Convierte una fila de base de datos a diccionario (PostgreSQL o SQLite)"""
-    if is_postgresql():
-        # PostgreSQL - row es una tupla, necesitamos los nombres de las columnas
-        if hasattr(row, '_asdict'):
-            d = row._asdict()
-        else:
-            # Si no tiene _asdict, crear diccionario manualmente
-            d = {}
-            # Esto es un workaround, en producción deberíamos usar RealDictRow
-            columns = ['id', 'name', 'brand', 'price', 'category', 'sizes', 'stock', 'image', 'images', 'status']
-            for i, col in enumerate(columns):
-                if i < len(row):
-                    d[col] = row[i]
+    """Convierte una fila de PostgreSQL a diccionario"""
+    # PostgreSQL - row es un RealDictRow
+    if hasattr(row, '_asdict'):
+        d = row._asdict()
     else:
-        # SQLite Row
-        d = dict(row)
+        # Si no tiene _asdict, crear diccionario manualmente
+        d = {}
+        columns = ['id', 'name', 'brand', 'price', 'category', 'sizes', 'stock', 'image', 'images', 'status']
+        for i, col in enumerate(columns):
+            if i < len(row):
+                d[col] = row[i]
     
     # sizes: CSV -> lista
     if d.get("sizes"):
@@ -406,12 +208,13 @@ def list_products():
         print(f"DEBUG: Query: {query}")
         print(f"DEBUG: Params: {params}")
 
-        with closing(get_conn()) as conn:
+        conn = get_conn()
+        try:
             rows = execute_query(conn, query, params).fetchall()
-        
-        print(f"DEBUG: Rows found: {len(rows)}")
-        
-        result = [row_to_dict(r) for r in rows]
+            print(f"DEBUG: Rows found: {len(rows)}")
+            result = [row_to_dict(r) for r in rows]
+        finally:
+            conn.close()
         print(f"DEBUG: Result length: {len(result)}")
         
         return jsonify(result), 200
@@ -427,8 +230,7 @@ def list_products():
 def get_product(pid: int):
     conn = get_conn()
     try:
-        placeholder = get_placeholder()
-        row = execute_query(conn, f"SELECT * FROM productos WHERE id = {placeholder}", (pid,)).fetchone()
+        row = execute_query(conn, "SELECT * FROM productos WHERE id = %s", (pid,)).fetchone()
         if not row:
             return jsonify({"error": "Producto no encontrado"}), 404
         return jsonify(row_to_dict(row)), 200
@@ -484,23 +286,19 @@ def create_product():
 
     conn = get_conn()
     try:
-        placeholder = get_placeholder()
         cur = execute_query(conn,
-            f"""
+            """
             INSERT INTO productos (name, brand, price, category, sizes, stock, image, images, status)
-            VALUES ({placeholder}, {placeholder}, {placeholder}, {placeholder}, {placeholder}, {placeholder}, {placeholder}, {placeholder}, {placeholder})
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+            RETURNING id
             """,
             (name, brand, price, category, sizes_csv, stock, image, images_json, status),
         )
         
-        if is_postgresql():
-            # PostgreSQL: obtener el ID del último insert
-            new_id = cur.fetchone()[0] if hasattr(cur, 'fetchone') else None
-        else:
-            # SQLite: usar lastrowid
-            new_id = cur.lastrowid
+        # PostgreSQL: obtener el ID del último insert
+        new_id = cur.fetchone()[0]
 
-        row = execute_query(conn, f"SELECT * FROM productos WHERE id = {placeholder}", (new_id,)).fetchone()
+        row = execute_query(conn, "SELECT * FROM productos WHERE id = %s", (new_id,)).fetchone()
         return jsonify(row_to_dict(row)), 201
     finally:
         conn.close()
@@ -576,22 +374,22 @@ def update_product(pid: int):
 
     params.append(pid)
 
-    with closing(get_conn()) as conn, conn:
-        placeholder = get_placeholder()
-        cur = execute_query(conn, f"UPDATE productos SET {', '.join(fields)} WHERE id = {placeholder}", params)
+    conn = get_conn()
+    try:
+        cur = execute_query(conn, f"UPDATE productos SET {', '.join(fields)} WHERE id = %s", params)
         if cur.rowcount == 0:
             return jsonify({"error": "Producto no encontrado"}), 404
-        row = execute_query(conn, f"SELECT * FROM productos WHERE id = {placeholder}", (pid,)).fetchone()
-
-    return jsonify(row_to_dict(row)), 200
+        row = execute_query(conn, "SELECT * FROM productos WHERE id = %s", (pid,)).fetchone()
+        return jsonify(row_to_dict(row)), 200
+    finally:
+        conn.close()
 
 
 @app.route("/api/products/<int:pid>", methods=["DELETE"])
 def delete_product(pid: int):
     conn = get_conn()
     try:
-        placeholder = get_placeholder()
-        cur = execute_query(conn, f"DELETE FROM productos WHERE id = {placeholder}", (pid,))
+        cur = execute_query(conn, "DELETE FROM productos WHERE id = %s", (pid,))
         if cur.rowcount == 0:
             return jsonify({"error": "Producto no encontrado"}), 404
         return jsonify({"ok": True}), 200
@@ -604,8 +402,7 @@ def get_product_images(pid: int):
     """Obtener todas las imágenes de un producto"""
     conn = get_conn()
     try:
-        placeholder = get_placeholder()
-        row = execute_query(conn, f"SELECT image, images FROM productos WHERE id = {placeholder}", (pid,)).fetchone()
+        row = execute_query(conn, "SELECT image, images FROM productos WHERE id = %s", (pid,)).fetchone()
         if not row:
             return jsonify({"error": "Producto no encontrado"}), 404
         
@@ -678,9 +475,9 @@ def add_product_images(pid: int):
             return jsonify({"error": "No se pudieron subir las imágenes"}), 500
         
         # Actualizar el producto con las nuevas imágenes
-        with closing(get_conn()) as conn:
-            placeholder = get_placeholder()
-            row = execute_query(conn, f"SELECT images FROM productos WHERE id = {placeholder}", (pid,)).fetchone()
+        conn = get_conn()
+        try:
+            row = execute_query(conn, "SELECT images FROM productos WHERE id = %s", (pid,)).fetchone()
             if not row:
                 return jsonify({"error": "Producto no encontrado"}), 404
             
@@ -699,15 +496,17 @@ def add_product_images(pid: int):
             # Actualizar en la base de datos
             import json
             images_json = json.dumps(all_images)
-            execute_query(conn, f"UPDATE productos SET images = {placeholder} WHERE id = {placeholder}", (images_json, pid))
+            execute_query(conn, "UPDATE productos SET images = %s WHERE id = %s", (images_json, pid))
             conn.commit()
-        
-        return jsonify({
-            "success": True,
-            "message": f"{len(uploaded_urls)} imágenes agregadas correctamente",
-            "uploaded_urls": uploaded_urls,
-            "total_images": len(all_images)
-        }), 200
+            
+            return jsonify({
+                "success": True,
+                "message": f"{len(uploaded_urls)} imágenes agregadas correctamente",
+                "uploaded_urls": uploaded_urls,
+                "total_images": len(all_images)
+            }), 200
+        finally:
+            conn.close()
         
     except Exception as e:
         print(f"Error al agregar imágenes: {e}")
@@ -740,12 +539,13 @@ def seed():
             "status": "Activo",
         },
     ]
-    with closing(get_conn()) as conn, conn:
+    conn = get_conn()
+    try:
         for p in sample:
-            conn.execute(
+            execute_query(conn,
                 """
-                INSERT INTO productos (name, brand, price, category, sizes, stock, image, status)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                INSERT INTO productos (name, brand, price, category, sizes, stock, image, images, status)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
                 """,
                 (
                     p["name"],
@@ -755,10 +555,14 @@ def seed():
                     ",".join(p["sizes"]),
                     p["stock"],
                     p["image"],
+                    "[]",  # images como JSON vacío
                     p["status"],
                 ),
             )
-    return jsonify({"ok": True, "inserted": len(sample)}), 201
+        conn.commit()
+        return jsonify({"ok": True, "inserted": len(sample)}), 201
+    finally:
+        conn.close()
 
 # Esta ruta está duplicada y se elimina para evitar conflictos
 # La ruta correcta es /api/auth/login

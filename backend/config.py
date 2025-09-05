@@ -36,13 +36,11 @@ PGDATABASE = os.environ.get('PGDATABASE', 'whip_helmets')
 PGUSER = os.environ.get('PGUSER', 'postgres')
 PGPASSWORD = os.environ.get('PGPASSWORD', '')
 
-# Forzar uso de PostgreSQL en producción
-# En Railway, usar PostgreSQL por defecto si DATABASE_URL está disponible
-FORCE_POSTGRESQL = os.environ.get('FORCE_POSTGRESQL', 'true' if os.environ.get('DATABASE_URL') else 'false').lower() == 'true'
-
-# Configuración de la base de datos
-DATABASE_PATH = os.environ.get('DATABASE_PATH', 'productos.db')
-USERS_DATABASE_PATH = os.environ.get('USERS_DATABASE_PATH', 'users.db')
+# PostgreSQL exclusivo - no más SQLite
+# Railway siempre proporciona DATABASE_URL
+DATABASE_URL = os.environ.get('DATABASE_URL', '')
+if not DATABASE_URL:
+    raise ValueError("DATABASE_URL es requerida. Configura PostgreSQL en Railway.")
 
 # Configuración de seguridad
 JWT_SECRET_KEY = os.environ.get('JWT_SECRET_KEY', SECRET_KEY)

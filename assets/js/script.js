@@ -582,6 +582,59 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  // Botón para verificar contraseña
+  const checkPasswordBtn = document.getElementById('check-password');
+  if (checkPasswordBtn) {
+    checkPasswordBtn.addEventListener('click', async () => {
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value;
+      
+      if (!username || !password) {
+        showMessage('Por favor ingresa usuario y contraseña primero', 'error');
+        return;
+      }
+      
+      try {
+        checkPasswordBtn.disabled = true;
+        checkPasswordBtn.textContent = '⏳ Verificando...';
+        
+        const API_BASE = (() => {
+          if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+            return window.location.origin;
+          }
+          return "http://127.0.0.1:5000";
+        })();
+        
+        const response = await fetch(`${API_BASE}/api/debug/check-password`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ username, password })
+        });
+        
+        const result = await response.json();
+        
+        if (response.ok) {
+          if (result.is_valid) {
+            showMessage('✅ Contraseña válida', 'success');
+          } else {
+            showMessage('❌ Contraseña inválida', 'error');
+          }
+          console.log('Resultado de verificación:', result);
+        } else {
+          showMessage('❌ Error: ' + result.error, 'error');
+        }
+        
+      } catch (error) {
+        showMessage('❌ Error de conexión: ' + error.message, 'error');
+      } finally {
+        checkPasswordBtn.disabled = false;
+        checkPasswordBtn.textContent = '🔍 Verificar Contraseña';
+      }
+    });
+  }
+
   function showUserMenu() {
     const menu = `
       <div class="user-menu">

@@ -101,35 +101,61 @@ class AuthManager:
     
     def authenticate_user(self, username, password):
         """Autenticar usuario"""
-        with get_conn() as conn:
-            cursor = conn.cursor()
-            cursor.execute(
-                "SELECT id, username, password_hash, role FROM users WHERE username = %s",
-                (username,)
-            )
-            user = cursor.fetchone()
-            
-            if user and self.verify_password(password, user[2]):
-                return {
-                    'id': user[0],
-                    'username': user[1],
-                    'role': user[3]
-                }
+        try:
+            print(f"DEBUG: Autenticando usuario: {username}")
+            with get_conn() as conn:
+                cursor = conn.cursor()
+                cursor.execute(
+                    "SELECT id, username, password_hash, role FROM users WHERE username = %s",
+                    (username,)
+                )
+                user = cursor.fetchone()
+                print(f"DEBUG: Usuario encontrado en DB: {user}")
+                
+                if user:
+                    print(f"DEBUG: Verificando contraseña...")
+                    password_valid = self.verify_password(password, user[2])
+                    print(f"DEBUG: Contraseña válida: {password_valid}")
+                    
+                    if password_valid:
+                        result = {
+                            'id': user[0],
+                            'username': user[1],
+                            'role': user[3]
+                        }
+                        print(f"DEBUG: Usuario autenticado exitosamente: {result}")
+                        return result
+                    else:
+                        print(f"DEBUG: Contraseña incorrecta para usuario: {username}")
+                else:
+                    print(f"DEBUG: Usuario no encontrado: {username}")
+                
+        except Exception as e:
+            print(f"DEBUG: Error en authenticate_user: {str(e)}")
+            import traceback
+            traceback.print_exc()
         
         return None
     
     def login(self, username, password):
         """Login de usuario con creación de sesión"""
         try:
+            print(f"DEBUG: Intentando login para usuario: {username}")
+            
             # Autenticar usuario
             user = self.authenticate_user(username, password)
+            print(f"DEBUG: Resultado de autenticación: {user}")
             
             if user:
+                print(f"DEBUG: Usuario autenticado, creando sesión para ID: {user['id']}")
+                
                 # Crear sesión
                 token = self.create_session(user['id'])
+                print(f"DEBUG: Token creado: {token[:10]}...")
                 
                 # Obtener datos completos del usuario
                 user_data = self.get_user_by_id(user['id'])
+                print(f"DEBUG: Datos del usuario: {user_data}")
                 
                 return {
                     'success': True,
@@ -138,12 +164,16 @@ class AuthManager:
                     'user': user_data
                 }
             else:
+                print(f"DEBUG: Autenticación fallida para usuario: {username}")
                 return {
                     'success': False,
                     'error': 'Credenciales inválidas'
                 }
                 
         except Exception as e:
+            print(f"DEBUG: Error en login: {str(e)}")
+            import traceback
+            traceback.print_exc()
             return {
                 'success': False,
                 'error': f'Error al hacer login: {str(e)}'

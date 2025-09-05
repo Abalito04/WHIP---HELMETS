@@ -1138,6 +1138,46 @@ def create_test_users():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route("/api/debug/check-password", methods=["POST"])
+def debug_check_password():
+    """Debug: Verificar contraseña de un usuario"""
+    try:
+        data = request.get_json()
+        username = data.get('username')
+        password = data.get('password')
+        
+        if not username or not password:
+            return jsonify({"error": "Username y password requeridos"}), 400
+        
+        conn = get_conn()
+        cursor = conn.cursor()
+        
+        # Obtener el hash de la contraseña del usuario
+        cursor.execute(
+            "SELECT id, username, password_hash, role FROM users WHERE username = %s",
+            (username,)
+        )
+        user = cursor.fetchone()
+        
+        if user:
+            password_hash = user[2]
+            is_valid = auth_manager.verify_password(password, password_hash)
+            
+            return jsonify({
+                "username": username,
+                "password_hash": password_hash,
+                "is_valid": is_valid,
+                "user_id": user[0],
+                "role": user[3]
+            }), 200
+        else:
+            return jsonify({"error": "Usuario no encontrado"}), 404
+            
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    finally:
+        conn.close()
+
 # ---------------------- RUTAS DE PAGOS ----------------------
 
 @app.route("/api/payment/create-preference", methods=["POST"])

@@ -130,6 +130,7 @@ def init_db():
                 print("✅ Conexión a PostgreSQL exitosa")
             
             # Si la conexión funciona, inicializar PostgreSQL
+            from database import init_postgresql
             init_postgresql()
             return
             
@@ -424,12 +425,15 @@ def list_products():
 
 @app.route("/api/products/<int:pid>", methods=["GET"])
 def get_product(pid: int):
-    with closing(get_conn()) as conn:
+    conn = get_conn()
+    try:
         placeholder = get_placeholder()
         row = execute_query(conn, f"SELECT * FROM productos WHERE id = {placeholder}", (pid,)).fetchone()
         if not row:
             return jsonify({"error": "Producto no encontrado"}), 404
         return jsonify(row_to_dict(row)), 200
+    finally:
+        conn.close()
 
 
 @app.route("/api/products", methods=["POST"])
@@ -478,7 +482,8 @@ def create_product():
     
     status = (data.get("status") or "Activo").strip() or "Activo"
 
-    with closing(get_conn()) as conn, conn:
+    conn = get_conn()
+    try:
         placeholder = get_placeholder()
         cur = execute_query(conn,
             f"""
@@ -487,11 +492,18 @@ def create_product():
             """,
             (name, brand, price, category, sizes_csv, stock, image, images_json, status),
         )
-        new_id = cur.lastrowid if not is_postgresql() else cur.fetchone()[0] if hasattr(cur, 'fetchone') else None
+        
+        if is_postgresql():
+            # PostgreSQL: obtener el ID del último insert
+            new_id = cur.fetchone()[0] if hasattr(cur, 'fetchone') else None
+        else:
+            # SQLite: usar lastrowid
+            new_id = cur.lastrowid
 
         row = execute_query(conn, f"SELECT * FROM productos WHERE id = {placeholder}", (new_id,)).fetchone()
-
-    return jsonify(row_to_dict(row)), 201
+        return jsonify(row_to_dict(row)), 201
+    finally:
+        conn.close()
 
 
 @app.route("/api/products/<int:pid>", methods=["PUT", "PATCH"])
@@ -576,18 +588,22 @@ def update_product(pid: int):
 
 @app.route("/api/products/<int:pid>", methods=["DELETE"])
 def delete_product(pid: int):
-    with closing(get_conn()) as conn, conn:
+    conn = get_conn()
+    try:
         placeholder = get_placeholder()
         cur = execute_query(conn, f"DELETE FROM productos WHERE id = {placeholder}", (pid,))
         if cur.rowcount == 0:
             return jsonify({"error": "Producto no encontrado"}), 404
-    return jsonify({"ok": True}), 200
+        return jsonify({"ok": True}), 200
+    finally:
+        conn.close()
 
 
 @app.route("/api/products/<int:pid>/images", methods=["GET"])
 def get_product_images(pid: int):
     """Obtener todas las imágenes de un producto"""
-    with closing(get_conn()) as conn:
+    conn = get_conn()
+    try:
         placeholder = get_placeholder()
         row = execute_query(conn, f"SELECT image, images FROM productos WHERE id = {placeholder}", (pid,)).fetchone()
         if not row:
@@ -599,6 +615,8 @@ def get_product_images(pid: int):
         all_images = [img for img in all_images if img and img.strip()]
         
         return jsonify({"images": all_images}), 200
+    finally:
+        conn.close()
 
 
 @app.route("/api/products/<int:pid>/images", methods=["POST"])
@@ -1015,9 +1033,12 @@ def update_profile():
 def list_products_admin():
     """Ruta para administradores - lista todos los productos sin filtros"""
     try:
-        with closing(get_conn()) as conn:
+        conn = get_conn()
+        try:
             rows = execute_query(conn, "SELECT * FROM productos ORDER BY id DESC").fetchall()
-        return jsonify([row_to_dict(r) for r in rows]), 200
+            return jsonify([row_to_dict(r) for r in rows]), 200
+        finally:
+            conn.close()
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 

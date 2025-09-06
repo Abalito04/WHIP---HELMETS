@@ -59,12 +59,12 @@ class AuthManager:
             if user:
                 conn.commit()
                 return {
-                    'user_id': user[0],
-                    'username': user[1],
-                    'role': user[2],
-                    'nombre': user[3],
-                    'apellido': user[4],
-                    'email': user[5]
+                    'user_id': user['id'],
+                    'username': user['username'],
+                    'role': user['role'],
+                    'nombre': user['nombre'],
+                    'apellido': user['apellido'],
+                    'email': user['email']
                 }
         
         return None
@@ -114,14 +114,18 @@ class AuthManager:
                 
                 if user:
                     print(f"DEBUG: Verificando contraseña...")
-                    password_valid = self.verify_password(password, user[2])
+                    print(f"DEBUG: Tipo de user: {type(user)}")
+                    print(f"DEBUG: Contenido de user: {user}")
+                    
+                    # Acceder a los datos usando nombres de columna (RealDictRow)
+                    password_valid = self.verify_password(password, user['password_hash'])
                     print(f"DEBUG: Contraseña válida: {password_valid}")
                     
                     if password_valid:
                         result = {
-                            'id': user[0],
-                            'username': user[1],
-                            'role': user[3]
+                            'id': user['id'],
+                            'username': user['username'],
+                            'role': user['role']
                         }
                         print(f"DEBUG: Usuario autenticado exitosamente: {result}")
                         return result
@@ -162,7 +166,7 @@ class AuthManager:
                     'message': 'Login exitoso',
                     'session_token': token,
                     'user': user_data
-                }
+                    }
             else:
                 print(f"DEBUG: Autenticación fallida para usuario: {username}")
                 return {
@@ -210,10 +214,10 @@ class AuthManager:
             
             return [
                 {
-                    'id': user[0],
-                    'username': user[1],
-                    'role': user[2],
-                    'created_at': user[3].isoformat() if user[3] else None
+                    'id': user['id'],
+                    'username': user['username'],
+                    'role': user['role'],
+                    'created_at': user['created_at'].isoformat() if user['created_at'] else None
                 }
                 for user in users
             ]
@@ -234,21 +238,21 @@ class AuthManager:
             
             if user:
                 return {
-                    'id': user[0],
-                    'username': user[1],
-                    'role': user[2],
-                    'nombre': user[3],
-                    'apellido': user[4],
-                    'dni': user[5],
-                    'telefono': user[6],
-                    'direccion': user[7],
-                    'codigo_postal': user[8],
-                    'email': user[9],
-                    'created_at': user[10].isoformat() if user[10] else None,
-                    'updated_at': user[11].isoformat() if user[11] else None
+                    'id': user['id'],
+                    'username': user['username'],
+                    'role': user['role'],
+                    'nombre': user['nombre'],
+                    'apellido': user['apellido'],
+                    'dni': user['dni'],
+                    'telefono': user['telefono'],
+                    'direccion': user['direccion'],
+                    'codigo_postal': user['codigo_postal'],
+                    'email': user['email'],
+                    'created_at': user['created_at'].isoformat() if user['created_at'] else None,
+                    'updated_at': user['updated_at'].isoformat() if user['updated_at'] else None
                 }
         
-        return None
+            return None
     
     def update_user_profile(self, user_id, data):
         """Actualizar perfil de usuario"""
@@ -268,25 +272,25 @@ class AuthManager:
                 
                 # Actualizar campos permitidos
                 allowed_fields = ['nombre', 'apellido', 'dni', 'telefono', 'direccion', 'codigo_postal', 'email']
-                update_fields = []
+            update_fields = []
                 values = []
                 
                 for field in allowed_fields:
                     if field in data:
                         update_fields.append(f"{field} = %s")
                         values.append(data[field])
-                
-                if update_fields:
+            
+            if update_fields:
                     values.append(user_id)
                     query = f"UPDATE users SET {', '.join(update_fields)}, updated_at = NOW() WHERE id = %s"
                     cursor.execute(query, values)
-                    conn.commit()
-                
+                conn.commit()
+            
                 return {"success": True, "message": "Perfil actualizado correctamente"}
                 
         except Exception as e:
             return {"success": False, "error": f"Error al actualizar perfil: {str(e)}"}
-    
+
     def get_all_users(self):
         """Obtener todos los usuarios (para admin)"""
         with get_conn() as conn:
@@ -301,22 +305,22 @@ class AuthManager:
             
             return [
                 {
-                    'id': user[0],
-                    'username': user[1],
-                    'role': user[2],
-                    'nombre': user[3],
-                    'apellido': user[4],
-                    'dni': user[5],
-                    'telefono': user[6],
-                    'direccion': user[7],
-                    'codigo_postal': user[8],
-                    'email': user[9],
-                    'created_at': user[10].isoformat() if user[10] else None,
-                    'updated_at': user[11].isoformat() if user[11] else None
+                    'id': user['id'],
+                    'username': user['username'],
+                    'role': user['role'],
+                    'nombre': user['nombre'],
+                    'apellido': user['apellido'],
+                    'dni': user['dni'],
+                    'telefono': user['telefono'],
+                    'direccion': user['direccion'],
+                    'codigo_postal': user['codigo_postal'],
+                    'email': user['email'],
+                    'created_at': user['created_at'].isoformat() if user['created_at'] else None,
+                    'updated_at': user['updated_at'].isoformat() if user['updated_at'] else None
                 }
                 for user in users
             ]
-    
+
     def update_user_role(self, user_id, new_role):
         """Actualizar rol de usuario (solo admin)"""
         try:
@@ -336,13 +340,13 @@ class AuthManager:
                     "UPDATE users SET role = %s, updated_at = NOW() WHERE id = %s",
                     (new_role, user_id)
                 )
-                conn.commit()
+                    conn.commit()
                 
                 return {"success": True, "message": "Rol actualizado correctamente"}
                 
         except Exception as e:
             return {"success": False, "error": f"Error al actualizar rol: {str(e)}"}
-    
+
     def delete_user(self, user_id):
         """Eliminar usuario (solo admin)"""
         try:

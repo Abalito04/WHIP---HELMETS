@@ -272,19 +272,19 @@ class AuthManager:
                 
                 # Actualizar campos permitidos
                 allowed_fields = ['nombre', 'apellido', 'dni', 'telefono', 'direccion', 'codigo_postal', 'email']
-            update_fields = []
+                update_fields = []
                 values = []
                 
                 for field in allowed_fields:
                     if field in data:
                         update_fields.append(f"{field} = %s")
                         values.append(data[field])
-            
-            if update_fields:
+                
+                if update_fields:
                     values.append(user_id)
                     query = f"UPDATE users SET {', '.join(update_fields)}, updated_at = NOW() WHERE id = %s"
                     cursor.execute(query, values)
-                conn.commit()
+                    conn.commit()
             
                 return {"success": True, "message": "Perfil actualizado correctamente"}
                 
@@ -340,7 +340,7 @@ class AuthManager:
                     "UPDATE users SET role = %s, updated_at = NOW() WHERE id = %s",
                     (new_role, user_id)
                 )
-                    conn.commit()
+                conn.commit()
                 
                 return {"success": True, "message": "Rol actualizado correctamente"}
                 

@@ -293,33 +293,40 @@ class AuthManager:
 
     def get_all_users(self):
         """Obtener todos los usuarios (para admin)"""
-        with get_conn() as conn:
-            cursor = conn.cursor()
-            users = cursor.execute(
-                """
-                SELECT id, username, role, nombre, apellido, dni, telefono, 
-                       direccion, codigo_postal, email, created_at, updated_at
-                FROM users ORDER BY created_at DESC
-                """
-            ).fetchall()
-            
-            return [
-                {
-                    'id': user['id'],
-                    'username': user['username'],
-                    'role': user['role'],
-                    'nombre': user['nombre'],
-                    'apellido': user['apellido'],
-                    'dni': user['dni'],
-                    'telefono': user['telefono'],
-                    'direccion': user['direccion'],
-                    'codigo_postal': user['codigo_postal'],
-                    'email': user['email'],
-                    'created_at': user['created_at'].isoformat() if user['created_at'] else None,
-                    'updated_at': user['updated_at'].isoformat() if user['updated_at'] else None
-                }
-                for user in users
-            ]
+        try:
+            with get_conn() as conn:
+                cursor = conn.cursor()
+                cursor.execute(
+                    """
+                    SELECT id, username, role, nombre, apellido, dni, telefono, 
+                           direccion, codigo_postal, email, created_at, updated_at
+                    FROM users ORDER BY created_at DESC
+                    """
+                )
+                users = cursor.fetchall()
+                
+                return [
+                    {
+                        'id': user['id'],
+                        'username': user['username'],
+                        'role': user['role'],
+                        'nombre': user['nombre'],
+                        'apellido': user['apellido'],
+                        'dni': user['dni'],
+                        'telefono': user['telefono'],
+                        'direccion': user['direccion'],
+                        'codigo_postal': user['codigo_postal'],
+                        'email': user['email'],
+                        'created_at': user['created_at'].isoformat() if user['created_at'] else None,
+                        'updated_at': user['updated_at'].isoformat() if user['updated_at'] else None
+                    }
+                    for user in users
+                ]
+        except Exception as e:
+            print(f"DEBUG: Error en get_all_users: {str(e)}")
+            import traceback
+            traceback.print_exc()
+            return []
 
     def update_user_role(self, user_id, new_role):
         """Actualizar rol de usuario (solo admin)"""

@@ -1399,9 +1399,14 @@ def get_user_orders():
 def get_all_users():
     """Obtener todos los usuarios (solo admin)"""
     try:
+        print(f"DEBUG: Obteniendo lista de usuarios para admin")
         users = auth_manager.get_all_users()
+        print(f"DEBUG: Usuarios obtenidos: {len(users)} usuarios")
         return jsonify({"success": True, "users": users}), 200
     except Exception as e:
+        print(f"DEBUG: Error en get_all_users: {str(e)}")
+        import traceback
+        traceback.print_exc()
         return jsonify({"error": str(e)}), 500
 
 @app.route("/api/admin/users/<int:user_id>", methods=["GET"])

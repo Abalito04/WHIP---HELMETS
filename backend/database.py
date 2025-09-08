@@ -77,6 +77,17 @@ def init_postgresql_tables():
         ADD COLUMN IF NOT EXISTS porcentaje_descuento DECIMAL(5,2) DEFAULT NULL
     """)
     
+    # Agregar columnas condition y grade si no existen
+    cursor.execute("""
+        ALTER TABLE productos 
+        ADD COLUMN IF NOT EXISTS condition VARCHAR(20) DEFAULT 'Nuevo'
+    """)
+    
+    cursor.execute("""
+        ALTER TABLE productos 
+        ADD COLUMN IF NOT EXISTS grade VARCHAR(20) DEFAULT NULL
+    """)
+    
     # Migrar datos de precio_efectivo a porcentaje_descuento si existe la columna anterior
     cursor.execute("""
         DO $$

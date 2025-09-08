@@ -43,9 +43,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const renderCartItems = () => {
     cartItemsContainer.innerHTML = "";
+    const checkoutBtn = document.getElementById("checkout-btn");
+    
     if (!cart.length) {
       cartItemsContainer.innerHTML = "<p style='text-align:center;'>Tu carrito está vacío</p>";
       cartTotalEl.textContent = "Total: $0";
+      if (checkoutBtn) checkoutBtn.style.display = "none";
       return;
     }
     
@@ -85,6 +88,9 @@ document.addEventListener("DOMContentLoaded", () => {
     // Calcular total
     const total = cart.reduce((sum, item) => sum + item.price, 0);
     cartTotalEl.textContent = `Total: ${formatPrice(total)}`;
+    
+    // Mostrar botón de checkout
+    if (checkoutBtn) checkoutBtn.style.display = "block";
 
     // Botón "Eliminar todo"
     const existingClearBtn = cartModal.querySelector(".clear-cart-btn");

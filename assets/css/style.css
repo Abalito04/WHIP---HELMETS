@@ -744,8 +744,8 @@ footer.legal-footer a:hover {
 /* ================= Mini Carrito flotante ================= */
 #mini-cart {
     position: fixed;
-    bottom: 100px;
-    right: 20px;
+    bottom: 20px;
+    right: 100px;
     background: #f0ad4e;
     color: #000;
     padding: 18px;              /* un poco más grande */
@@ -778,8 +778,8 @@ footer.legal-footer a:hover {
 /* Dropdown del mini carrito con animación */
 #mini-cart-dropdown {
     position: fixed;
-    bottom: 165px;
-    right: 20px;
+    bottom: 85px;
+    right: 100px;
     background: #333;
     color: #fff;
     border-radius: 10px;
@@ -1758,13 +1758,13 @@ footer.legal-footer a:hover {
     }
     
     #mini-cart {
-        bottom: 90px;
-        right: 15px;
+        bottom: 15px;
+        right: 80px;
     }
     
     #mini-cart-dropdown {
-        bottom: 150px;
-        right: 15px;
+        bottom: 80px;
+        right: 80px;
     }
     
     .chatbot-toggle {

@@ -313,36 +313,6 @@ main {
 }
 
 
-/* ================================================== */
-/*                  NEWSLETTER / BOLETÍN            */
-/* ================================================== */
-.newsletter-signup {
-    text-align: center;
-    padding: 4em 2em;
-    background-color: rgba(0, 0, 0, 0.7);
-}
-
-.newsletter-signup h2 {
-    margin-bottom: 0.5em;
-}
-
-.newsletter-signup input {
-    padding: 0.8em;
-    border: none;
-    border-radius: 5px 0 0 5px;
-    width: 60%;
-    max-width: 300px;
-}
-
-.newsletter-signup button {
-    padding: 0.8em 1.2em;
-    background-color: #f0ad4e;
-    color: #000;
-    border: none;
-    border-radius: 0 5px 5px 0;
-    cursor: pointer;
-    font-weight: bold;
-}
 
 /* ================================================== */
 /*                  FOOTER / PIE DE PÁGINA           */

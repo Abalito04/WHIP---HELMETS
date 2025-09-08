@@ -143,12 +143,25 @@ function createProductCard(product) {
         stockText = `Stock: ${stock}`;
     }
     
+    // Información de condición y grado
+    const condition = product.condition || 'Nuevo';
+    const grade = product.grade || '';
+    const conditionDisplay = condition === 'Usado' && grade ? 
+        `<div class="product-condition">
+            <span class="condition-badge used">${condition}</span>
+            <span class="grade-badge">${grade}</span>
+        </div>` : 
+        `<div class="product-condition">
+            <span class="condition-badge new">${condition}</span>
+        </div>`;
+
     card.innerHTML = `
         <div class="product-images-container">
             <img src="${imageUrl}" alt="${product.name}" class="product-image main-view" onclick="openProductGallery(${product.id}, '${product.name}')" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIGZpbGw9IiNFRUVFRUUiLz48cGF0aCBkPSJNMTUgMzBINjBWNDBIMzVWMzBIMjVWMTVIMjBWMzBIMTVaIiBmaWxsPSIjOTk5Ii8+PC9zdmc+'">
             <button class="gallery-btn" onclick="openProductGallery(${product.id}, '${product.name}')" title="Ver galería">📷</button>
         </div>
         <h3>${product.name}</h3>
+        ${conditionDisplay}
         ${priceDisplay}
         <p class="stock ${stockClass}">${stockText}</p>
         <div class="product-options">

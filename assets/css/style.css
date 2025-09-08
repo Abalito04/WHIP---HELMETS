@@ -142,6 +142,141 @@ main {
     margin-top: 0;
 }
 
+/* ================================================== */
+/*                  CONDICIÓN Y GRADO                 */
+/* ================================================== */
+.product-condition {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    margin: 8px 0;
+    flex-wrap: wrap;
+}
+
+.condition-badge {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.85em;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.condition-badge.new {
+    background: linear-gradient(135deg, #4CAF50, #45a049);
+    color: white;
+    box-shadow: 0 2px 4px rgba(76, 175, 80, 0.3);
+}
+
+.condition-badge.used {
+    background: linear-gradient(135deg, #FF9800, #F57C00);
+    color: white;
+    box-shadow: 0 2px 4px rgba(255, 152, 0, 0.3);
+}
+
+.grade-badge {
+    padding: 4px 10px;
+    border-radius: 15px;
+    font-size: 0.8em;
+    font-weight: bold;
+    background: linear-gradient(135deg, #2196F3, #1976D2);
+    color: white;
+    box-shadow: 0 2px 4px rgba(33, 150, 243, 0.3);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+/* ================================================== */
+/*                  EXPLICACIÓN DE GRADOS             */
+/* ================================================== */
+.grades-explanation {
+    background: linear-gradient(135deg, #1a1a1a, #2d2d2d);
+    padding: 60px 20px;
+    margin-top: 40px;
+}
+
+.grades-explanation h2 {
+    text-align: center;
+    color: #ffffff;
+    font-size: 2.5em;
+    margin-bottom: 40px;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.grades-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 30px;
+    max-width: 1200px;
+    margin: 0 auto 40px;
+}
+
+.grade-item {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 15px;
+    padding: 30px;
+    text-align: center;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.grade-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.grade-item .grade-badge {
+    font-size: 1.2em;
+    padding: 8px 20px;
+    margin-bottom: 15px;
+    display: inline-block;
+}
+
+.grade-item .grade-badge.grade-a {
+    background: linear-gradient(135deg, #4CAF50, #45a049);
+    box-shadow: 0 4px 8px rgba(76, 175, 80, 0.4);
+}
+
+.grade-item .grade-badge.grade-b {
+    background: linear-gradient(135deg, #FF9800, #F57C00);
+    box-shadow: 0 4px 8px rgba(255, 152, 0, 0.4);
+}
+
+.grade-item .grade-badge.grade-c {
+    background: linear-gradient(135deg, #F44336, #D32F2F);
+    box-shadow: 0 4px 8px rgba(244, 67, 54, 0.4);
+}
+
+.grade-item h3 {
+    color: #ffffff;
+    font-size: 1.4em;
+    margin: 15px 0;
+    font-weight: bold;
+}
+
+.grade-item p {
+    color: #e0e0e0;
+    line-height: 1.6;
+    font-size: 1em;
+}
+
+.grades-note {
+    text-align: center;
+    color: #ffffff;
+    font-size: 1.1em;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+    border-left: 4px solid #4CAF50;
+}
+
+.grades-note strong {
+    color: #4CAF50;
+}
+
 .product-card:hover {
     transform: translateY(-5px);
 }
@@ -1742,5 +1877,54 @@ footer.legal-footer a:hover {
     .suggestion-btn {
         font-size: 11px;
         padding: 6px 10px;
+    }
+}
+
+/* ================================================== */
+/*                  RESPONSIVE GRADOS                 */
+/* ================================================== */
+
+/* Responsive para sección de grados */
+@media (max-width: 768px) {
+    .grades-explanation {
+        padding: 40px 15px;
+    }
+    
+    .grades-explanation h2 {
+        font-size: 2em;
+        margin-bottom: 30px;
+    }
+    
+    .grades-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+    
+    .grade-item {
+        padding: 20px;
+    }
+    
+    .grade-item h3 {
+        font-size: 1.2em;
+    }
+    
+    .grades-note {
+        font-size: 1em;
+        padding: 15px;
+    }
+}
+
+@media (max-width: 480px) {
+    .grades-explanation h2 {
+        font-size: 1.8em;
+    }
+    
+    .grade-item {
+        padding: 15px;
+    }
+    
+    .grade-item .grade-badge {
+        font-size: 1em;
+        padding: 6px 15px;
     }
 }

@@ -53,7 +53,7 @@ async function fetchProducts() {
     if (productsBody) {
       productsBody.innerHTML = `
         <tr>
-          <td colspan="9" style="text-align: center; color: red;">
+          <td colspan="11" style="text-align: center; color: red;">
             Error al conectar con el servidor. Verifica que el servidor esté ejecutándose en ${API_BASE}
             <br><br>
             <button onclick="location.reload()" style="padding: 5px 10px;">Reintentar</button>
@@ -203,7 +203,7 @@ async function saveAllChanges() {
 // ==================== EXPORTAR DATOS ====================
 function exportData() {
   // Crear contenido CSV
-      let csvContent = "Nombre,Marca,Precio Normal,% Descuento,Categoría,Talles,Stock,Estado,Imagen\n";
+      let csvContent = "Nombre,Marca,Precio Normal,% Descuento,Categoría,Condición,Grado,Talles,Stock,Estado,Imagen\n";
   
   productsData.forEach(product => {
     const row = [
@@ -212,6 +212,8 @@ function exportData() {
       product.price,
       product.porcentaje_descuento || '',
       `"${product.category}"`,
+      `"${product.condition || 'Nuevo'}"`,
+      `"${product.grade || ''}"`,
       `"${Array.isArray(product.sizes) ? product.sizes.join(',') : product.sizes}"`,
       product.stock || 0,
       `"${product.status}"`,
@@ -251,7 +253,7 @@ function renderProducts() {
 
   if (productsToRender.length === 0) {
     productsBody.innerHTML =
-      '<tr><td colspan="9" style="text-align: center;">No se encontraron productos</td></tr>';
+      '<tr><td colspan="11" style="text-align: center;">No se encontraron productos</td></tr>';
     return;
   }
 
@@ -274,6 +276,20 @@ function renderProducts() {
       <td><input type="number" value="${product.price}" data-field="price" data-id="${product.id}"></td>
       <td><input type="number" value="${product.porcentaje_descuento || ''}" data-field="porcentaje_descuento" data-id="${product.id}" min="0" max="100" step="0.1" placeholder="Ej: 10.5"></td>
       <td><input type="text" value="${product.category}" data-field="category" data-id="${product.id}"></td>
+      <td>
+        <select data-field="condition" data-id="${product.id}">
+          <option value="Nuevo" ${product.condition === "Nuevo" ? "selected" : ""}>Nuevo</option>
+          <option value="Usado" ${product.condition === "Usado" ? "selected" : ""}>Usado</option>
+        </select>
+      </td>
+      <td>
+        <select data-field="grade" data-id="${product.id}" ${product.condition === "Nuevo" ? "disabled" : ""}>
+          <option value="">-</option>
+          <option value="Grado A" ${product.grade === "Grado A" ? "selected" : ""}>Grado A (10/9)</option>
+          <option value="Grado B" ${product.grade === "Grado B" ? "selected" : ""}>Grado B (8/7)</option>
+          <option value="Grado C" ${product.grade === "Grado C" ? "selected" : ""}>Grado C (6)</option>
+        </select>
+      </td>
       <td><input type="text" value="${product.sizes ? product.sizes.join(",") : ""}" data-field="sizes" data-id="${product.id}"></td>
       <td>
         <input type="number" value="${product.stock || 0}" data-field="stock" data-id="${product.id}" class="${stockClass}" min="0">
@@ -324,6 +340,8 @@ function applyFilters() {
   const stockFilter = document.getElementById("stock-filter").value;
   const priceFilter = parseInt(document.getElementById("price-range").value);
   const statusFilter = document.getElementById("status-filter").value;
+  const conditionFilter = document.getElementById("condition-filter").value;
+  const gradeFilter = document.getElementById("grade-filter").value;
 
   console.log("Aplicando filtros:", {
     searchTerm,
@@ -331,11 +349,15 @@ function applyFilters() {
     brandFilter,
     stockFilter,
     priceFilter,
-    statusFilter
+    statusFilter,
+    conditionFilter,
+    gradeFilter
   });
 
   console.log("Productos antes del filtro:", productsData.length);
   console.log("Estados únicos en productos:", [...new Set(productsData.map(p => p.status))]);
+  console.log("Condiciones únicas en productos:", [...new Set(productsData.map(p => p.condition))]);
+  console.log("Grados únicos en productos:", [...new Set(productsData.map(p => p.grade))]);
 
   filteredProducts = productsData.filter((product) => {
     if (searchTerm && !product.name.toLowerCase().includes(searchTerm)) return false;
@@ -347,6 +369,12 @@ function applyFilters() {
       console.log(`Comparando estado: "${product.status}" === "${statusFilter}"`, product.status === statusFilter);
       if (product.status !== statusFilter) return false;
     }
+    
+    // Filtrar por condición
+    if (conditionFilter !== "all" && product.condition !== conditionFilter) return false;
+    
+    // Filtrar por grado
+    if (gradeFilter !== "all" && product.grade !== gradeFilter) return false;
     
     // Filtrar por stock
     if (stockFilter !== "all") {
@@ -374,6 +402,8 @@ function resetFilters() {
   document.getElementById("brand").value = "all";
   document.getElementById("stock-filter").value = "all";
   document.getElementById("status-filter").value = "all";
+  document.getElementById("condition-filter").value = "all";
+  document.getElementById("grade-filter").value = "all";
   document.getElementById("price-range").value = document.getElementById("price-range").max;
   filteredProducts = [...productsData];
   currentPage = 1;
@@ -419,6 +449,24 @@ function setupEventListeners() {
   const saveAllBtn = document.getElementById("save-all");
   const exportDataBtn = document.getElementById("export-data");
   const imageStatsBtn = document.getElementById("image-stats");
+  
+  // Event listener para mostrar/ocultar campo de grado
+  const conditionSelect = document.getElementById("new-condition");
+  const gradeGroup = document.getElementById("grade-group");
+  const gradeSelect = document.getElementById("new-grade");
+  
+  if (conditionSelect && gradeGroup && gradeSelect) {
+    conditionSelect.addEventListener("change", function() {
+      if (this.value === "Usado") {
+        gradeGroup.style.display = "block";
+        gradeSelect.required = true;
+      } else {
+        gradeGroup.style.display = "none";
+        gradeSelect.required = false;
+        gradeSelect.value = "";
+      }
+    });
+  }
 
   if (applyFiltersBtn) {
     applyFiltersBtn.addEventListener("click", applyFilters);
@@ -712,23 +760,43 @@ function setupEventListeners() {
   newProductForm.addEventListener("submit", (e) => {
     e.preventDefault();
     
+    const condition = document.getElementById("new-condition").value;
+    const grade = condition === "Usado" ? document.getElementById("new-grade").value : null;
+    
     const newProduct = {
       name: document.getElementById("new-name").value,
       brand: document.getElementById("new-brand").value,
       price: parseFloat(document.getElementById("new-price").value),
       porcentaje_descuento: document.getElementById("new-porcentaje-descuento").value ? parseFloat(document.getElementById("new-porcentaje-descuento").value) : null,
       category: document.getElementById("new-category").value,
+      condition: condition,
+      grade: grade,
       sizes: document.getElementById("new-sizes").value.split(",").map(s => s.trim()),
       stock: parseInt(document.getElementById("new-stock").value) || 0,
       image: document.getElementById("new-image").value,
       images: selectedImages.length > 0 ? selectedImages : [document.getElementById("new-image").value], // Incluir múltiples imágenes
-      status: document.getElementById("new-status").value
+      status: "Activo" // Por defecto activo
     };
     
     createProduct(newProduct);
     closeAddProductModal();
   });
 
+
+  // Manejar cambio de condición en la tabla
+  productsBody.addEventListener("change", (e) => {
+    if (e.target.dataset.field === "condition") {
+      const productId = e.target.dataset.id;
+      const gradeSelect = document.querySelector(`[data-field="grade"][data-id="${productId}"]`);
+      
+      if (e.target.value === "Nuevo") {
+        gradeSelect.disabled = true;
+        gradeSelect.value = "";
+      } else {
+        gradeSelect.disabled = false;
+      }
+    }
+  });
 
   // Guardar cambios individuales
   productsBody.addEventListener("click", (e) => {
@@ -741,6 +809,14 @@ function setupEventListeners() {
           updates["sizes"] = input.value.split(",").map((s) => s.trim());
         } else if (input.dataset.field === "stock") {
           updates["stock"] = parseInt(input.value) || 0;
+        } else if (input.dataset.field === "condition") {
+          updates["condition"] = input.value;
+          // Si cambia a "Nuevo", limpiar el grado
+          if (input.value === "Nuevo") {
+            updates["grade"] = null;
+          }
+        } else if (input.dataset.field === "grade") {
+          updates["grade"] = input.value || null;
         } else {
           updates[input.dataset.field] = input.value;
         }

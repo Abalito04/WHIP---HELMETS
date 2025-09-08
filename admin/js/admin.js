@@ -41,10 +41,13 @@ async function fetchProducts() {
     
     const data = await res.json();
     console.log("Datos recibidos:", data);
+    console.log("Número de productos cargados:", data.length);
     
     productsData = data;
     filteredProducts = [...productsData];
+    console.log("Renderizando productos...");
     renderProducts();
+    console.log("Productos renderizados exitosamente");
   } catch (err) {
     console.error("Error al cargar productos:", err);
     showNotification(`Error al cargar productos: ${err.message}`, "error");
@@ -824,10 +827,17 @@ function setupEventListeners() {
           updates[input.dataset.field] = input.value;
         }
       });
+      console.log("Datos que se van a enviar para actualización:", updates);
       updateProduct(id, updates).then(result => {
+        console.log("Resultado de actualización:", result);
         if (result.success) {
           showNotification("Producto actualizado", "success");
-          fetchProducts();
+          console.log("Recargando productos después de actualización...");
+          fetchProducts().then(() => {
+            console.log("Productos recargados exitosamente");
+          }).catch(err => {
+            console.error("Error al recargar productos:", err);
+          });
         } else {
           showNotification("Error al actualizar producto", "error");
         }

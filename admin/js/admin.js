@@ -285,9 +285,9 @@ function renderProducts() {
       <td>
         <select data-field="grade" data-id="${product.id}" ${product.condition === "Nuevo" ? "disabled" : ""}>
           <option value="">-</option>
-          <option value="Grado A" ${product.grade === "Grado A" ? "selected" : ""}>Grado A (10/9)</option>
-          <option value="Grado B" ${product.grade === "Grado B" ? "selected" : ""}>Grado B (8/7)</option>
-          <option value="Grado C" ${product.grade === "Grado C" ? "selected" : ""}>Grado C (6)</option>
+          <option value="Grado A" ${product.grade === "Grado A" ? "selected" : ""}>Grado A</option>
+          <option value="Grado B" ${product.grade === "Grado B" ? "selected" : ""}>Grado B</option>
+          <option value="Grado C" ${product.grade === "Grado C" ? "selected" : ""}>Grado C</option>
         </select>
       </td>
       <td><input type="text" value="${product.sizes ? product.sizes.join(",") : ""}" data-field="sizes" data-id="${product.id}"></td>

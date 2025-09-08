@@ -56,7 +56,7 @@ async function fetchProducts() {
     if (productsBody) {
       productsBody.innerHTML = `
         <tr>
-          <td colspan="11" style="text-align: center; color: red;">
+          <td colspan="10" style="text-align: center; color: red;">
             Error al conectar con el servidor. Verifica que el servidor esté ejecutándose en ${API_BASE}
             <br><br>
             <button onclick="location.reload()" style="padding: 5px 10px;">Reintentar</button>
@@ -206,7 +206,7 @@ async function saveAllChanges() {
 // ==================== EXPORTAR DATOS ====================
 function exportData() {
   // Crear contenido CSV
-      let csvContent = "Nombre,Marca,Precio Normal,% Descuento,Categoría,Condición,Grado,Talles,Stock,Estado,Imagen\n";
+      let csvContent = "Nombre,Marca,Precio Normal,% Descuento,Categoría,Condición,Talles,Stock,Estado,Imagen\n";
   
   productsData.forEach(product => {
     const row = [
@@ -216,7 +216,6 @@ function exportData() {
       product.porcentaje_descuento || '',
       `"${product.category}"`,
       `"${product.condition || 'Nuevo'}"`,
-      `"${product.grade || ''}"`,
       `"${Array.isArray(product.sizes) ? product.sizes.join(',') : product.sizes}"`,
       product.stock || 0,
       `"${product.status}"`,
@@ -256,7 +255,7 @@ function renderProducts() {
 
   if (productsToRender.length === 0) {
     productsBody.innerHTML =
-      '<tr><td colspan="11" style="text-align: center;">No se encontraron productos</td></tr>';
+      '<tr><td colspan="10" style="text-align: center;">No se encontraron productos</td></tr>';
     return;
   }
 
@@ -283,14 +282,6 @@ function renderProducts() {
         <select data-field="condition" data-id="${product.id}">
           <option value="Nuevo" ${product.condition === "Nuevo" ? "selected" : ""}>Nuevo</option>
           <option value="Usado" ${product.condition === "Usado" ? "selected" : ""}>Usado</option>
-        </select>
-      </td>
-      <td>
-        <select data-field="grade" data-id="${product.id}" ${product.condition === "Nuevo" ? "disabled" : ""}>
-          <option value="">-</option>
-          <option value="Grado A" ${product.grade === "Grado A" ? "selected" : ""}>Grado A</option>
-          <option value="Grado B" ${product.grade === "Grado B" ? "selected" : ""}>Grado B</option>
-          <option value="Grado C" ${product.grade === "Grado C" ? "selected" : ""}>Grado C</option>
         </select>
       </td>
       <td><input type="text" value="${product.sizes ? product.sizes.join(",") : ""}" data-field="sizes" data-id="${product.id}"></td>
@@ -344,7 +335,6 @@ function applyFilters() {
   const priceFilter = parseInt(document.getElementById("price-range").value);
   const statusFilter = document.getElementById("status-filter").value;
   const conditionFilter = document.getElementById("condition-filter").value;
-  const gradeFilter = document.getElementById("grade-filter").value;
 
   console.log("Aplicando filtros:", {
     searchTerm,
@@ -353,14 +343,12 @@ function applyFilters() {
     stockFilter,
     priceFilter,
     statusFilter,
-    conditionFilter,
-    gradeFilter
+    conditionFilter
   });
 
   console.log("Productos antes del filtro:", productsData.length);
   console.log("Estados únicos en productos:", [...new Set(productsData.map(p => p.status))]);
   console.log("Condiciones únicas en productos:", [...new Set(productsData.map(p => p.condition))]);
-  console.log("Grados únicos en productos:", [...new Set(productsData.map(p => p.grade))]);
 
   filteredProducts = productsData.filter((product) => {
     if (searchTerm && !product.name.toLowerCase().includes(searchTerm)) return false;
@@ -375,9 +363,6 @@ function applyFilters() {
     
     // Filtrar por condición
     if (conditionFilter !== "all" && product.condition !== conditionFilter) return false;
-    
-    // Filtrar por grado
-    if (gradeFilter !== "all" && product.grade !== gradeFilter) return false;
     
     // Filtrar por stock
     if (stockFilter !== "all") {
@@ -406,7 +391,6 @@ function resetFilters() {
   document.getElementById("stock-filter").value = "all";
   document.getElementById("status-filter").value = "all";
   document.getElementById("condition-filter").value = "all";
-  document.getElementById("grade-filter").value = "all";
   document.getElementById("price-range").value = document.getElementById("price-range").max;
   filteredProducts = [...productsData];
   currentPage = 1;
@@ -453,23 +437,6 @@ function setupEventListeners() {
   const exportDataBtn = document.getElementById("export-data");
   const imageStatsBtn = document.getElementById("image-stats");
   
-  // Event listener para mostrar/ocultar campo de grado
-  const conditionSelect = document.getElementById("new-condition");
-  const gradeGroup = document.getElementById("grade-group");
-  const gradeSelect = document.getElementById("new-grade");
-  
-  if (conditionSelect && gradeGroup && gradeSelect) {
-    conditionSelect.addEventListener("change", function() {
-      if (this.value === "Usado") {
-        gradeGroup.style.display = "block";
-        gradeSelect.required = true;
-      } else {
-        gradeGroup.style.display = "none";
-        gradeSelect.required = false;
-        gradeSelect.value = "";
-      }
-    });
-  }
 
   if (applyFiltersBtn) {
     applyFiltersBtn.addEventListener("click", applyFilters);
@@ -764,7 +731,6 @@ function setupEventListeners() {
     e.preventDefault();
     
     const condition = document.getElementById("new-condition").value;
-    const grade = condition === "Usado" ? document.getElementById("new-grade").value : null;
     
     const newProduct = {
       name: document.getElementById("new-name").value,
@@ -773,7 +739,6 @@ function setupEventListeners() {
       porcentaje_descuento: document.getElementById("new-porcentaje-descuento").value ? parseFloat(document.getElementById("new-porcentaje-descuento").value) : null,
       category: document.getElementById("new-category").value,
       condition: condition,
-      grade: grade,
       sizes: document.getElementById("new-sizes").value.split(",").map(s => s.trim()),
       stock: parseInt(document.getElementById("new-stock").value) || 0,
       image: document.getElementById("new-image").value,
@@ -786,20 +751,6 @@ function setupEventListeners() {
   });
 
 
-  // Manejar cambio de condición en la tabla
-  productsBody.addEventListener("change", (e) => {
-    if (e.target.dataset.field === "condition") {
-      const productId = e.target.dataset.id;
-      const gradeSelect = document.querySelector(`[data-field="grade"][data-id="${productId}"]`);
-      
-      if (e.target.value === "Nuevo") {
-        gradeSelect.disabled = true;
-        gradeSelect.value = "";
-      } else {
-        gradeSelect.disabled = false;
-      }
-    }
-  });
 
   // Guardar cambios individuales
   productsBody.addEventListener("click", (e) => {
@@ -814,12 +765,6 @@ function setupEventListeners() {
           updates["stock"] = parseInt(input.value) || 0;
         } else if (input.dataset.field === "condition") {
           updates["condition"] = input.value;
-          // Si cambia a "Nuevo", limpiar el grado
-          if (input.value === "Nuevo") {
-            updates["grade"] = null;
-          }
-        } else if (input.dataset.field === "grade") {
-          updates["grade"] = input.value || null;
         } else if (input.dataset.field === "porcentaje_descuento") {
           // Convertir cadena vacía a null para evitar errores en PostgreSQL
           updates["porcentaje_descuento"] = input.value === "" ? null : parseFloat(input.value);

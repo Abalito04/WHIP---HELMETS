@@ -143,17 +143,11 @@ function createProductCard(product) {
         stockText = `Stock: ${stock}`;
     }
     
-    // Información de condición y grado
+    // Información de condición
     const condition = product.condition || 'Nuevo';
-    const grade = product.grade || '';
-    const conditionDisplay = condition === 'Usado' && grade ? 
-        `<div class="product-condition">
-            <span class="condition-badge used">${condition}</span>
-            <span class="grade-badge">${grade}</span>
-        </div>` : 
-        `<div class="product-condition">
-            <span class="condition-badge new">${condition}</span>
-        </div>`;
+    const conditionDisplay = `<div class="product-condition">
+        <span class="condition-badge ${condition === 'Nuevo' ? 'new' : 'used'}">${condition}</span>
+    </div>`;
 
     card.innerHTML = `
         <div class="product-images-container">
@@ -253,36 +247,94 @@ function initProductEvents() {
     initBrandFilter();
 }
 
-// Función para inicializar el filtro de marcas
+// Función para inicializar los filtros
 function initBrandFilter() {
     const brands = Array.from(new Set(products.map(p => p.brand))).filter(b => b);
     if (brands.length === 0) return;
     
     const filterContainer = document.createElement("div");
-    filterContainer.id = "brand-filter";
-    filterContainer.style.cssText = "text-align:center;margin:20px 0;display:flex;justify-content:center;align-items:center;gap:10px;";
+    filterContainer.id = "product-filters";
+    filterContainer.style.cssText = "text-align:center;margin:20px 0;display:flex;justify-content:center;align-items:center;gap:15px;flex-wrap:wrap;";
 
-    const label = document.createElement("span");
-    label.textContent = "Filtrar por marcas:";
-    label.style.color = "#fff";
+    // Filtro de marcas
+    const brandLabel = document.createElement("span");
+    brandLabel.textContent = "Marca:";
+    brandLabel.style.color = "#fff";
+    brandLabel.style.fontWeight = "bold";
 
-    const selectFilter = document.createElement("select");
-    selectFilter.style.cssText = "padding:5px 10px;font-size:1em;";
+    const brandSelect = document.createElement("select");
+    brandSelect.id = "brand-select";
+    brandSelect.style.cssText = "padding:8px;border-radius:5px;border:none;background:#fff;color:#333;font-size:14px;min-width:150px;";
 
-    const allOption = document.createElement("option");
-    allOption.value = "Todas";
-    allOption.textContent = "Todas";
-    selectFilter.appendChild(allOption);
+    const allBrandOption = document.createElement("option");
+    allBrandOption.value = "Todas";
+    allBrandOption.textContent = "Todas las marcas";
+    brandSelect.appendChild(allBrandOption);
 
     brands.forEach(brand => {
         const option = document.createElement("option");
         option.value = brand;
         option.textContent = brand;
-        selectFilter.appendChild(option);
+        brandSelect.appendChild(option);
     });
 
-    filterContainer.appendChild(label);
-    filterContainer.appendChild(selectFilter);
+    // Filtro de condición
+    const conditionLabel = document.createElement("span");
+    conditionLabel.textContent = "Condición:";
+    conditionLabel.style.color = "#fff";
+    conditionLabel.style.fontWeight = "bold";
+
+    const conditionSelect = document.createElement("select");
+    conditionSelect.id = "condition-select";
+    conditionSelect.style.cssText = "padding:8px;border-radius:5px;border:none;background:#fff;color:#333;font-size:14px;min-width:120px;";
+
+    const allConditionOption = document.createElement("option");
+    allConditionOption.value = "Todas";
+    allConditionOption.textContent = "Todas";
+    conditionSelect.appendChild(allConditionOption);
+
+    const newOption = document.createElement("option");
+    newOption.value = "Nuevo";
+    newOption.textContent = "Nuevo";
+    conditionSelect.appendChild(newOption);
+
+    const usedOption = document.createElement("option");
+    usedOption.value = "Usado";
+    usedOption.textContent = "Usado";
+    conditionSelect.appendChild(usedOption);
+
+    // Filtro de ordenamiento por precio
+    const sortLabel = document.createElement("span");
+    sortLabel.textContent = "Ordenar por precio:";
+    sortLabel.style.color = "#fff";
+    sortLabel.style.fontWeight = "bold";
+
+    const sortSelect = document.createElement("select");
+    sortSelect.id = "price-sort";
+    sortSelect.style.cssText = "padding:8px;border-radius:5px;border:none;background:#fff;color:#333;font-size:14px;min-width:150px;";
+
+    const defaultSortOption = document.createElement("option");
+    defaultSortOption.value = "default";
+    defaultSortOption.textContent = "Sin ordenar";
+    sortSelect.appendChild(defaultSortOption);
+
+    const priceAscOption = document.createElement("option");
+    priceAscOption.value = "price-asc";
+    priceAscOption.textContent = "Precio: Menor a Mayor";
+    sortSelect.appendChild(priceAscOption);
+
+    const priceDescOption = document.createElement("option");
+    priceDescOption.value = "price-desc";
+    priceDescOption.textContent = "Precio: Mayor a Menor";
+    sortSelect.appendChild(priceDescOption);
+
+    // Agregar elementos al contenedor
+    filterContainer.appendChild(brandLabel);
+    filterContainer.appendChild(brandSelect);
+    filterContainer.appendChild(conditionLabel);
+    filterContainer.appendChild(conditionSelect);
+    filterContainer.appendChild(sortLabel);
+    filterContainer.appendChild(sortSelect);
     
     // Insertar el filtro antes de la sección de productos
     const productosSection = document.getElementById("destacados");
@@ -290,12 +342,87 @@ function initBrandFilter() {
         productosSection.parentNode.insertBefore(filterContainer, productosSection);
     }
 
-    selectFilter.addEventListener("change", () => {
-        const selected = selectFilter.value;
-        document.querySelectorAll(".product-card").forEach(card => {
-            card.style.display = (selected === "Todas" || card.dataset.brand === selected) ? "block" : "none";
-        });
+    // Event listeners para los filtros
+    brandSelect.addEventListener("change", applyProductFilters);
+    conditionSelect.addEventListener("change", applyProductFilters);
+    sortSelect.addEventListener("change", applyProductFilters);
+}
+
+// Función para aplicar todos los filtros
+function applyProductFilters() {
+    const brandFilter = document.getElementById("brand-select")?.value || "Todas";
+    const conditionFilter = document.getElementById("condition-select")?.value || "Todas";
+    const sortFilter = document.getElementById("price-sort")?.value || "default";
+    
+    const productCards = document.querySelectorAll(".product-card");
+    const productsGrid = document.getElementById("destacados");
+    
+    if (!productsGrid) return;
+    
+    // Filtrar productos
+    let filteredProducts = Array.from(productCards).filter(card => {
+        const cardBrand = card.dataset.brand;
+        const cardCondition = card.querySelector(".condition-badge")?.textContent;
+        
+        // Filtro por marca
+        const brandMatch = brandFilter === "Todas" || cardBrand === brandFilter;
+        
+        // Filtro por condición
+        const conditionMatch = conditionFilter === "Todas" || cardCondition === conditionFilter;
+        
+        return brandMatch && conditionMatch;
     });
+    
+    // Ordenar por precio si se selecciona
+    if (sortFilter !== "default") {
+        filteredProducts.sort((a, b) => {
+            const priceA = getProductPrice(a);
+            const priceB = getProductPrice(b);
+            
+            if (sortFilter === "price-asc") {
+                return priceA - priceB;
+            } else if (sortFilter === "price-desc") {
+                return priceB - priceA;
+            }
+            return 0;
+        });
+    }
+    
+    // Ocultar todos los productos primero
+    productCards.forEach(card => {
+        card.style.display = "none";
+    });
+    
+    // Mostrar solo los productos filtrados
+    filteredProducts.forEach(card => {
+        card.style.display = "block";
+    });
+    
+    // Reorganizar el grid para mantener el orden
+    if (sortFilter !== "default") {
+        filteredProducts.forEach(card => {
+            productsGrid.appendChild(card);
+        });
+    }
+}
+
+// Función auxiliar para obtener el precio de un producto
+function getProductPrice(card) {
+    // Buscar precio efectivo primero (si hay descuento)
+    const effectivePriceElement = card.querySelector(".effective-price");
+    if (effectivePriceElement) {
+        const priceText = effectivePriceElement.textContent.replace(/[^\d]/g, "");
+        return parseInt(priceText) || 0;
+    }
+    
+    // Si no hay precio efectivo, buscar precio normal
+    const priceElement = card.querySelector(".price");
+    if (priceElement) {
+        const priceText = priceElement.textContent.replace(/[^\d]/g, "");
+        return parseInt(priceText) || 0;
+    }
+    
+    return 0;
 }
 
 // Función para verificar stock disponible

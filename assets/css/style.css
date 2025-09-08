@@ -143,6 +143,59 @@ main {
 }
 
 /* ================================================== */
+/*                  FILTROS DE PRODUCTOS              */
+/* ================================================== */
+#product-filters {
+    background: rgba(0, 0, 0, 0.8);
+    padding: 20px;
+    border-radius: 10px;
+    margin: 20px auto;
+    max-width: 1200px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+#product-filters span {
+    font-size: 1.1em;
+    margin-right: 8px;
+}
+
+#product-filters select {
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+#product-filters select:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+#product-filters select:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(79, 195, 247, 0.3);
+}
+
+/* Responsive para filtros */
+@media (max-width: 768px) {
+    #product-filters {
+        flex-direction: column;
+        gap: 15px;
+        padding: 15px;
+    }
+    
+    #product-filters span {
+        font-size: 1em;
+        margin-right: 0;
+        margin-bottom: 5px;
+    }
+    
+    #product-filters select {
+        width: 100%;
+        max-width: 200px;
+    }
+}
+
+/* ================================================== */
 /*                  CONDICIÓN Y GRADO                 */
 /* ================================================== */
 .product-condition {
@@ -170,112 +223,12 @@ main {
 }
 
 .condition-badge.used {
-    background: linear-gradient(135deg, #FF9800, #F57C00);
+    background: linear-gradient(135deg, #4FC3F7, #29B6F6);
     color: white;
-    box-shadow: 0 2px 4px rgba(255, 152, 0, 0.3);
+    box-shadow: 0 2px 4px rgba(79, 195, 247, 0.3);
 }
 
-.grade-badge {
-    padding: 4px 10px;
-    border-radius: 15px;
-    font-size: 0.8em;
-    font-weight: bold;
-    background: linear-gradient(135deg, #2196F3, #1976D2);
-    color: white;
-    box-shadow: 0 2px 4px rgba(33, 150, 243, 0.3);
-    border: 2px solid rgba(255, 255, 255, 0.2);
-}
 
-/* ================================================== */
-/*                  EXPLICACIÓN DE GRADOS             */
-/* ================================================== */
-.grades-explanation {
-    background: linear-gradient(135deg, #1a1a1a, #2d2d2d);
-    padding: 60px 20px;
-    margin-top: 40px;
-}
-
-.grades-explanation h2 {
-    text-align: center;
-    color: #ffffff;
-    font-size: 2.5em;
-    margin-bottom: 40px;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-}
-
-.grades-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 30px;
-    max-width: 1200px;
-    margin: 0 auto 40px;
-}
-
-.grade-item {
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 15px;
-    padding: 30px;
-    text-align: center;
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-
-.grade-item:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-}
-
-.grade-item .grade-badge {
-    font-size: 1.2em;
-    padding: 8px 20px;
-    margin-bottom: 15px;
-    display: inline-block;
-}
-
-.grade-item .grade-badge.grade-a {
-    background: linear-gradient(135deg, #4CAF50, #45a049);
-    box-shadow: 0 4px 8px rgba(76, 175, 80, 0.4);
-}
-
-.grade-item .grade-badge.grade-b {
-    background: linear-gradient(135deg, #FF9800, #F57C00);
-    box-shadow: 0 4px 8px rgba(255, 152, 0, 0.4);
-}
-
-.grade-item .grade-badge.grade-c {
-    background: linear-gradient(135deg, #F44336, #D32F2F);
-    box-shadow: 0 4px 8px rgba(244, 67, 54, 0.4);
-}
-
-.grade-item h3 {
-    color: #ffffff;
-    font-size: 1.4em;
-    margin: 15px 0;
-    font-weight: bold;
-}
-
-.grade-item p {
-    color: #e0e0e0;
-    line-height: 1.6;
-    font-size: 1em;
-}
-
-.grades-note {
-    text-align: center;
-    color: #ffffff;
-    font-size: 1.1em;
-    max-width: 800px;
-    margin: 0 auto;
-    padding: 20px;
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 10px;
-    border-left: 4px solid #4CAF50;
-}
-
-.grades-note strong {
-    color: #4CAF50;
-}
 
 .product-card:hover {
     transform: translateY(-5px);
@@ -1880,51 +1833,3 @@ footer.legal-footer a:hover {
     }
 }
 
-/* ================================================== */
-/*                  RESPONSIVE GRADOS                 */
-/* ================================================== */
-
-/* Responsive para sección de grados */
-@media (max-width: 768px) {
-    .grades-explanation {
-        padding: 40px 15px;
-    }
-    
-    .grades-explanation h2 {
-        font-size: 2em;
-        margin-bottom: 30px;
-    }
-    
-    .grades-grid {
-        grid-template-columns: 1fr;
-        gap: 20px;
-    }
-    
-    .grade-item {
-        padding: 20px;
-    }
-    
-    .grade-item h3 {
-        font-size: 1.2em;
-    }
-    
-    .grades-note {
-        font-size: 1em;
-        padding: 15px;
-    }
-}
-
-@media (max-width: 480px) {
-    .grades-explanation h2 {
-        font-size: 1.8em;
-    }
-    
-    .grade-item {
-        padding: 15px;
-    }
-    
-    .grade-item .grade-badge {
-        font-size: 1em;
-        padding: 6px 15px;
-    }
-}

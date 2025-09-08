@@ -2,8 +2,28 @@
 //                  CHATBOT FUNCTIONALITY            */
 // ================================================== */
 
-document.addEventListener("DOMContentLoaded", () => {
-    console.log('🤖 Chatbot cargando...');
+// Esperar a que el DOM esté completamente cargado
+document.addEventListener("DOMContentLoaded", function() {
+    console.log('🤖 Chatbot inicializando...');
+    
+    // Esperar un poco más para asegurar que todos los scripts se hayan cargado
+    setTimeout(initChatbot, 500);
+});
+
+function initChatbot() {
+    console.log('🚀 Iniciando chatbot...');
+    
+    // Verificar si los elementos existen
+    const container = document.getElementById('chatbot-container');
+    const toggle = document.getElementById('chatbot-toggle');
+    
+    if (!container || !toggle) {
+        console.log('❌ Elementos del chatbot no encontrados en el DOM');
+        console.log('Container:', !!container, 'Toggle:', !!toggle);
+        return;
+    }
+    
+    console.log('✅ Elementos del chatbot encontrados');
     
     // Variables del chatbot
     const chatbotToggle = document.getElementById('chatbot-toggle');
@@ -15,13 +35,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const chatbotBadge = document.getElementById('chatbot-badge');
     const suggestionBtns = document.querySelectorAll('.suggestion-btn');
     const initialTime = document.getElementById('initial-time');
-    
-    // Verificar que los elementos existen
-    console.log('🔍 Elementos encontrados:', {
-        chatbotToggle: !!chatbotToggle,
-        chatbotWindow: !!chatbotWindow,
-        chatbotBadge: !!chatbotBadge
-    });
 
     // Configurar hora inicial
     if (initialTime) {
@@ -218,6 +231,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // Event Listeners
     if (chatbotToggle) {
         chatbotToggle.addEventListener('click', () => {
+            console.log('🖱️ Botón del chatbot clickeado');
             chatbotWindow.classList.toggle('active');
             if (chatbotWindow.classList.contains('active')) {
                 chatbotInput.focus();
@@ -253,7 +267,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Cerrar chatbot al hacer clic fuera
     document.addEventListener('click', (e) => {
-        if (!chatbotContainer.contains(e.target) && chatbotWindow.classList.contains('active')) {
+        const container = document.getElementById('chatbot-container');
+        if (container && !container.contains(e.target) && chatbotWindow.classList.contains('active')) {
             chatbotWindow.classList.remove('active');
         }
     });
@@ -262,4 +277,6 @@ document.addEventListener("DOMContentLoaded", () => {
     if (chatbotBadge) {
         chatbotBadge.style.display = 'flex';
     }
-});
+    
+    console.log('✅ Chatbot inicializado correctamente');
+}

@@ -45,19 +45,19 @@ function initChatbot() {
     const chatbotResponses = {
         'nuevo-usado': {
             response: '¡Excelente pregunta! 🏍️ En WHIP-HELMETS manejamos tanto cascos nuevos como usados. Todos nuestros cascos, sin importar si son nuevos o usados, están completamente homologados y en perfecto estado para tu seguridad. Los cascos usados pasan por una revisión exhaustiva antes de ser puestos a la venta.',
-            keywords: ['nuevo', 'usado', 'estado', 'condición', 'homologado']
+            keywords: ['nuevo', 'usado', 'nuevos', 'usados', 'estado', 'condición', 'homologado']
         },
         'tallas': {
-            response: '📏 Tenemos una amplia variedad de tallas disponibles para que encuentres el casco perfecto. Las tallas van desde XS hasta XXL, y cada casco tiene su tabla de tallas específica. Te recomendamos medir tu cabeza o probarte el casco antes de comprar para asegurar el ajuste perfecto. ¿Te gustaría que te ayude a encontrar tu talla ideal?',
+            response: '📏 Tenemos una amplia variedad de tallas disponibles para que encuentres el casco perfecto. Las tallas van desde XS hasta XXL, y cada casco tiene su tabla de tallas específica. Te recomendamos medir tu cabeza o probarte el casco antes de comprar para asegurar el ajuste perfecto.',
             keywords: ['talla', 'tallas', 'medida', 'xs', 's', 'm', 'l', 'xl', 'xxl', 'tamaño']
         },
         'horarios': {
-            response: '🕒 Nuestros horarios de atención son: Lunes a Viernes de 9:00 a 18:00 hs y Sábados de 9:00 a 13:00 hs. Los domingos permanecemos cerrados. También puedes contactarnos por WhatsApp al +54 295 454-4001 o por Instagram @whip.helmets en cualquier momento. ¡Estamos aquí para ayudarte!',
+            response: '🕒 Nuestros horarios de atención son: Lunes a Sábado de 08:00 a 20:00 hs. Los domingos permanecemos cerrados. También puedes contactarnos por WhatsApp al +54 295 454-4001 o por Instagram @whip.helmets en cualquier momento. ¡Estamos aquí para ayudarte!',
             keywords: ['horario', 'horarios', 'atención', 'abierto', 'cerrado', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado', 'domingo']
         },
         'envios': {
-            response: '🚚 ¡Sí! Realizamos envíos a domicilio en toda la ciudad y alrededores. Los envíos son gratuitos para compras superiores a $50.000. Para compras menores, el costo del envío es de $3.000. Los pedidos se despachan dentro de las 24-48 horas hábiles. ¿Te gustaría conocer más detalles sobre el envío?',
-            keywords: ['envío', 'envíos', 'domicilio', 'delivery', 'gratis', 'costo', 'precio', 'despacho']
+            response: '🚚 ¡Sí! Realizamos envíos a domicilio en toda la República Argentina, enviamos por Andreani, Via Cargo, Correo Argentino, Interpack, etc. Los pedidos se despachan dentro de las 24-48 horas hábiles. Si necesitas más información de los envíos podés comunicarte con nosotros por nuestros canales de atención al cliente!',
+            keywords: ['envío', 'envíos', 'domicilio', 'delivery', 'andreani', 'via cargo', 'correo argentino', 'interpack', 'despacho', 'argentina']
         },
         'marcas': {
             response: '🏆 Trabajamos con las mejores marcas del mercado: Fox, Bell, Alpinestars, Troy Lee Design, Fly Racing y muchas más. Cada marca tiene sus características especiales y niveles de protección. ¿Hay alguna marca específica que te interese o necesitas recomendaciones según tu tipo de uso?',

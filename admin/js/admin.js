@@ -818,9 +818,8 @@ function setupEventListeners() {
         } else if (input.dataset.field === "grade") {
           updates["grade"] = input.value || null;
         } else if (input.dataset.field === "porcentaje_descuento") {
-          // Manejar campo de descuento - convertir cadena vacía a null
-          const value = input.value.trim();
-          updates["porcentaje_descuento"] = value === "" ? null : parseFloat(value);
+          // Convertir cadena vacía a null para evitar errores en PostgreSQL
+          updates["porcentaje_descuento"] = input.value === "" ? null : parseFloat(input.value);
         } else {
           updates[input.dataset.field] = input.value;
         }

@@ -113,7 +113,7 @@ def row_to_dict(row):
     else:
         # Si no tiene _asdict, crear diccionario manualmente
         d = {}
-        columns = ['id', 'name', 'brand', 'price', 'porcentaje_descuento', 'category', 'condition', 'grade', 'sizes', 'stock', 'image', 'images', 'status']
+        columns = ['id', 'name', 'brand', 'price', 'porcentaje_descuento', 'category', 'sizes', 'stock', 'image', 'images', 'status']
         for i, col in enumerate(columns):
             if i < len(row):
                 d[col] = row[i]
@@ -315,20 +315,16 @@ def create_product():
     images_json = json.dumps(images_list)
     
     status = (data.get("status") or "Activo").strip() or "Activo"
-    condition = (data.get("condition") or "Nuevo").strip() or "Nuevo"
-    grade = data.get("grade")
-    if grade:
-        grade = grade.strip() or None
 
     conn = get_conn()
     try:
         cur = execute_query(conn,
             """
-            INSERT INTO productos (name, brand, price, porcentaje_descuento, category, condition, grade, sizes, stock, image, images, status)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            INSERT INTO productos (name, brand, price, porcentaje_descuento, category, sizes, stock, image, images, status)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             RETURNING id
             """,
-            (name, brand, price, porcentaje_descuento, category, condition, grade, sizes_csv, stock, image, images_json, status),
+            (name, brand, price, porcentaje_descuento, category, sizes_csv, stock, image, images_json, status),
         )
         
         # PostgreSQL: obtener el ID del último insert
@@ -439,16 +435,6 @@ def update_product(pid: int):
 
         if "status" in data:
             set_field("status", (data.get("status") or "").strip())
-
-        if "condition" in data:
-            condition = (data.get("condition") or "Nuevo").strip() or "Nuevo"
-            set_field("condition", condition)
-
-        if "grade" in data:
-            grade = data.get("grade")
-            if grade:
-                grade = grade.strip() or None
-            set_field("grade", grade)
 
         if not fields:
             return jsonify({"error": "Nada para actualizar"}), 400

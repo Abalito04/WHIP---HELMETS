@@ -817,6 +817,10 @@ function setupEventListeners() {
           }
         } else if (input.dataset.field === "grade") {
           updates["grade"] = input.value || null;
+        } else if (input.dataset.field === "porcentaje_descuento") {
+          // Manejar campo de descuento - convertir cadena vacía a null
+          const value = input.value.trim();
+          updates["porcentaje_descuento"] = value === "" ? null : parseFloat(value);
         } else {
           updates[input.dataset.field] = input.value;
         }

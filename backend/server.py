@@ -113,7 +113,7 @@ def row_to_dict(row):
     else:
         # Si no tiene _asdict, crear diccionario manualmente
         d = {}
-        columns = ['id', 'name', 'brand', 'price', 'porcentaje_descuento', 'category', 'sizes', 'stock', 'image', 'images', 'status']
+        columns = ['id', 'name', 'brand', 'price', 'porcentaje_descuento', 'category', 'condition', 'sizes', 'stock', 'image', 'images', 'status']
         for i, col in enumerate(columns):
             if i < len(row):
                 d[col] = row[i]
@@ -198,7 +198,7 @@ def list_products():
         min_price = request.args.get("min_price", "").strip()
         max_price = request.args.get("max_price", "").strip()
 
-        query = "SELECT id, name, brand, price, COALESCE(porcentaje_descuento, NULL) as porcentaje_descuento, category, sizes, stock, image, images, status, created_at, updated_at FROM productos WHERE 1=1"
+        query = "SELECT id, name, brand, price, COALESCE(porcentaje_descuento, NULL) as porcentaje_descuento, category, condition, sizes, stock, image, images, status, created_at, updated_at FROM productos WHERE 1=1"
         params = []
 
         if q:
@@ -252,7 +252,7 @@ def list_products():
 def get_product(pid: int):
     conn = get_conn()
     try:
-        row = execute_query(conn, "SELECT id, name, brand, price, COALESCE(porcentaje_descuento, NULL) as porcentaje_descuento, category, sizes, stock, image, images, status, created_at, updated_at FROM productos WHERE id = %s", (pid,)).fetchone()
+        row = execute_query(conn, "SELECT id, name, brand, price, COALESCE(porcentaje_descuento, NULL) as porcentaje_descuento, category, condition, sizes, stock, image, images, status, created_at, updated_at FROM productos WHERE id = %s", (pid,)).fetchone()
         if not row:
             return jsonify({"error": "Producto no encontrado"}), 404
         return jsonify(row_to_dict(row)), 200
@@ -286,6 +286,7 @@ def create_product():
 
     brand = (data.get("brand") or "").strip()
     category = (data.get("category") or "").strip()
+    condition = (data.get("condition") or "Nuevo").strip()
     sizes_list = data.get("sizes") or []
     if isinstance(sizes_list, str):
         # Permitimos recibir CSV también
@@ -320,18 +321,18 @@ def create_product():
     try:
         cur = execute_query(conn,
             """
-            INSERT INTO productos (name, brand, price, porcentaje_descuento, category, sizes, stock, image, images, status)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            INSERT INTO productos (name, brand, price, porcentaje_descuento, category, condition, sizes, stock, image, images, status)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             RETURNING id
             """,
-            (name, brand, price, porcentaje_descuento, category, sizes_csv, stock, image, images_json, status),
+            (name, brand, price, porcentaje_descuento, category, condition, sizes_csv, stock, image, images_json, status),
         )
         
         # PostgreSQL: obtener el ID del último insert
         new_id = cur.fetchone()[0]
         conn.commit()  # Confirmar la transacción
 
-        row = execute_query(conn, "SELECT id, name, brand, price, COALESCE(porcentaje_descuento, NULL) as porcentaje_descuento, category, sizes, stock, image, images, status, created_at, updated_at FROM productos WHERE id = %s", (new_id,)).fetchone()
+        row = execute_query(conn, "SELECT id, name, brand, price, COALESCE(porcentaje_descuento, NULL) as porcentaje_descuento, category, condition, sizes, stock, image, images, status, created_at, updated_at FROM productos WHERE id = %s", (new_id,)).fetchone()
         return jsonify(row_to_dict(row)), 201
     finally:
         conn.close()
@@ -436,6 +437,9 @@ def update_product(pid: int):
         if "status" in data:
             set_field("status", (data.get("status") or "").strip())
 
+        if "condition" in data:
+            set_field("condition", (data.get("condition") or "").strip())
+
         if not fields:
             return jsonify({"error": "Nada para actualizar"}), 400
 
@@ -464,10 +468,10 @@ def update_product(pid: int):
                 column_exists = cursor_check.fetchone() is not None
                 
                 if column_exists:
-                    query = "SELECT id, name, brand, price, COALESCE(porcentaje_descuento, NULL) as porcentaje_descuento, category, sizes, stock, image, images, status, created_at, updated_at FROM productos WHERE id = %s"
+                    query = "SELECT id, name, brand, price, COALESCE(porcentaje_descuento, NULL) as porcentaje_descuento, category, condition, sizes, stock, image, images, status, created_at, updated_at FROM productos WHERE id = %s"
                 else:
                     print("WARNING: Usando query sin porcentaje_descuento")
-                    query = "SELECT id, name, brand, price, NULL as porcentaje_descuento, category, sizes, stock, image, images, status, created_at, updated_at FROM productos WHERE id = %s"
+                    query = "SELECT id, name, brand, price, NULL as porcentaje_descuento, category, condition, sizes, stock, image, images, status, created_at, updated_at FROM productos WHERE id = %s"
                 
                 row = execute_query(conn, query, (pid,)).fetchone()
                 print(f"DEBUG: Row obtenida: {row}")
@@ -477,7 +481,7 @@ def update_product(pid: int):
             except Exception as select_error:
                 print(f"ERROR en SELECT: {select_error}")
                 # Fallback: usar query básica
-                row = execute_query(conn, "SELECT id, name, brand, price, category, sizes, stock, image, images, status, created_at, updated_at FROM productos WHERE id = %s", (pid,)).fetchone()
+                row = execute_query(conn, "SELECT id, name, brand, price, category, condition, sizes, stock, image, images, status, created_at, updated_at FROM productos WHERE id = %s", (pid,)).fetchone()
                 if row:
                     # Agregar porcentaje_descuento como None
                     row_dict = row._asdict() if hasattr(row, '_asdict') else dict(zip(['id', 'name', 'brand', 'price', 'category', 'sizes', 'stock', 'image', 'images', 'status', 'created_at', 'updated_at'], row))
@@ -971,7 +975,7 @@ def list_products_admin():
     try:
         conn = get_conn()
         try:
-            rows = execute_query(conn, "SELECT id, name, brand, price, COALESCE(porcentaje_descuento, NULL) as porcentaje_descuento, category, sizes, stock, image, images, status, created_at, updated_at FROM productos ORDER BY id DESC").fetchall()
+            rows = execute_query(conn, "SELECT id, name, brand, price, COALESCE(porcentaje_descuento, NULL) as porcentaje_descuento, category, condition, sizes, stock, image, images, status, created_at, updated_at FROM productos ORDER BY id DESC").fetchall()
             return jsonify([row_to_dict(r) for r in rows]), 200
         finally:
             conn.close()

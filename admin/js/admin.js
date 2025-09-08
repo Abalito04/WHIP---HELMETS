@@ -70,6 +70,7 @@ async function fetchProducts() {
 async function updateProduct(id, updates) {
   try {
     console.log(`Actualizando producto ${id}:`, updates);
+    console.log(`JSON que se envía al servidor:`, JSON.stringify(updates));
     const res = await fetch(`${API_BASE}/api/products/${id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
@@ -764,6 +765,7 @@ function setupEventListeners() {
         } else if (input.dataset.field === "stock") {
           updates["stock"] = parseInt(input.value) || 0;
         } else if (input.dataset.field === "condition") {
+          console.log(`Campo condition detectado: valor="${input.value}"`);
           updates["condition"] = input.value;
         } else if (input.dataset.field === "porcentaje_descuento") {
           // Convertir cadena vacía a null para evitar errores en PostgreSQL
@@ -773,6 +775,7 @@ function setupEventListeners() {
         }
       });
       console.log("Datos que se van a enviar para actualización:", updates);
+      console.log("Campo condition específico:", updates.condition);
       updateProduct(id, updates).then(result => {
         console.log("Resultado de actualización:", result);
         if (result.success) {

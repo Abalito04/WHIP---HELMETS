@@ -303,6 +303,52 @@ function initBrandFilter() {
     usedOption.textContent = "Usado";
     conditionSelect.appendChild(usedOption);
 
+    // Filtro de talles
+    const sizeLabel = document.createElement("span");
+    sizeLabel.textContent = "Talle:";
+    sizeLabel.style.color = "#fff";
+    sizeLabel.style.fontWeight = "bold";
+
+    const sizeSelect = document.createElement("select");
+    sizeSelect.id = "size-select";
+    sizeSelect.style.cssText = "padding:8px;border-radius:5px;border:none;background:#fff;color:#333;font-size:14px;min-width:120px;";
+
+    const allSizeOption = document.createElement("option");
+    allSizeOption.value = "Todos";
+    allSizeOption.textContent = "Todos los talles";
+    sizeSelect.appendChild(allSizeOption);
+
+    // Obtener todos los talles únicos de los productos
+    const allSizes = new Set();
+    products.forEach(product => {
+        if (product.sizes && Array.isArray(product.sizes)) {
+            product.sizes.forEach(size => allSizes.add(size.trim()));
+        }
+    });
+    
+    // Ordenar talles de manera inteligente (S, M, L, XL, XXL, etc.)
+    const sortedSizes = Array.from(allSizes).sort((a, b) => {
+        const sizeOrder = ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL'];
+        const aIndex = sizeOrder.indexOf(a.toUpperCase());
+        const bIndex = sizeOrder.indexOf(b.toUpperCase());
+        
+        if (aIndex !== -1 && bIndex !== -1) {
+            return aIndex - bIndex;
+        }
+        if (aIndex !== -1) return -1;
+        if (bIndex !== -1) return 1;
+        
+        // Si no está en la lista, ordenar alfabéticamente
+        return a.localeCompare(b);
+    });
+
+    sortedSizes.forEach(size => {
+        const option = document.createElement("option");
+        option.value = size;
+        option.textContent = size;
+        sizeSelect.appendChild(option);
+    });
+
     // Filtro de ordenamiento por precio
     const sortLabel = document.createElement("span");
     sortLabel.textContent = "Ordenar por precio:";
@@ -333,6 +379,8 @@ function initBrandFilter() {
     filterContainer.appendChild(brandSelect);
     filterContainer.appendChild(conditionLabel);
     filterContainer.appendChild(conditionSelect);
+    filterContainer.appendChild(sizeLabel);
+    filterContainer.appendChild(sizeSelect);
     filterContainer.appendChild(sortLabel);
     filterContainer.appendChild(sortSelect);
     
@@ -345,6 +393,7 @@ function initBrandFilter() {
     // Event listeners para los filtros
     brandSelect.addEventListener("change", applyProductFilters);
     conditionSelect.addEventListener("change", applyProductFilters);
+    sizeSelect.addEventListener("change", applyProductFilters);
     sortSelect.addEventListener("change", applyProductFilters);
 }
 
@@ -352,6 +401,7 @@ function initBrandFilter() {
 function applyProductFilters() {
     const brandFilter = document.getElementById("brand-select")?.value || "Todas";
     const conditionFilter = document.getElementById("condition-select")?.value || "Todas";
+    const sizeFilter = document.getElementById("size-select")?.value || "Todos";
     const sortFilter = document.getElementById("price-sort")?.value || "default";
     
     const productCards = document.querySelectorAll(".product-card");
@@ -363,6 +413,7 @@ function applyProductFilters() {
     let filteredProducts = Array.from(productCards).filter(card => {
         const cardBrand = card.dataset.brand;
         const cardCondition = card.querySelector(".condition-badge")?.textContent;
+        const productId = card.dataset.id;
         
         // Filtro por marca
         const brandMatch = brandFilter === "Todas" || cardBrand === brandFilter;
@@ -370,7 +421,18 @@ function applyProductFilters() {
         // Filtro por condición
         const conditionMatch = conditionFilter === "Todas" || cardCondition === conditionFilter;
         
-        return brandMatch && conditionMatch;
+        // Filtro por talla
+        let sizeMatch = true;
+        if (sizeFilter !== "Todos") {
+            const product = products.find(p => p.id == productId);
+            if (product && product.sizes) {
+                sizeMatch = product.sizes.some(size => size.trim() === sizeFilter);
+            } else {
+                sizeMatch = false;
+            }
+        }
+        
+        return brandMatch && conditionMatch && sizeMatch;
     });
     
     // Ordenar por precio si se selecciona

@@ -176,6 +176,16 @@ main {
 }
 
 /* Responsive para filtros */
+@media (max-width: 1024px) {
+    #product-filters {
+        gap: 10px;
+    }
+    
+    #product-filters select {
+        min-width: 120px;
+    }
+}
+
 @media (max-width: 768px) {
     #product-filters {
         flex-direction: column;
@@ -192,6 +202,22 @@ main {
     #product-filters select {
         width: 100%;
         max-width: 200px;
+    }
+}
+
+@media (max-width: 480px) {
+    #product-filters {
+        padding: 10px;
+        gap: 10px;
+    }
+    
+    #product-filters span {
+        font-size: 0.9em;
+    }
+    
+    #product-filters select {
+        font-size: 13px;
+        padding: 6px;
     }
 }
 

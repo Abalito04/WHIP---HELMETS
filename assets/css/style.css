@@ -1499,6 +1499,9 @@ footer.legal-footer a:hover {
     right: 20px;
     z-index: 1000;
     font-family: 'Bangers', cursive;
+    /* Debug: asegurar que sea visible */
+    display: block !important;
+    visibility: visible !important;
 }
 
 .chatbot-toggle {
@@ -1506,13 +1509,16 @@ footer.legal-footer a:hover {
     height: 60px;
     background: linear-gradient(135deg, #f0a946, #f3b927);
     border-radius: 50%;
-    display: flex;
+    display: flex !important;
     align-items: center;
     justify-content: center;
     cursor: pointer;
     box-shadow: 0 4px 20px rgba(240, 169, 70, 0.4);
     transition: all 0.3s ease;
     position: relative;
+    /* Debug: asegurar visibilidad */
+    visibility: visible !important;
+    opacity: 1 !important;
 }
 
 .chatbot-toggle:hover {

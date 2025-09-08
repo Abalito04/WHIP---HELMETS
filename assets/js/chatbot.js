@@ -3,6 +3,8 @@
 // ================================================== */
 
 document.addEventListener("DOMContentLoaded", () => {
+    console.log('🤖 Chatbot cargando...');
+    
     // Variables del chatbot
     const chatbotToggle = document.getElementById('chatbot-toggle');
     const chatbotWindow = document.getElementById('chatbot-window');
@@ -13,6 +15,13 @@ document.addEventListener("DOMContentLoaded", () => {
     const chatbotBadge = document.getElementById('chatbot-badge');
     const suggestionBtns = document.querySelectorAll('.suggestion-btn');
     const initialTime = document.getElementById('initial-time');
+    
+    // Verificar que los elementos existen
+    console.log('🔍 Elementos encontrados:', {
+        chatbotToggle: !!chatbotToggle,
+        chatbotWindow: !!chatbotWindow,
+        chatbotBadge: !!chatbotBadge
+    });
 
     // Configurar hora inicial
     if (initialTime) {
@@ -249,10 +258,8 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
-    // Mostrar badge después de 3 segundos
-    setTimeout(() => {
-        if (chatbotBadge) {
-            chatbotBadge.style.display = 'flex';
-        }
-    }, 3000);
+    // Mostrar badge inmediatamente
+    if (chatbotBadge) {
+        chatbotBadge.style.display = 'flex';
+    }
 });

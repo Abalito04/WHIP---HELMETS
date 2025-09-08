@@ -920,6 +920,28 @@ footer.legal-footer a:hover {
     cursor: not-allowed;
 }
 
+/* Botón de checkout del mini-carrito */
+.mini-checkout-btn {
+    background: linear-gradient(135deg, #4CAF50, #45a049);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    width: 100%;
+    margin-top: 10px;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(76, 175, 80, 0.3);
+}
+
+.mini-checkout-btn:hover {
+    background: linear-gradient(135deg, #45a049, #3d8b40);
+    transform: translateY(-1px);
+    box-shadow: 0 3px 6px rgba(76, 175, 80, 0.4);
+}
+
 #mini-cart-dropdown .remove-item:hover {
     background: #c9302c;    /* Rojo más oscuro en hover */
 }

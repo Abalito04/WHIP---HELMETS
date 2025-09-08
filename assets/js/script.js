@@ -135,9 +135,12 @@ document.addEventListener("DOMContentLoaded", () => {
     // Actualizar el dropdown
     if (miniCartItems) {
       miniCartItems.innerHTML = "";
+      const miniCheckoutBtn = document.getElementById("mini-cart-checkout");
+      
       if (!cart.length) {
         miniCartItems.innerHTML = "<p style='text-align:center; padding:10px;'>Carrito vacío</p>";
         if (miniCartTotal) miniCartTotal.textContent = "Total: $0";
+        if (miniCheckoutBtn) miniCheckoutBtn.style.display = "none";
         return;
       }
       
@@ -161,6 +164,9 @@ document.addEventListener("DOMContentLoaded", () => {
       if (miniCartTotal) {
         miniCartTotal.textContent = `Total: ${formatPrice(total)}`;
       }
+      
+      // Mostrar botón de checkout
+      if (miniCheckoutBtn) miniCheckoutBtn.style.display = "block";
     }
   };
 
@@ -337,6 +343,25 @@ document.addEventListener("DOMContentLoaded", () => {
           window.updateProductStockUI(item.productId, item.size);
         });
       }
+    });
+  }
+
+  // Botón de checkout del mini-carrito
+  const miniCartCheckout = document.getElementById("mini-cart-checkout");
+  if (miniCartCheckout) {
+    miniCartCheckout.addEventListener('click', () => {
+      // Verificar si el usuario está autenticado
+      const token = localStorage.getItem('authToken');
+      if (!token) {
+        alert('Debes iniciar sesión para realizar una compra');
+        // Mostrar el modal de login
+        const loginModal = document.getElementById('loginModal');
+        if (loginModal) {
+          loginModal.style.display = 'block';
+        }
+        return;
+      }
+      window.location.href = 'checkout.html';
     });
   }
 

@@ -942,6 +942,28 @@ footer.legal-footer a:hover {
     box-shadow: 0 3px 6px rgba(76, 175, 80, 0.4);
 }
 
+/* Botón eliminar todo del mini-carrito */
+#mini-cart-clear {
+    background: linear-gradient(135deg, #d9534f, #c9302c);
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: bold;
+    cursor: pointer;
+    width: 100%;
+    margin-top: 8px;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(217, 83, 79, 0.3);
+}
+
+#mini-cart-clear:hover {
+    background: linear-gradient(135deg, #c9302c, #a94442);
+    transform: translateY(-1px);
+    box-shadow: 0 3px 6px rgba(217, 83, 79, 0.4);
+}
+
 #mini-cart-dropdown .remove-item:hover {
     background: #c9302c;    /* Rojo más oscuro en hover */
 }

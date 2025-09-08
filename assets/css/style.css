@@ -1496,7 +1496,7 @@ footer.legal-footer a:hover {
 .chatbot-container {
     position: fixed;
     bottom: 20px;
-    right: 20px;
+    left: 20px;
     z-index: 1000;
     font-family: 'Bangers', cursive;
     /* Debug: asegurar que sea visible */
@@ -1557,7 +1557,7 @@ footer.legal-footer a:hover {
 .chatbot-window {
     position: absolute;
     bottom: 80px;
-    right: 0;
+    left: 0;
     width: 350px;
     height: 500px;
     background: white;
@@ -1749,12 +1749,12 @@ footer.legal-footer a:hover {
     .chatbot-window {
         width: 300px;
         height: 450px;
-        right: -10px;
+        left: -10px;
     }
     
     .chatbot-container {
         bottom: 15px;
-        right: 15px;
+        left: 15px;
     }
     
     .chatbot-toggle {

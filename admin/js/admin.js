@@ -325,13 +325,28 @@ function applyFilters() {
   const priceFilter = parseInt(document.getElementById("price-range").value);
   const statusFilter = document.getElementById("status-filter").value;
 
+  console.log("Aplicando filtros:", {
+    searchTerm,
+    categoryFilter,
+    brandFilter,
+    stockFilter,
+    priceFilter,
+    statusFilter
+  });
+
+  console.log("Productos antes del filtro:", productsData.length);
+  console.log("Estados únicos en productos:", [...new Set(productsData.map(p => p.status))]);
+
   filteredProducts = productsData.filter((product) => {
     if (searchTerm && !product.name.toLowerCase().includes(searchTerm)) return false;
     if (categoryFilter !== "all" && product.category.toLowerCase() !== categoryFilter) return false;
     if (brandFilter !== "all" && product.brand.toLowerCase() !== brandFilter) return false;
     
-    // Filtrar por estado
-    if (statusFilter !== "all" && product.status !== statusFilter) return false;
+    // Filtrar por estado - con debug
+    if (statusFilter !== "all") {
+      console.log(`Comparando estado: "${product.status}" === "${statusFilter}"`, product.status === statusFilter);
+      if (product.status !== statusFilter) return false;
+    }
     
     // Filtrar por stock
     if (stockFilter !== "all") {
@@ -345,6 +360,9 @@ function applyFilters() {
     if (priceFilter && product.price > priceFilter) return false;
     return true;
   });
+
+  console.log("Productos después del filtro:", filteredProducts.length);
+  console.log("Productos filtrados:", filteredProducts.map(p => ({ name: p.name, status: p.status })));
 
   currentPage = 1;
   renderProducts();

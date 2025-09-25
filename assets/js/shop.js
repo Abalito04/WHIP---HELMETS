@@ -16,13 +16,15 @@ let products = [];
 let cart = JSON.parse(localStorage.getItem("cart_v1")) || [];
 
 // Elementos DOM
-const productsGrid = document.getElementById("destacados");
+const productsGrid = document.querySelector("#destacados .product-grid");
 // const accessoriesGrid = document.getElementById("accesorios"); // COMENTADO - Sección de accesorios deshabilitada
 const cartCountEl = document.querySelector(".cart");
 const miniCartCount = document.getElementById("mini-cart-count");
+const reloadProductsBtn = document.getElementById("reload-products-btn");
 
 // Función para cargar productos desde la API
 async function loadProducts() {
+    console.log('=== CARGANDO PRODUCTOS ===');
     console.log('loadProducts llamado');
     console.log('API_BASE:', API_BASE);
     
@@ -36,13 +38,20 @@ async function loadProducts() {
         if (!response.ok) throw new Error("Error al cargar productos");
         
         products = await response.json();
-        console.log('Productos cargados:', products);
+        console.log('Productos cargados:', products.length);
+        console.log('Detalles de productos:', products.map(p => ({ id: p.id, name: p.name, image: p.image, images: p.images })));
         renderProducts();
     } catch (error) {
         console.error("Error:", error);
         showError(productsGrid, "Error al cargar los productos. Por favor, recarga la página.");
         // showError(accessoriesGrid, "Error al cargar los accesorios. Por favor, recarga la página."); // COMENTADO
     }
+}
+
+// Función para recargar productos (útil para sincronizar con cambios del admin)
+async function reloadProducts() {
+    console.log('=== RECARGANDO PRODUCTOS ===');
+    await loadProducts();
 }
 
 // Función para mostrar estado de carga
@@ -614,35 +623,69 @@ window.openProductGallery = function(productId, productName) {
 };
 
 async function loadProductImages(productId) {
+    console.log('=== CARGANDO IMÁGENES DEL PRODUCTO (PÁGINA PRINCIPAL) ===');
+    console.log('loadProductImages llamado para producto:', productId);
+    
     try {
-        // Buscar el producto en la lista cargada
-        const product = products.find(p => p.id == productId);
-        console.log('Producto encontrado:', product);
+        // Primero intentar cargar desde la API para obtener datos actualizados
+        const response = await fetch(`${API_BASE}/api/products/${productId}`);
+        console.log('Respuesta de la API:', response.status);
         
-        if (product) {
+        if (response.ok) {
+            const product = await response.json();
+            console.log('Producto cargado desde API:', product);
+            
             // Crear array de imágenes con la imagen principal como primera
             currentGalleryImages = [];
             
             // Agregar imagen principal como primera
-            if (product.image) {
+            if (product.image && product.image.trim() !== '') {
                 currentGalleryImages.push(product.image);
                 console.log('Imagen principal agregada:', product.image);
             }
             
             // Agregar imágenes adicionales de la galería (sin duplicar la principal)
             if (product.images && Array.isArray(product.images) && product.images.length > 0) {
-                product.images.forEach(img => {
-                    if (img !== product.image) { // Evitar duplicar la imagen principal
+                product.images.forEach((img, index) => {
+                    if (img && img.trim() !== '' && img !== product.image) { // Evitar duplicar la imagen principal
                         currentGalleryImages.push(img);
+                        console.log(`Imagen adicional ${index} agregada:`, img);
                     }
                 });
-                console.log('Imágenes adicionales agregadas:', product.images);
+                console.log('Total de imágenes adicionales agregadas:', product.images.length);
             }
             
             console.log('Galería final:', currentGalleryImages);
         } else {
-            console.log('Producto no encontrado');
-            currentGalleryImages = [];
+            console.log('No se pudo cargar desde API, usando datos locales');
+            // Fallback: buscar el producto en la lista cargada
+            const product = products.find(p => p.id == productId);
+            console.log('Producto encontrado en datos locales:', product);
+            
+            if (product) {
+                currentGalleryImages = [];
+                
+                // Agregar imagen principal
+                if (product.image && product.image.trim() !== '') {
+                    currentGalleryImages.push(product.image);
+                    console.log('Imagen principal (local) agregada:', product.image);
+                }
+                
+                // Agregar imágenes adicionales
+                if (product.images && Array.isArray(product.images) && product.images.length > 0) {
+                    product.images.forEach((img, index) => {
+                        if (img && img.trim() !== '' && img !== product.image) {
+                            currentGalleryImages.push(img);
+                            console.log(`Imagen adicional ${index} (local) agregada:`, img);
+                        }
+                    });
+                }
+                
+                console.log('Galería final (local):', currentGalleryImages);
+            } else {
+                console.log('Producto no encontrado en datos locales');
+                currentGalleryImages = [];
+            }
         }
         
         console.log('Imágenes a mostrar en galería:', currentGalleryImages);
@@ -790,4 +833,29 @@ document.addEventListener('DOMContentLoaded', () => {
 document.addEventListener("DOMContentLoaded", function() {
     loadProducts();
     updateCartCount();
+    
+    // Event listener para el botón de recarga
+    if (reloadProductsBtn) {
+        reloadProductsBtn.addEventListener('click', async () => {
+            console.log('Botón de recarga presionado');
+            reloadProductsBtn.disabled = true;
+            reloadProductsBtn.textContent = '🔄 Actualizando...';
+            
+            try {
+                await reloadProducts();
+                reloadProductsBtn.textContent = '✅ Actualizado';
+                setTimeout(() => {
+                    reloadProductsBtn.textContent = '🔄 Actualizar';
+                    reloadProductsBtn.disabled = false;
+                }, 2000);
+            } catch (error) {
+                console.error('Error al recargar productos:', error);
+                reloadProductsBtn.textContent = '❌ Error';
+                setTimeout(() => {
+                    reloadProductsBtn.textContent = '🔄 Actualizar';
+                    reloadProductsBtn.disabled = false;
+                }, 2000);
+            }
+        });
+    }
 });

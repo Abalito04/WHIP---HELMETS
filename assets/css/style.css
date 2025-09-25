@@ -1506,22 +1506,22 @@ footer.legal-footer a:hover {
     
     .stats-grid {
         grid-template-columns: repeat(3, 1fr);
-        gap: 1.5em;
-        max-width: 700px;
+        gap: 1em;
+        max-width: 600px;
     }
     
     .stat-item {
-        padding: 1.3em 0.8em;
-        border-radius: 18px;
+        padding: 1em 0.6em;
+        border-radius: 15px;
     }
     
     .stat-number {
-        font-size: 2.2em;
-        margin-bottom: 0.3em;
+        font-size: 2em;
+        margin-bottom: 0.2em;
     }
     
     .stat-label {
-        font-size: 0.95em;
+        font-size: 0.9em;
         font-weight: 600;
     }
     
@@ -1824,23 +1824,23 @@ footer.legal-footer a:hover {
     
     .stats-grid {
         grid-template-columns: 1fr;
-        gap: 1.2em;
-        max-width: 300px;
+        gap: 0.8em;
+        max-width: 280px;
         margin: 0 auto;
     }
     
     .stat-item {
-        padding: 1.2em 1em;
-        border-radius: 15px;
+        padding: 0.8em 0.6em;
+        border-radius: 12px;
     }
     
     .stat-number {
-        font-size: 2.2em;
-        margin-bottom: 0.2em;
+        font-size: 1.8em;
+        margin-bottom: 0.1em;
     }
     
     .stat-label {
-        font-size: 1em;
+        font-size: 0.85em;
         font-weight: 600;
     }
     

@@ -1290,10 +1290,16 @@ footer.legal-footer a:hover {
 @media (max-width: 768px) {
     body {
         font-size: 1em;
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
     }
     
     main {
         padding: 1em;
+        display: flex;
+        flex-direction: column;
+        flex: 1;
     }
     
     /* Header responsive */
@@ -1306,6 +1312,17 @@ footer.legal-footer a:hover {
         position: sticky;
         top: 0;
         z-index: 1000;
+        order: 1;
+    }
+    
+    /* Main content */
+    main {
+        order: 2;
+    }
+    
+    /* Footer */
+    .main-footer {
+        order: 3;
     }
     
     .header-left, .header-right {
@@ -1346,6 +1363,7 @@ footer.legal-footer a:hover {
         padding: 1.5em 1em;
         min-height: auto;
         text-align: center;
+        order: 2;
     }
     
     .hero-banner h2 {
@@ -1358,6 +1376,21 @@ footer.legal-footer a:hover {
         font-size: 1em;
         margin-bottom: 1em;
         line-height: 1.4;
+    }
+    
+    /* Sección de productos */
+    #destacados {
+        order: 3;
+    }
+    
+    /* Sección de contacto */
+    #contacto {
+        order: 4;
+    }
+    
+    /* Footer */
+    .main-footer {
+        order: 5;
     }
     
     

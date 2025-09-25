@@ -16,11 +16,10 @@ let products = [];
 let cart = JSON.parse(localStorage.getItem("cart_v1")) || [];
 
 // Elementos DOM
-const productsGrid = document.querySelector("#destacados .product-grid");
+const productsGrid = document.getElementById("destacados");
 // const accessoriesGrid = document.getElementById("accesorios"); // COMENTADO - Sección de accesorios deshabilitada
 const cartCountEl = document.querySelector(".cart");
 const miniCartCount = document.getElementById("mini-cart-count");
-const reloadProductsBtn = document.getElementById("reload-products-btn");
 
 // Función para cargar productos desde la API
 async function loadProducts() {
@@ -48,11 +47,6 @@ async function loadProducts() {
     }
 }
 
-// Función para recargar productos (útil para sincronizar con cambios del admin)
-async function reloadProducts() {
-    console.log('=== RECARGANDO PRODUCTOS ===');
-    await loadProducts();
-}
 
 // Función para mostrar estado de carga
 function showLoading(container, message) {
@@ -183,23 +177,29 @@ function createProductCard(product) {
     </div>`;
 
     card.innerHTML = `
-        <div class="product-images-container">
-            <img src="${imageUrl}" alt="${product.name}" class="product-image main-view" onclick="openProductGallery(${product.id}, '${product.name}')" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIGZpbGw9IiNFRUVFRUUiLz48cGF0aCBkPSJNMTUgMzBINjBWNDBIMzVWMzBIMjVWMTVIMjBWMzBIMTVaIiBmaWxsPSIjOTk5Ii8+PC9zdmc+'">
-            <button class="gallery-btn" onclick="openProductGallery(${product.id}, '${product.name}')" title="Ver galería">📷</button>
+        <div class="product-content">
+            <div class="product-images-container">
+                <img src="${imageUrl}" alt="${product.name}" class="product-image main-view" onclick="openProductGallery(${product.id}, '${product.name}')" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIGZpbGw9IiNFRUVFRUUiLz48cGF0aCBkPSJNMTUgMzBINjBWNDBIMzVWMzBIMjVWMTVIMjBWMzBIMTVaIiBmaWxsPSIjOTk5Ii8+PC9zdmc+'">
+                <button class="gallery-btn" onclick="openProductGallery(${product.id}, '${product.name}')" title="Ver galería">📷</button>
+            </div>
+            <div class="product-info">
+                <h3>${product.name}</h3>
+                ${conditionDisplay}
+                ${priceDisplay}
+                <p class="stock ${stockClass}">${stockText}</p>
+                <div class="product-options">
+                    <label for="talles-${product.id}">Talle:</label>
+                    <select id="talles-${product.id}" class="size-selector" ${isOutOfStock ? 'disabled' : ''}>
+                        ${product.sizes.map(size => `<option value="${size}">${size}</option>`).join('')}
+                    </select>
+                </div>
+            </div>
         </div>
-        <h3>${product.name}</h3>
-        ${conditionDisplay}
-        ${priceDisplay}
-        <p class="stock ${stockClass}">${stockText}</p>
-        <div class="product-options">
-            <label for="talles-${product.id}">Talle:</label>
-            <select id="talles-${product.id}" class="size-selector" ${isOutOfStock ? 'disabled' : ''}>
-                ${product.sizes.map(size => `<option value="${size}">${size}</option>`).join('')}
-            </select>
+        <div class="product-actions">
+            <button class="add-to-cart-btn" data-product-id="${product.id}" ${isOutOfStock ? 'disabled' : ''}>
+                ${isOutOfStock ? 'Sin stock' : 'Añadir al Carrito'}
+            </button>
         </div>
-        <button class="add-to-cart-btn" data-product-id="${product.id}" ${isOutOfStock ? 'disabled' : ''}>
-            ${isOutOfStock ? 'Sin stock' : 'Añadir al Carrito'}
-        </button>
     `;
     
     return card;
@@ -833,29 +833,4 @@ document.addEventListener('DOMContentLoaded', () => {
 document.addEventListener("DOMContentLoaded", function() {
     loadProducts();
     updateCartCount();
-    
-    // Event listener para el botón de recarga
-    if (reloadProductsBtn) {
-        reloadProductsBtn.addEventListener('click', async () => {
-            console.log('Botón de recarga presionado');
-            reloadProductsBtn.disabled = true;
-            reloadProductsBtn.textContent = '🔄 Actualizando...';
-            
-            try {
-                await reloadProducts();
-                reloadProductsBtn.textContent = '✅ Actualizado';
-                setTimeout(() => {
-                    reloadProductsBtn.textContent = '🔄 Actualizar';
-                    reloadProductsBtn.disabled = false;
-                }, 2000);
-            } catch (error) {
-                console.error('Error al recargar productos:', error);
-                reloadProductsBtn.textContent = '❌ Error';
-                setTimeout(() => {
-                    reloadProductsBtn.textContent = '🔄 Actualizar';
-                    reloadProductsBtn.disabled = false;
-                }, 2000);
-            }
-        });
-    }
 });

@@ -810,7 +810,7 @@ def auth_register():
         if profile_data.get('codigo_postal') and not profile_data['codigo_postal'].isdigit():
             return jsonify({"error": "Código postal debe contener solo números"}), 400
         
-        result = auth_manager.register(username, password, profile_data)
+        result = auth_manager.register_user(username, password, **profile_data)
         
         if result['success']:
             return jsonify(result), 201

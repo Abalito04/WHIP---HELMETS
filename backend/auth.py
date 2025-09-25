@@ -208,9 +208,10 @@ class AuthManager:
         """Obtener lista de usuarios (solo admin)"""
         with get_conn() as conn:
             cursor = conn.cursor()
-            users = cursor.execute(
+            cursor.execute(
                 "SELECT id, username, role, created_at FROM users ORDER BY created_at DESC"
-            ).fetchall()
+            )
+            users = cursor.fetchall()
             
             return [
                 {
@@ -379,6 +380,76 @@ class AuthManager:
                 
         except Exception as e:
             return {"success": False, "error": f"Error al eliminar usuario: {str(e)}"}
+
+    def update_user_by_admin(self, user_id, data):
+        """Actualizar usuario por admin"""
+        try:
+            with get_conn() as conn:
+                cursor = conn.cursor()
+                
+                # Verificar si el usuario existe
+                cursor.execute(
+                    "SELECT id FROM users WHERE id = %s",
+                    (user_id,)
+                )
+                user_exists = cursor.fetchone()
+                
+                if not user_exists:
+                    return {"success": False, "error": "Usuario no encontrado"}
+                
+                # Actualizar campos permitidos
+                allowed_fields = ['username', 'email', 'nombre', 'apellido', 'dni', 'telefono', 'direccion', 'codigo_postal', 'role']
+                update_fields = []
+                values = []
+                
+                for field in allowed_fields:
+                    if field in data:
+                        update_fields.append(f"{field} = %s")
+                        values.append(data[field])
+                
+                if update_fields:
+                    values.append(user_id)
+                    query = f"UPDATE users SET {', '.join(update_fields)}, updated_at = NOW() WHERE id = %s"
+                    cursor.execute(query, values)
+                    conn.commit()
+                
+                return {"success": True, "message": "Usuario actualizado correctamente"}
+                
+        except Exception as e:
+            return {"success": False, "error": f"Error al actualizar usuario: {str(e)}"}
+
+    def create_user_by_admin(self, data):
+        """Crear usuario por admin"""
+        try:
+            with get_conn() as conn:
+                cursor = conn.cursor()
+                
+                # Verificar si el usuario ya existe
+                cursor.execute(
+                    "SELECT id FROM users WHERE username = %s OR email = %s",
+                    (data.get('username'), data.get('email'))
+                )
+                existing_user = cursor.fetchone()
+                
+                if existing_user:
+                    return {"success": False, "error": "El usuario o email ya existe"}
+                
+                # Crear usuario
+                password_hash = self.hash_password(data.get('password', 'temp123'))
+                cursor.execute(
+                    """
+                    INSERT INTO users (username, password_hash, email, nombre, apellido, dni, telefono, direccion, codigo_postal, role)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    """,
+                    (data.get('username'), password_hash, data.get('email'), data.get('nombre'), 
+                     data.get('apellido'), data.get('dni'), data.get('telefono'), 
+                     data.get('direccion'), data.get('codigo_postal'), data.get('role', 'user'))
+                )
+                conn.commit()
+                return {"success": True, "message": "Usuario creado correctamente"}
+                
+        except Exception as e:
+            return {"success": False, "error": f"Error al crear usuario: {str(e)}"}
 
 # Instancia global del manager de autenticación
 auth_manager = AuthManager()

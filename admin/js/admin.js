@@ -2103,9 +2103,68 @@ function formatDate(dateString) {
     openUserModal();
   });
   
+  // Función de validación del formulario de usuario
+  function validateUserForm() {
+    const username = document.getElementById("user-username").value;
+    const password = document.getElementById("user-password").value;
+    const email = document.getElementById("user-email").value;
+    const dni = document.getElementById("user-dni").value;
+    const telefono = document.getElementById("user-telefono").value;
+    const codigoPostal = document.getElementById("user-codigo-postal").value;
+    
+    // Validar contraseña (solo si se está creando un nuevo usuario o se cambió)
+    if (!editingUserId && password.length < 8) {
+      showNotification("La contraseña debe tener al menos 8 caracteres", "error");
+      return false;
+    }
+    
+    if (!editingUserId && password) {
+      const hasLetter = /[a-zA-Z]/.test(password);
+      const hasNumber = /[0-9]/.test(password);
+      if (!hasLetter || !hasNumber) {
+        showNotification("La contraseña debe contener al menos una letra y un número", "error");
+        return false;
+      }
+    }
+    
+    // Validar DNI
+    if (dni && !/^[0-9]{8}$/.test(dni)) {
+      showNotification("El DNI debe tener exactamente 8 dígitos numéricos", "error");
+      return false;
+    }
+    
+    // Validar teléfono
+    if (telefono && !/^[0-9]+$/.test(telefono)) {
+      showNotification("El teléfono debe contener solo números", "error");
+      return false;
+    }
+    
+    // Validar email
+    if (email) {
+      const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+      if (!emailPattern.test(email)) {
+        showNotification("El formato del email no es válido", "error");
+        return false;
+      }
+    }
+    
+    // Validar código postal
+    if (codigoPostal && !/^[0-9]{4,5}$/.test(codigoPostal)) {
+      showNotification("El código postal debe tener entre 4 y 5 dígitos numéricos", "error");
+      return false;
+    }
+    
+    return true;
+  }
+  
   // Formulario de usuario
   userForm.addEventListener("submit", (e) => {
     e.preventDefault();
+    
+    // Validaciones del formulario
+    if (!validateUserForm()) {
+      return;
+    }
     
     const userData = {
       username: document.getElementById("user-username").value,

@@ -200,8 +200,8 @@
                         </div>
                         <div class="form-group">
                             <label for="password">Contraseña *</label>
-                            <input type="password" id="password" name="password" required minlength="6">
-                            <div class="password-requirements">Mínimo 6 caracteres</div>
+                            <input type="password" id="password" name="password" required minlength="8">
+                            <div class="password-requirements">Mínimo 8 caracteres, debe incluir letras y números</div>
                         </div>
                     </div>
                     
@@ -363,8 +363,17 @@ const API_BASE = (() => {
             
             // Validaciones adicionales del frontend
             const password = formData.get('password');
-            if (password.length < 6) {
-                showError('La contraseña debe tener al menos 6 caracteres');
+            if (password.length < 8) {
+                showError('La contraseña debe tener al menos 8 caracteres');
+                hideLoading();
+                return;
+            }
+            
+            // Validar que la contraseña contenga letras y números
+            const hasLetter = /[a-zA-Z]/.test(password);
+            const hasNumber = /[0-9]/.test(password);
+            if (!hasLetter || !hasNumber) {
+                showError('La contraseña debe contener al menos una letra y un número');
                 hideLoading();
                 return;
             }
@@ -376,9 +385,24 @@ const API_BASE = (() => {
                 return;
             }
             
+            const telefono = formData.get('telefono');
+            if (!telefono.match(/^[0-9]+$/)) {
+                showError('El teléfono debe contener solo números');
+                hideLoading();
+                return;
+            }
+            
+            const email = formData.get('email');
+            const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+            if (!emailPattern.test(email)) {
+                showError('El formato del email no es válido');
+                hideLoading();
+                return;
+            }
+            
             const codigoPostal = formData.get('codigo_postal');
             if (codigoPostal && !codigoPostal.match(/^[0-9]{4,5}$/)) {
-                showError('El código postal debe tener 4 o 5 dígitos numéricos');
+                showError('El código postal debe tener entre 4 y 5 dígitos numéricos');
                 hideLoading();
                 return;
             }
@@ -387,6 +411,46 @@ const API_BASE = (() => {
             hideLoading();
         });
         
+        // Validaciones en tiempo real
+        function validateField(field, validationFunction, errorMessage) {
+            const value = field.value;
+            const isValid = validationFunction(value);
+            
+            if (value && !isValid) {
+                field.style.borderColor = '#dc3545';
+                field.title = errorMessage;
+            } else {
+                field.style.borderColor = '#ddd';
+                field.title = '';
+            }
+        }
+        
+        // Validaciones específicas
+        function validatePassword(password) {
+            if (password.length < 8) return false;
+            const hasLetter = /[a-zA-Z]/.test(password);
+            const hasNumber = /[0-9]/.test(password);
+            return hasLetter && hasNumber;
+        }
+        
+        function validateDNI(dni) {
+            return /^[0-9]{8}$/.test(dni);
+        }
+        
+        function validatePhone(phone) {
+            return /^[0-9]+$/.test(phone);
+        }
+        
+        function validateEmail(email) {
+            const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+            return emailPattern.test(email);
+        }
+        
+        function validatePostalCode(code) {
+            if (!code) return true; // Opcional
+            return /^[0-9]{4,5}$/.test(code);
+        }
+        
         // Verificar si ya está logueado
         document.addEventListener('DOMContentLoaded', () => {
             const token = localStorage.getItem('authToken');
@@ -394,6 +458,33 @@ const API_BASE = (() => {
                 // Si ya está logueado, redirigir a la página principal
                 window.location.href = 'index.html';
             }
+            
+            // Agregar validaciones en tiempo real
+            const passwordField = document.getElementById('password');
+            const dniField = document.getElementById('dni');
+            const phoneField = document.getElementById('telefono');
+            const emailField = document.getElementById('email');
+            const postalField = document.getElementById('codigo_postal');
+            
+            passwordField.addEventListener('input', () => {
+                validateField(passwordField, validatePassword, 'Mínimo 8 caracteres con letras y números');
+            });
+            
+            dniField.addEventListener('input', () => {
+                validateField(dniField, validateDNI, 'Exactamente 8 dígitos numéricos');
+            });
+            
+            phoneField.addEventListener('input', () => {
+                validateField(phoneField, validatePhone, 'Solo números');
+            });
+            
+            emailField.addEventListener('input', () => {
+                validateField(emailField, validateEmail, 'Formato de email inválido');
+            });
+            
+            postalField.addEventListener('input', () => {
+                validateField(postalField, validatePostalCode, 'Entre 4 y 5 dígitos numéricos');
+            });
         });
     </script>
 </body>

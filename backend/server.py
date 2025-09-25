@@ -787,9 +787,15 @@ def auth_register():
         if not username or not password:
             return jsonify({"error": "Usuario y contraseña son requeridos"}), 400
         
-        # Validar longitud de contraseña
-        if len(password) < 6:
-            return jsonify({"error": "La contraseña debe tener al menos 6 caracteres"}), 400
+        # Validar longitud de contraseña (mínimo 8 caracteres)
+        if len(password) < 8:
+            return jsonify({"error": "La contraseña debe tener al menos 8 caracteres"}), 400
+        
+        # Validar que la contraseña contenga letras y números
+        has_letter = any(c.isalpha() for c in password)
+        has_number = any(c.isdigit() for c in password)
+        if not (has_letter and has_number):
+            return jsonify({"error": "La contraseña debe contener al menos una letra y un número"}), 400
         
         # Validar campos del perfil si se proporcionan
         required_fields = ['nombre', 'apellido', 'dni', 'telefono', 'email']
@@ -802,13 +808,18 @@ def auth_register():
         if not re.match(email_pattern, profile_data['email']):
             return jsonify({"error": "Formato de email inválido"}), 400
         
-        # Validar DNI (solo números)
-        if not profile_data['dni'].isdigit():
-            return jsonify({"error": "DNI debe contener solo números"}), 400
+        # Validar DNI (exactamente 8 dígitos)
+        if not profile_data['dni'].isdigit() or len(profile_data['dni']) != 8:
+            return jsonify({"error": "DNI debe contener exactamente 8 números"}), 400
         
-        # Validar código postal (opcional, pero si se proporciona debe ser numérico)
-        if profile_data.get('codigo_postal') and not profile_data['codigo_postal'].isdigit():
-            return jsonify({"error": "Código postal debe contener solo números"}), 400
+        # Validar teléfono (solo números)
+        if not profile_data['telefono'].isdigit():
+            return jsonify({"error": "Teléfono debe contener solo números"}), 400
+        
+        # Validar código postal (4 o 5 dígitos)
+        if profile_data.get('codigo_postal'):
+            if not profile_data['codigo_postal'].isdigit() or len(profile_data['codigo_postal']) < 4 or len(profile_data['codigo_postal']) > 5:
+                return jsonify({"error": "Código postal debe contener entre 4 y 5 números"}), 400
         
         result = auth_manager.register_user(username, password, **profile_data)
         
@@ -1434,14 +1445,22 @@ def update_user_admin(user_id):
         data = request.get_json()
         
         # Validaciones básicas
-        if data.get('email') and not '@' in data['email']:
-            return jsonify({"error": "Email inválido"}), 400
+        if data.get('email'):
+            email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+            if not re.match(email_pattern, data['email']):
+                return jsonify({"error": "Formato de email inválido"}), 400
         
-        if data.get('dni') and not data['dni'].isdigit():
-            return jsonify({"error": "DNI debe contener solo números"}), 400
+        if data.get('dni'):
+            if not data['dni'].isdigit() or len(data['dni']) != 8:
+                return jsonify({"error": "DNI debe contener exactamente 8 números"}), 400
         
-        if data.get('codigo_postal') and not data['codigo_postal'].isdigit():
-            return jsonify({"error": "Código postal debe contener solo números"}), 400
+        if data.get('telefono'):
+            if not data['telefono'].isdigit():
+                return jsonify({"error": "Teléfono debe contener solo números"}), 400
+        
+        if data.get('codigo_postal'):
+            if not data['codigo_postal'].isdigit() or len(data['codigo_postal']) < 4 or len(data['codigo_postal']) > 5:
+                return jsonify({"error": "Código postal debe contener entre 4 y 5 números"}), 400
         
         result = auth_manager.update_user_by_admin(user_id, data)
         if result['success']:
@@ -1475,17 +1494,36 @@ def create_user_admin():
         if not data.get('username') or not data.get('password'):
             return jsonify({"error": "Username y password son requeridos"}), 400
         
-        if len(data['password']) < 6:
-            return jsonify({"error": "La contraseña debe tener al menos 6 caracteres"}), 400
+        # Validar longitud de contraseña (mínimo 8 caracteres)
+        if len(data['password']) < 8:
+            return jsonify({"error": "La contraseña debe tener al menos 8 caracteres"}), 400
         
-        if data.get('email') and not '@' in data['email']:
-            return jsonify({"error": "Email inválido"}), 400
+        # Validar que la contraseña contenga letras y números
+        has_letter = any(c.isalpha() for c in data['password'])
+        has_number = any(c.isdigit() for c in data['password'])
+        if not (has_letter and has_number):
+            return jsonify({"error": "La contraseña debe contener al menos una letra y un número"}), 400
         
-        if data.get('dni') and not data['dni'].isdigit():
-            return jsonify({"error": "DNI debe contener solo números"}), 400
+        # Validar formato de email
+        if data.get('email'):
+            email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+            if not re.match(email_pattern, data['email']):
+                return jsonify({"error": "Formato de email inválido"}), 400
         
-        if data.get('codigo_postal') and not data['codigo_postal'].isdigit():
-            return jsonify({"error": "Código postal debe contener solo números"}), 400
+        # Validar DNI (exactamente 8 dígitos)
+        if data.get('dni'):
+            if not data['dni'].isdigit() or len(data['dni']) != 8:
+                return jsonify({"error": "DNI debe contener exactamente 8 números"}), 400
+        
+        # Validar teléfono (solo números)
+        if data.get('telefono'):
+            if not data['telefono'].isdigit():
+                return jsonify({"error": "Teléfono debe contener solo números"}), 400
+        
+        # Validar código postal (4 o 5 dígitos)
+        if data.get('codigo_postal'):
+            if not data['codigo_postal'].isdigit() or len(data['codigo_postal']) < 4 or len(data['codigo_postal']) > 5:
+                return jsonify({"error": "Código postal debe contener entre 4 y 5 números"}), 400
         
         result = auth_manager.create_user_by_admin(data)
         if result['success']:

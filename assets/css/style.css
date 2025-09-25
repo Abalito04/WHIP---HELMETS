@@ -338,7 +338,7 @@ main {
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 250px;
+    height: 320px;
     overflow: hidden;
     background: transparent !important;
 }
@@ -1375,7 +1375,7 @@ footer.legal-footer a:hover {
     }
     
     .product-image {
-        height: 220px;
+        height: 280px;
     }
     
     .product-info {
@@ -1640,11 +1640,11 @@ footer.legal-footer a:hover {
     
     .product-card {
         margin-bottom: 0.8em;
-        min-height: 400px;
+        min-height: 480px;
     }
     
     .product-image {
-        height: 180px;
+        height: 240px;
     }
     
     .product-info h3 {
@@ -1726,11 +1726,11 @@ footer.legal-footer a:hover {
     }
     
     .product-card {
-        min-height: 350px;
+        min-height: 420px;
     }
     
     .product-image {
-        height: 150px;
+        height: 200px;
     }
     
     .cart-modal {

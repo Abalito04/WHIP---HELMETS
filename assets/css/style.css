@@ -1315,14 +1315,21 @@ footer.legal-footer a:hover {
         order: 1;
     }
     
+    /* Hero banner */
+    .hero-banner {
+        order: 2;
+    }
+    
     /* Main content */
     main {
-        order: 2;
+        order: 3;
+        display: flex;
+        flex-direction: column;
     }
     
     /* Footer */
     .main-footer {
-        order: 3;
+        order: 4;
     }
     
     .header-left, .header-right {
@@ -1363,7 +1370,6 @@ footer.legal-footer a:hover {
         padding: 1.5em 1em;
         min-height: auto;
         text-align: center;
-        order: 2;
     }
     
     .hero-banner h2 {
@@ -1380,17 +1386,12 @@ footer.legal-footer a:hover {
     
     /* Sección de productos */
     #destacados {
-        order: 3;
+        order: 1;
     }
     
     /* Sección de contacto */
     #contacto {
-        order: 4;
-    }
-    
-    /* Footer */
-    .main-footer {
-        order: 5;
+        order: 2;
     }
     
     

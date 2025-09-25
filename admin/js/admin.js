@@ -1227,57 +1227,20 @@ function renderGallery() {
   const mainImageUrl = currentGalleryImages[selectedImageIndex];
   mainImg.src = mainImageUrl.startsWith('http') ? mainImageUrl : `/${mainImageUrl}`;
   
-  // Mostrar/ocultar mensaje informativo
-  const galleryInfo = document.getElementById('gallery-info');
-  if (currentGalleryImages.length > 1) {
-    galleryInfo.style.display = 'block';
-  } else {
-    galleryInfo.style.display = 'none';
-  }
-  
-  // Renderizar miniaturas con drag and drop
+  // Renderizar miniaturas
   const thumbnailsContainer = document.getElementById('gallery-thumbnails');
   thumbnailsContainer.innerHTML = '';
   
   currentGalleryImages.forEach((image, index) => {
-    // Crear contenedor para cada miniatura
-    const thumbnailContainer = document.createElement('div');
-    thumbnailContainer.className = 'gallery-thumbnail-container';
-    thumbnailContainer.dataset.index = index;
-    
-    // Crear la imagen
     const thumbnail = document.createElement('img');
     const imageUrl = image.startsWith('http') ? image : `/${image}`;
     thumbnail.src = imageUrl;
     thumbnail.className = `gallery-thumbnail ${index === selectedImageIndex ? 'active' : ''}`;
-    thumbnail.onclick = (e) => {
-      e.stopPropagation();
-      selectImage(index);
-    };
+    thumbnail.onclick = () => selectImage(index);
     thumbnail.onerror = () => {
       thumbnail.style.display = 'none';
     };
-    
-    // Agregar indicador de drag
-    const dragIndicator = document.createElement('div');
-    dragIndicator.className = 'drag-indicator';
-    dragIndicator.innerHTML = '⋮⋮';
-    dragIndicator.title = 'Arrastra para reordenar';
-    
-    // Hacer solo el indicador de drag arrastrable, no toda la imagen
-    dragIndicator.draggable = true;
-    dragIndicator.addEventListener('dragstart', (e) => handleDragStart(e, index));
-    dragIndicator.addEventListener('dragend', handleDragEnd);
-    
-    // Eventos de drop en el contenedor
-    thumbnailContainer.addEventListener('dragover', handleDragOver);
-    thumbnailContainer.addEventListener('dragleave', handleDragLeave);
-    thumbnailContainer.addEventListener('drop', (e) => handleDrop(e, index));
-    
-    // Agregar elementos al contenedor
-    thumbnailContainer.appendChild(thumbnail);
-    thumbnailContainer.appendChild(dragIndicator);
-    thumbnailsContainer.appendChild(thumbnailContainer);
+    thumbnailsContainer.appendChild(thumbnail);
   });
 }
 
@@ -1286,144 +1249,6 @@ function selectImage(index) {
   renderGallery();
 }
 
-// Variables para drag and drop
-let draggedIndex = null;
-let originalImageOrder = [];
-
-function handleDragStart(e, index) {
-  draggedIndex = index;
-  // Guardar el orden original antes de empezar a arrastrar
-  originalImageOrder = [...currentGalleryImages];
-  e.target.classList.add('dragging');
-  e.dataTransfer.effectAllowed = 'move';
-  e.dataTransfer.setData('text/html', e.target.outerHTML);
-  console.log('Iniciando drag de imagen:', draggedIndex);
-  console.log('Orden original guardado:', originalImageOrder.length);
-}
-
-function handleDragOver(e) {
-  e.preventDefault();
-  e.dataTransfer.dropEffect = 'move';
-  
-  // Encontrar el contenedor más cercano
-  const container = e.target.closest('.gallery-thumbnail-container');
-  if (container && container !== e.target.closest('.dragging')) {
-    container.classList.add('drag-over');
-  }
-}
-
-function handleDragLeave(e) {
-  // Solo limpiar si realmente salimos del contenedor
-  const container = e.target.closest('.gallery-thumbnail-container');
-  if (container && !container.contains(e.relatedTarget)) {
-    container.classList.remove('drag-over');
-  }
-}
-
-function handleDrop(e, dropIndex) {
-  e.preventDefault();
-  
-  // Limpiar todos los estilos de drag-over
-  document.querySelectorAll('.gallery-thumbnail-container').forEach(el => {
-    el.classList.remove('drag-over');
-  });
-  
-  console.log('Soltando imagen:', draggedIndex, 'en posición:', dropIndex);
-  console.log('Imágenes antes del reordenamiento:', currentGalleryImages.length);
-  
-  if (draggedIndex !== null && draggedIndex !== dropIndex && 
-      draggedIndex >= 0 && draggedIndex < currentGalleryImages.length &&
-      dropIndex >= 0 && dropIndex < currentGalleryImages.length) {
-    
-    // Crear una copia del array para evitar mutaciones
-    const newOrder = [...currentGalleryImages];
-    const draggedImage = newOrder[draggedIndex];
-    
-    // Reordenar las imágenes
-    newOrder.splice(draggedIndex, 1);
-    newOrder.splice(dropIndex, 0, draggedImage);
-    
-    // Validar que no se perdieron imágenes
-    if (newOrder.length === currentGalleryImages.length) {
-      currentGalleryImages = newOrder;
-      
-      // Actualizar el índice seleccionado si es necesario
-      if (selectedImageIndex === draggedIndex) {
-        selectedImageIndex = dropIndex;
-      } else if (selectedImageIndex > draggedIndex && selectedImageIndex <= dropIndex) {
-        selectedImageIndex--;
-      } else if (selectedImageIndex < draggedIndex && selectedImageIndex >= dropIndex) {
-        selectedImageIndex++;
-      }
-      
-      console.log('Imágenes reordenadas correctamente:', currentGalleryImages.length);
-      
-      // Guardar el nuevo orden en el backend
-      saveImageOrder();
-      
-      // Re-renderizar la galería
-      renderGallery();
-    } else {
-      console.error('Error: Se perdieron imágenes durante el reordenamiento');
-      showNotification('Error al reordenar imágenes', 'error');
-    }
-  }
-  
-  draggedIndex = null;
-}
-
-function handleDragEnd(e) {
-  e.target.classList.remove('dragging');
-  // Limpiar todos los estilos de drag-over
-  document.querySelectorAll('.gallery-thumbnail-container').forEach(el => {
-    el.classList.remove('drag-over');
-  });
-  
-  // Si no se completó el drop, restaurar el orden original
-  if (draggedIndex !== null) {
-    console.log('Restaurando orden original');
-    currentGalleryImages = [...originalImageOrder];
-    renderGallery();
-  }
-  
-  draggedIndex = null;
-  originalImageOrder = [];
-}
-
-async function saveImageOrder() {
-  if (!currentGalleryProduct) {
-    console.error('No hay producto seleccionado para guardar orden');
-    return;
-  }
-  
-  try {
-    console.log('Guardando nuevo orden de imágenes:', currentGalleryImages);
-    
-    const response = await fetch(`${API_BASE}/api/products/${currentGalleryProduct}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        images: currentGalleryImages
-      })
-    });
-    
-    if (response.ok) {
-      console.log('Orden de imágenes guardado exitosamente');
-      showNotification('Orden de imágenes actualizado', 'success');
-      // Recargar la lista de productos para reflejar los cambios
-      fetchProducts();
-    } else {
-      const error = await response.json();
-      console.error('Error al guardar orden:', error);
-      showNotification(`Error al guardar orden: ${error.error}`, 'error');
-    }
-  } catch (error) {
-    console.error('Error al guardar orden de imágenes:', error);
-    showNotification(`Error al guardar orden: ${error.message}`, 'error');
-  }
-}
 
 function closeGallery() {
   document.getElementById('gallery-modal').style.display = 'none';

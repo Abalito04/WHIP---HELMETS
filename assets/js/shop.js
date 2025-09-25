@@ -103,8 +103,15 @@ function createProductCard(product) {
     card.dataset.brand = product.brand;
     card.dataset.id = product.id;
     
-    // Crear imágenes (usar imagen por defecto si no hay)
-    const imageUrl = product.image || "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIGZpbGw9IiNFRUVFRUUiLz48cGF0aCBkPSJNMTUgMzBINjBWNDBIMzVWMzBIMjVWMTVIMjBWMzBIMTVaIiBmaWxsPSIjOTk5Ii8+PC9zdmc+";
+    // Crear imágenes (usar primera imagen de la galería si hay múltiples, sino la imagen principal)
+    let imageUrl;
+    if (product.images && Array.isArray(product.images) && product.images.length > 0) {
+        imageUrl = product.images[0]; // Usar la primera imagen de la galería
+    } else if (product.image) {
+        imageUrl = product.image; // Usar la imagen principal
+    } else {
+        imageUrl = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIGZpbGw9IiNFRUVFRUUiLz48cGF0aCBkPSJNMTUgMzBINjBWNDBIMzVWMzBIMjVWMTVIMjBWMzBIMTVaIiBmaWxsPSIjOTk5Ii8+PC9zdmc+";
+    }
     
     // Formatear precios
     const formattedPrice = '$' + new Intl.NumberFormat('es-ES').format(product.price);
@@ -591,37 +598,41 @@ window.openProductGallery = function(productId, productName) {
 
 async function loadProductImages(productId) {
     try {
-        // Cargar imágenes reales desde la API
-        const response = await fetch(`/api/products/${productId}/images`);
-        if (response.ok) {
-            const data = await response.json();
-            currentGalleryImages = data.images || [];
-        } else {
-            // Fallback: usar solo la imagen principal del producto
-            const product = products.find(p => p.id == productId);
-            if (product && product.image) {
+        // Buscar el producto en la lista cargada
+        const product = products.find(p => p.id == productId);
+        console.log('Producto encontrado:', product);
+        
+        if (product) {
+            // Usar las múltiples imágenes si existen, sino usar la imagen principal
+            if (product.images && Array.isArray(product.images) && product.images.length > 0) {
+                console.log('Usando múltiples imágenes:', product.images);
+                currentGalleryImages = product.images;
+            } else if (product.image) {
+                console.log('Usando imagen principal:', product.image);
                 currentGalleryImages = [product.image];
             } else {
+                console.log('No hay imágenes disponibles');
                 currentGalleryImages = [];
             }
+        } else {
+            console.log('Producto no encontrado');
+            currentGalleryImages = [];
         }
         
+        console.log('Imágenes a mostrar en galería:', currentGalleryImages);
         renderGallery();
     } catch (error) {
         console.error('Error al cargar imágenes:', error);
-        // Fallback: usar solo la imagen principal del producto
-        const product = products.find(p => p.id == productId);
-        if (product && product.image) {
-            currentGalleryImages = [product.image];
-        } else {
-            currentGalleryImages = [];
-        }
+        currentGalleryImages = [];
         renderGallery();
     }
 }
 
 function renderGallery() {
+    console.log('Renderizando galería con', currentGalleryImages.length, 'imágenes');
+    
     if (currentGalleryImages.length === 0) {
+        console.log('No hay imágenes para mostrar');
         document.getElementById('gallery-main-img').src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjQwMCIgdmlld0JveD0iMCAwIDQwMCA0MDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjQwMCIgaGVpZ2h0PSI0MDAiIGZpbGw9IiNFRUVFRUUiLz48cGF0aCBkPSJNMTUwIDIwMEg0MDBWMzAwSDI1MFYyMEgyMDBWMjAwSDE1MFoiIGZpbGw9IiM5OTkiLz48L3N2Zz4=';
         document.getElementById('gallery-thumbnails').innerHTML = '<p style="text-align: center; color: #666;">No hay imágenes disponibles</p>';
         return;
@@ -647,6 +658,7 @@ function renderGallery() {
     const thumbnailsContainer = document.getElementById('gallery-thumbnails');
     thumbnailsContainer.innerHTML = '';
     
+    console.log('Creando miniaturas para', currentGalleryImages.length, 'imágenes');
     currentGalleryImages.forEach((image, index) => {
         const thumbnail = document.createElement('img');
         

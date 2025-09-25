@@ -175,29 +175,29 @@ function createProductCard(product) {
     const conditionDisplay = `<div class="product-condition">
         <span class="condition-badge ${condition === 'Nuevo' ? 'new' : 'used'}">${condition}</span>
     </div>`;
-
+    
     card.innerHTML = `
         <div class="product-content">
-            <div class="product-images-container">
-                <img src="${imageUrl}" alt="${product.name}" class="product-image main-view" onclick="openProductGallery(${product.id}, '${product.name}')" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIGZpbGw9IiNFRUVFRUUiLz48cGF0aCBkPSJNMTUgMzBINjBWNDBIMzVWMzBIMjVWMTVIMjBWMzBIMTVaIiBmaWxsPSIjOTk5Ii8+PC9zdmc+'">
-            </div>
+        <div class="product-images-container">
+            <img src="${imageUrl}" alt="${product.name}" class="product-image main-view" onclick="openProductGallery(${product.id}, '${product.name}')" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIGZpbGw9IiNFRUVFRUUiLz48cGF0aCBkPSJNMTUgMzBINjBWNDBIMzVWMzBIMjVWMTVIMjBWMzBIMTVaIiBmaWxsPSIjOTk5Ii8+PC9zdmc+'">
+        </div>
             <div class="product-info">
-                <h3>${product.name}</h3>
+        <h3>${product.name}</h3>
                 ${conditionDisplay}
-                ${priceDisplay}
-                <p class="stock ${stockClass}">${stockText}</p>
-                <div class="product-options">
-                    <label for="talles-${product.id}">Talle:</label>
-                    <select id="talles-${product.id}" class="size-selector" ${isOutOfStock ? 'disabled' : ''}>
-                        ${product.sizes.map(size => `<option value="${size}">${size}</option>`).join('')}
-                    </select>
-                </div>
+        ${priceDisplay}
+        <p class="stock ${stockClass}">${stockText}</p>
+        <div class="product-options">
+            <label for="talles-${product.id}">Talle:</label>
+            <select id="talles-${product.id}" class="size-selector" ${isOutOfStock ? 'disabled' : ''}>
+                ${product.sizes.map(size => `<option value="${size}">${size}</option>`).join('')}
+            </select>
+        </div>
             </div>
         </div>
         <div class="product-actions">
-            <button class="add-to-cart-btn" data-product-id="${product.id}" ${isOutOfStock ? 'disabled' : ''}>
-                ${isOutOfStock ? 'Sin stock' : 'Añadir al Carrito'}
-            </button>
+        <button class="add-to-cart-btn" data-product-id="${product.id}" ${isOutOfStock ? 'disabled' : ''}>
+            ${isOutOfStock ? 'Sin stock' : 'Añadir al Carrito'}
+        </button>
         </div>
     `;
     
@@ -691,7 +691,7 @@ async function loadProductImages(productId) {
         renderGallery();
     } catch (error) {
         console.error('Error al cargar imágenes:', error);
-        currentGalleryImages = [];
+            currentGalleryImages = [];
         renderGallery();
     }
 }

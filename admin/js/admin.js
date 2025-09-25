@@ -48,6 +48,12 @@ async function fetchProducts() {
     console.log("Renderizando productos...");
     renderProducts();
     console.log("Productos renderizados exitosamente");
+    
+  // Actualizar filtros después de cargar productos
+  updateBrandFilter();
+  
+  // También actualizar el select de marcas en el formulario de nuevo producto
+  updateNewProductBrandSelect();
   } catch (err) {
     console.error("Error al cargar productos:", err);
     showNotification(`Error al cargar productos: ${err.message}`, "error");
@@ -328,16 +334,113 @@ function renderPagination() {
 }
 
 // ==================== FILTROS ====================
-function applyFilters() {
-  const searchTerm = document.getElementById("search").value.toLowerCase();
-  const categoryFilter = document.getElementById("category").value.toLowerCase();
-  const brandFilter = document.getElementById("brand").value.toLowerCase();
-  const stockFilter = document.getElementById("stock-filter").value;
-  const priceFilter = parseInt(document.getElementById("price-range").value);
-  const statusFilter = document.getElementById("status-filter").value;
-  const conditionFilter = document.getElementById("condition-filter").value;
+function updateBrandFilter() {
+  console.log('Actualizando filtro de marcas...');
+  
+  // Obtener todas las marcas únicas de los productos
+  const uniqueBrands = [...new Set(productsData.map(p => p.brand))].filter(brand => brand);
+  console.log('Marcas únicas encontradas:', uniqueBrands);
+  
+  // Obtener el select de marcas
+  const brandSelect = document.getElementById('brand');
+  if (!brandSelect) {
+    console.error('No se encontró el select de marcas');
+    return;
+  }
+  
+  // Guardar el valor actual
+  const currentValue = brandSelect.value;
+  
+  // Limpiar opciones existentes (excepto "Todas las marcas")
+  brandSelect.innerHTML = '<option value="all">Todas las marcas</option>';
+  
+  // Agregar cada marca como opción
+  uniqueBrands.sort().forEach(brand => {
+    const option = document.createElement('option');
+    option.value = brand;
+    option.textContent = brand.charAt(0).toUpperCase() + brand.slice(1); // Capitalizar primera letra
+    brandSelect.appendChild(option);
+  });
+  
+  // Restaurar el valor seleccionado si aún existe
+  if (currentValue && uniqueBrands.includes(currentValue)) {
+    brandSelect.value = currentValue;
+  }
+  
+  console.log('Filtro de marcas actualizado');
+}
 
-  console.log("Aplicando filtros:", {
+function updateNewProductBrandSelect() {
+  console.log('Actualizando select de marcas en formulario de nuevo producto...');
+  
+  // Obtener todas las marcas únicas de los productos
+  const uniqueBrands = [...new Set(productsData.map(p => p.brand))].filter(brand => brand);
+  console.log('Marcas únicas para nuevo producto:', uniqueBrands);
+  
+  // Obtener el select de marcas del formulario de nuevo producto
+  const newBrandSelect = document.getElementById('new-brand');
+  if (!newBrandSelect) {
+    console.error('No se encontró el select de marcas del formulario de nuevo producto');
+    return;
+  }
+  
+  // Guardar el valor actual
+  const currentValue = newBrandSelect.value;
+  
+  // Limpiar opciones existentes (excepto "Seleccione una marca" y "Agregar nueva marca")
+  newBrandSelect.innerHTML = `
+    <option value="">Seleccione una marca</option>
+    <option value="fox">Fox</option>
+    <option value="bell">Bell</option>
+    <option value="fly">Fly Racing</option>
+    <option value="alpinestars">Alpinestars</option>
+    <option value="aircraft">Aircraft</option>
+    <option value="troylee">Troy Lee Design</option>
+  `;
+  
+  // Agregar marcas dinámicas (que no estén ya en la lista)
+  const existingBrands = ['fox', 'bell', 'fly', 'alpinestars', 'aircraft', 'troylee'];
+  uniqueBrands.forEach(brand => {
+    if (!existingBrands.includes(brand)) {
+      const option = document.createElement('option');
+      option.value = brand;
+      option.textContent = brand.charAt(0).toUpperCase() + brand.slice(1);
+      newBrandSelect.appendChild(option);
+    }
+  });
+  
+  // Agregar opción "Agregar nueva marca" al final
+  const newBrandOption = document.createElement('option');
+  newBrandOption.value = 'new';
+  newBrandOption.textContent = '+ Agregar nueva marca';
+  newBrandSelect.appendChild(newBrandOption);
+  
+  // Restaurar el valor seleccionado si aún existe
+  if (currentValue && (uniqueBrands.includes(currentValue) || existingBrands.includes(currentValue))) {
+    newBrandSelect.value = currentValue;
+  }
+  
+  console.log('Select de marcas del formulario actualizado');
+}
+
+function applyFilters() {
+  const searchElement = document.getElementById("search");
+  const searchTerm = searchElement ? searchElement.value.toLowerCase() : '';
+  const categoryElement = document.getElementById("category");
+  const categoryFilter = categoryElement ? categoryElement.value.toLowerCase() : 'all';
+  const brandElement = document.getElementById("brand");
+  const brandFilter = brandElement ? brandElement.value.toLowerCase() : 'all';
+  const stockElement = document.getElementById("stock-filter");
+  const stockFilter = stockElement ? stockElement.value : 'all';
+  const priceRangeElement = document.getElementById("price-range");
+  const priceFilter = priceRangeElement ? parseInt(priceRangeElement.value) : 0;
+  const statusElement = document.getElementById("status-filter");
+  const statusFilter = statusElement ? statusElement.value : 'all';
+  const conditionElement = document.getElementById("condition-filter");
+  const conditionFilter = conditionElement ? conditionElement.value : 'all';
+
+  console.log("=== APLICANDO FILTROS ===");
+  console.log("Valores de filtros:", {
     searchTerm,
     categoryFilter,
     brandFilter,
@@ -352,29 +455,107 @@ function applyFilters() {
   console.log("Condiciones únicas en productos:", [...new Set(productsData.map(p => p.condition))]);
 
   filteredProducts = productsData.filter((product) => {
-    if (searchTerm && !product.name.toLowerCase().includes(searchTerm)) return false;
-    if (categoryFilter !== "all" && product.category.toLowerCase() !== categoryFilter) return false;
-    if (brandFilter !== "all" && product.brand.toLowerCase() !== brandFilter) return false;
+    console.log(`\n--- Evaluando producto: ${product.name} ---`);
+    
+    // Filtro de búsqueda
+    if (searchTerm) {
+      const productName = product.name ? product.name.toLowerCase() : '';
+      const productBrand = product.brand ? product.brand.toLowerCase() : '';
+      const productCategory = product.category ? product.category.toLowerCase() : '';
+      
+      const matchesName = productName.includes(searchTerm);
+      const matchesBrand = productBrand.includes(searchTerm);
+      const matchesCategory = productCategory.includes(searchTerm);
+      
+      console.log(`🔍 Búsqueda "${searchTerm}" en:`, {
+        name: productName,
+        brand: productBrand,
+        category: productCategory,
+        matchesName,
+        matchesBrand,
+        matchesCategory
+      });
+      
+      if (!matchesName && !matchesBrand && !matchesCategory) {
+        console.log(`❌ Filtrado por búsqueda: no coincide con "${searchTerm}"`);
+        return false;
+      }
+    }
+    
+    // Filtro de categoría
+    if (categoryFilter !== "all") {
+      const productCategory = product.category ? product.category.toLowerCase() : '';
+      console.log(`🔍 Comparando categoría: "${productCategory}" === "${categoryFilter}"`, productCategory === categoryFilter);
+      if (productCategory !== categoryFilter) {
+        console.log(`❌ Filtrado por categoría: "${product.category}" !== "${categoryFilter}"`);
+        return false;
+      }
+    }
+    
+    // Filtro de marca
+    if (brandFilter !== "all") {
+      const productBrand = product.brand ? product.brand.toLowerCase() : '';
+      console.log(`🔍 Comparando marca: "${productBrand}" === "${brandFilter}"`, productBrand === brandFilter);
+      if (productBrand !== brandFilter) {
+        console.log(`❌ Filtrado por marca: "${product.brand}" !== "${brandFilter}"`);
+        return false;
+      }
+    }
     
     // Filtrar por estado - con debug
     if (statusFilter !== "all") {
-      console.log(`Comparando estado: "${product.status}" === "${statusFilter}"`, product.status === statusFilter);
-      if (product.status !== statusFilter) return false;
+      const productStatus = product.status || 'Activo'; // Default a 'Activo' si no hay estado
+      console.log(`🔍 Comparando estado: "${productStatus}" === "${statusFilter}"`, productStatus === statusFilter);
+      if (productStatus !== statusFilter) {
+        console.log(`❌ Filtrado por estado: "${productStatus}" !== "${statusFilter}"`);
+        return false;
+      }
     }
     
     // Filtrar por condición
-    if (conditionFilter !== "all" && product.condition !== conditionFilter) return false;
+    if (conditionFilter !== "all") {
+      const productCondition = product.condition || 'Nuevo'; // Default a 'Nuevo' si no hay condición
+      console.log(`🔍 Comparando condición: "${productCondition}" === "${conditionFilter}"`, productCondition === conditionFilter);
+      if (productCondition !== conditionFilter) {
+        console.log(`❌ Filtrado por condición: "${productCondition}" !== "${conditionFilter}"`);
+        return false;
+      }
+    }
     
     // Filtrar por stock
     if (stockFilter !== "all") {
       const stock = product.stock || 0;
-      if (stockFilter === "low" && stock > 5) return false;
-      if (stockFilter === "medium" && (stock <= 5 || stock > 15)) return false;
-      if (stockFilter === "high" && stock <= 15) return false;
-      if (stockFilter === "out" && stock > 0) return false;
+      console.log(`🔍 Evaluando stock: ${stock} para filtro "${stockFilter}"`);
+      
+      if (stockFilter === "low" && stock > 5) {
+        console.log(`❌ Filtrado por stock bajo: ${stock} > 5`);
+        return false;
+      }
+      if (stockFilter === "medium" && (stock <= 5 || stock > 15)) {
+        console.log(`❌ Filtrado por stock medio: ${stock} no está entre 6-15`);
+        return false;
+      }
+      if (stockFilter === "high" && stock <= 15) {
+        console.log(`❌ Filtrado por stock alto: ${stock} <= 15`);
+        return false;
+      }
+      if (stockFilter === "out" && stock > 0) {
+        console.log(`❌ Filtrado por sin stock: ${stock} > 0`);
+        return false;
+      }
     }
     
-    if (priceFilter && product.price > priceFilter) return false;
+    // Filtrar por precio
+    if (priceFilter && priceFilter > 0) {
+      const productPrice = product.price || 0;
+      console.log(`🔍 Evaluando precio: ${productPrice} <= ${priceFilter}`);
+      if (productPrice > priceFilter) {
+        console.log(`❌ Filtrado por precio: ${productPrice} > ${priceFilter}`);
+        return false;
+      }
+    }
+    
+    console.log(`✅ Producto "${product.name}" pasa todos los filtros`);
     return true;
   });
 

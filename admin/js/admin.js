@@ -1031,15 +1031,55 @@ async function setMainImage() {
   }
 }
 
-function deleteImage() {
+async function deleteImage() {
+  console.log('deleteImage llamado');
+  console.log('currentGalleryImages:', currentGalleryImages);
+  console.log('selectedImageIndex:', selectedImageIndex);
+  console.log('currentGalleryProduct:', currentGalleryProduct);
+  
   if (currentGalleryImages.length > 1) {
     if (confirm('¿Estás seguro de que deseas eliminar esta imagen?')) {
+      const imageToDelete = currentGalleryImages[selectedImageIndex];
+      console.log('Imagen a eliminar:', imageToDelete);
+      
+      // Eliminar del array local
       currentGalleryImages.splice(selectedImageIndex, 1);
       if (selectedImageIndex >= currentGalleryImages.length) {
         selectedImageIndex = currentGalleryImages.length - 1;
       }
-      renderGallery();
-      showNotification('Imagen eliminada', 'success');
+      
+      try {
+        // Actualizar en el backend
+        const response = await fetch(`${API_BASE}/api/products/${currentGalleryProduct}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            images: currentGalleryImages
+          })
+        });
+        
+        console.log('Respuesta del servidor:', response.status);
+        
+        if (response.ok) {
+          showNotification('Imagen eliminada correctamente', 'success');
+          renderGallery();
+          // Recargar la lista de productos para reflejar los cambios
+          fetchProducts();
+        } else {
+          const error = await response.json();
+          console.error('Error del servidor:', error);
+          showNotification(`Error al eliminar imagen: ${error.error}`, 'error');
+          // Revertir cambios locales
+          currentGalleryImages.splice(selectedImageIndex, 0, imageToDelete);
+        }
+      } catch (error) {
+        console.error('Error en la petición:', error);
+        showNotification(`Error al eliminar imagen: ${error.message}`, 'error');
+        // Revertir cambios locales
+        currentGalleryImages.splice(selectedImageIndex, 0, imageToDelete);
+      }
     }
   } else {
     showNotification('No se puede eliminar la única imagen', 'error');
@@ -1047,10 +1087,21 @@ function deleteImage() {
 }
 
 function addImages() {
-  document.getElementById('gallery-file-input').click();
+  console.log('addImages llamado');
+  const fileInput = document.getElementById('gallery-file-input');
+  if (fileInput) {
+    console.log('Abriendo selector de archivos');
+    fileInput.click();
+  } else {
+    console.error('No se encontró el input de archivos');
+    showNotification('Error: No se encontró el selector de archivos', 'error');
+  }
 }
 
 async function uploadImagesToGallery(files) {
+  console.log('uploadImagesToGallery llamado con archivos:', files);
+  console.log('currentGalleryProduct:', currentGalleryProduct);
+  
   if (!currentGalleryProduct) {
     showNotification('Error: No hay producto seleccionado', 'error');
     return;
@@ -1060,8 +1111,12 @@ async function uploadImagesToGallery(files) {
   const progressFill = document.getElementById('progress-fill');
   const progressText = document.getElementById('progress-text');
   
-  progressElement.style.display = 'block';
-  progressText.textContent = 'Subiendo imágenes...';
+  if (progressElement) {
+    progressElement.style.display = 'block';
+  }
+  if (progressText) {
+    progressText.textContent = 'Subiendo imágenes...';
+  }
   
   try {
     const formData = new FormData();
@@ -1069,12 +1124,15 @@ async function uploadImagesToGallery(files) {
       formData.append('files', file);
     });
 
+    console.log('Enviando petición a:', `${API_BASE}/api/products/${currentGalleryProduct}/images`);
     const response = await fetch(`${API_BASE}/api/products/${currentGalleryProduct}/images`, {
       method: 'POST',
       body: formData
     });
 
+    console.log('Respuesta del servidor:', response.status);
     const result = await response.json();
+    console.log('Resultado:', result);
 
     if (result.success) {
       showNotification(result.message, 'success');
@@ -1122,14 +1180,17 @@ async function uploadImagesToGallery(files) {
   }
   
   // Subida de archivos
-  document.getElementById('gallery-file-input').addEventListener('change', (e) => {
-    const files = Array.from(e.target.files);
-    if (files.length > 0) {
-      // Aquí procesarías la subida de archivos
-      showNotification(`${files.length} imagen(es) agregada(s)`, 'success');
-      e.target.value = ''; // Limpiar input
-    }
-  });
+  const galleryFileInput = document.getElementById('gallery-file-input');
+  if (galleryFileInput) {
+    galleryFileInput.addEventListener('change', (e) => {
+      const files = Array.from(e.target.files);
+      if (files.length > 0) {
+        console.log('Archivos seleccionados:', files);
+        uploadImagesToGallery(files);
+        e.target.value = ''; // Limpiar input
+      }
+    });
+  }
   
   // Drag and drop
   const uploadArea = document.getElementById('gallery-upload');

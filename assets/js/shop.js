@@ -23,14 +23,20 @@ const miniCartCount = document.getElementById("mini-cart-count");
 
 // Función para cargar productos desde la API
 async function loadProducts() {
+    console.log('loadProducts llamado');
+    console.log('API_BASE:', API_BASE);
+    
     try {
         showLoading(productsGrid, "Cargando cascos...");
         // showLoading(accessoriesGrid, "Cargando accesorios..."); // COMENTADO - Sección de accesorios deshabilitada
         
         const response = await fetch(`${API_BASE}/api/products`);
+        console.log('Respuesta de la API:', response.status);
+        
         if (!response.ok) throw new Error("Error al cargar productos");
         
         products = await response.json();
+        console.log('Productos cargados:', products);
         renderProducts();
     } catch (error) {
         console.error("Error:", error);
@@ -51,13 +57,22 @@ function showError(container, message) {
 
 // Función para renderizar productos
 function renderProducts() {
+    console.log('renderProducts llamado');
+    console.log('products:', products);
+    console.log('productsGrid:', productsGrid);
+    
     // Limpiar contenedores
     productsGrid.innerHTML = "";
-    accessoriesGrid.innerHTML = "";
+    // accessoriesGrid.innerHTML = ""; // COMENTADO - Sección de accesorios deshabilitada
     
     // Separar productos por categoría
-    const helmets = products.filter(p => p.category === "Cascos" && p.status === "Activo");
-    const accessories = products.filter(p => p.category === "Accesorios" && p.status === "Activo");
+    const helmets = products.filter(p => 
+        (p.category === "Cascos" || p.category === "cascos" || p.category === "CASCO") && 
+        p.status === "Activo"
+    );
+    console.log('helmets encontrados:', helmets);
+    console.log('Todos los productos:', products.map(p => ({ id: p.id, name: p.name, category: p.category, status: p.status })));
+    // const accessories = products.filter(p => p.category === "Accesorios" && p.status === "Activo"); // COMENTADO
     
     // Renderizar cascos
     if (helmets.length === 0) {

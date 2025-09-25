@@ -335,11 +335,13 @@ function renderPagination() {
 
 // ==================== FILTROS ====================
 function updateBrandFilter() {
-  console.log('Actualizando filtro de marcas...');
+  console.log('=== ACTUALIZANDO FILTRO DE MARCAS ===');
+  console.log('Productos disponibles:', productsData.length);
   
   // Obtener todas las marcas únicas de los productos
   const uniqueBrands = [...new Set(productsData.map(p => p.brand))].filter(brand => brand);
   console.log('Marcas únicas encontradas:', uniqueBrands);
+  console.log('Tipos de marcas:', uniqueBrands.map(brand => ({ brand, type: typeof brand })));
   
   // Obtener el select de marcas
   const brandSelect = document.getElementById('brand');
@@ -350,6 +352,7 @@ function updateBrandFilter() {
   
   // Guardar el valor actual
   const currentValue = brandSelect.value;
+  console.log('Valor actual del select:', currentValue);
   
   // Limpiar opciones existentes (excepto "Todas las marcas")
   brandSelect.innerHTML = '<option value="all">Todas las marcas</option>';
@@ -360,13 +363,18 @@ function updateBrandFilter() {
     option.value = brand;
     option.textContent = brand.charAt(0).toUpperCase() + brand.slice(1); // Capitalizar primera letra
     brandSelect.appendChild(option);
+    console.log(`Agregada opción: value="${brand}", text="${option.textContent}"`);
   });
   
   // Restaurar el valor seleccionado si aún existe
   if (currentValue && uniqueBrands.includes(currentValue)) {
     brandSelect.value = currentValue;
+    console.log('Valor restaurado:', currentValue);
+  } else {
+    console.log('Valor no restaurado. Actual:', currentValue, 'Disponibles:', uniqueBrands);
   }
   
+  console.log('Opciones finales del select:', Array.from(brandSelect.options).map(opt => ({ value: opt.value, text: opt.textContent })));
   console.log('Filtro de marcas actualizado');
 }
 
@@ -430,6 +438,9 @@ function applyFilters() {
   const categoryFilter = categoryElement ? categoryElement.value.toLowerCase() : 'all';
   const brandElement = document.getElementById("brand");
   const brandFilter = brandElement ? brandElement.value.toLowerCase() : 'all';
+  console.log('Elemento brand encontrado:', brandElement);
+  console.log('Valor original del select brand:', brandElement ? brandElement.value : 'NO ENCONTRADO');
+  console.log('Valor procesado brandFilter:', brandFilter);
   const stockElement = document.getElementById("stock-filter");
   const stockFilter = stockElement ? stockElement.value : 'all';
   const priceRangeElement = document.getElementById("price-range");
@@ -453,6 +464,8 @@ function applyFilters() {
   console.log("Productos antes del filtro:", productsData.length);
   console.log("Estados únicos en productos:", [...new Set(productsData.map(p => p.status))]);
   console.log("Condiciones únicas en productos:", [...new Set(productsData.map(p => p.condition))]);
+  console.log("Marcas únicas en productos:", [...new Set(productsData.map(p => p.brand))]);
+  console.log("Detalles de marcas:", productsData.map(p => ({ name: p.name, brand: p.brand, brandType: typeof p.brand })));
 
   filteredProducts = productsData.filter((product) => {
     console.log(`\n--- Evaluando producto: ${product.name} ---`);
@@ -495,7 +508,12 @@ function applyFilters() {
     // Filtro de marca
     if (brandFilter !== "all") {
       const productBrand = product.brand ? product.brand.toLowerCase() : '';
-      console.log(`🔍 Comparando marca: "${productBrand}" === "${brandFilter}"`, productBrand === brandFilter);
+      console.log(`🔍 Comparando marca:`, {
+        productBrand: `"${productBrand}"`,
+        brandFilter: `"${brandFilter}"`,
+        originalBrand: `"${product.brand}"`,
+        match: productBrand === brandFilter
+      });
       if (productBrand !== brandFilter) {
         console.log(`❌ Filtrado por marca: "${product.brand}" !== "${brandFilter}"`);
         return false;
@@ -567,16 +585,34 @@ function applyFilters() {
 }
 
 function resetFilters() {
-  document.getElementById("search").value = "";
-  document.getElementById("category").value = "all";
-  document.getElementById("brand").value = "all";
-  document.getElementById("stock-filter").value = "all";
-  document.getElementById("status-filter").value = "all";
-  document.getElementById("condition-filter").value = "all";
-  document.getElementById("price-range").value = document.getElementById("price-range").max;
+  console.log('=== RESETEANDO FILTROS ===');
+  
+  const searchEl = document.getElementById("search");
+  if (searchEl) searchEl.value = "";
+  
+  const categoryEl = document.getElementById("category");
+  if (categoryEl) categoryEl.value = "all";
+  
+  const brandEl = document.getElementById("brand");
+  if (brandEl) brandEl.value = "all";
+  
+  const stockEl = document.getElementById("stock-filter");
+  if (stockEl) stockEl.value = "all";
+  
+  const statusEl = document.getElementById("status-filter");
+  if (statusEl) statusEl.value = "all";
+  
+  const conditionEl = document.getElementById("condition-filter");
+  if (conditionEl) conditionEl.value = "all";
+  
+  const priceEl = document.getElementById("price-range");
+  if (priceEl) priceEl.value = priceEl.max;
+  
   filteredProducts = [...productsData];
   currentPage = 1;
   renderProducts();
+  
+  console.log('Filtros reseteados');
 }
 
 // ==================== MODAL ====================
@@ -635,7 +671,12 @@ function setupEventListeners() {
   
 
   if (applyFiltersBtn) {
-    applyFiltersBtn.addEventListener("click", applyFilters);
+    applyFiltersBtn.addEventListener("click", () => {
+      console.log('=== BOTÓN APLICAR FILTROS CLICKEADO ===');
+      applyFilters();
+    });
+  } else {
+    console.error('No se encontró el botón apply-filters');
   }
   
   if (resetFiltersBtn) {

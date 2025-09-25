@@ -788,6 +788,70 @@ header {
     box-shadow: 0 2px 8px rgba(240, 173, 78, 0.3);
 }
 
+/* Contenedor de miniatura con controles */
+.gallery-thumbnail-container {
+    position: relative;
+    display: inline-block;
+    margin: 5px;
+}
+
+/* Controles de orden */
+.order-controls {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.gallery-thumbnail-container:hover .order-controls {
+    opacity: 1;
+}
+
+.order-btn {
+    width: 24px;
+    height: 24px;
+    border: none;
+    border-radius: 3px;
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    font-size: 12px;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.order-btn:hover:not(:disabled) {
+    background: var(--primary-color);
+    transform: scale(1.1);
+}
+
+.order-btn:disabled {
+    background: rgba(0, 0, 0, 0.4);
+    color: #999;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.position-indicator {
+    width: 24px;
+    height: 24px;
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    font-size: 10px;
+    font-weight: bold;
+    border-radius: 3px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 1px 0;
+}
 
 .gallery-actions {
     display: flex;
@@ -798,6 +862,22 @@ header {
 
 .gallery-actions .btn {
     min-width: 120px;
+}
+
+.gallery-info {
+    background: #e8f4fd;
+    border: 1px solid #bee5eb;
+    border-radius: 6px;
+    padding: 12px;
+    margin: 15px 0;
+    text-align: center;
+    color: #0c5460;
+    font-size: 14px;
+}
+
+.gallery-info p {
+    margin: 0;
+    line-height: 1.4;
 }
 
 .gallery-upload {

@@ -1348,6 +1348,14 @@ function renderGallery() {
     console.log('Índice seleccionado ajustado a 0');
   }
   
+  // Mostrar/ocultar mensaje informativo
+  const galleryInfo = document.getElementById('gallery-info');
+  if (currentGalleryImages.length > 1) {
+    galleryInfo.style.display = 'block';
+  } else {
+    galleryInfo.style.display = 'none';
+  }
+  
   // Mostrar imagen principal
   const mainImageUrl = currentGalleryImages[selectedImageIndex];
   console.log('Mostrando imagen principal:', mainImageUrl);
@@ -1364,12 +1372,17 @@ function renderGallery() {
     mainImg.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjQwMCIgdmlld0JveD0iMCAwIDQwMCA0MDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjQwMCIgaGVpZ2h0PSI0MDAiIGZpbGw9IiNFRUVFRUUiLz48cGF0aCBkPSJNMTUwIDIwMEg0MDBWMzAwSDI1MFYyMEgyMDBWMjAwSDE1MFoiIGZpbGw9IiM5OTkiLz48L3N2Zz4=';
   }
   
-  // Renderizar miniaturas
+  // Renderizar miniaturas con controles de orden
   thumbnailsContainer.innerHTML = '';
   console.log('Renderizando', currentGalleryImages.length, 'miniaturas');
   
   currentGalleryImages.forEach((image, index) => {
     if (image && image.trim() !== '') {
+      // Crear contenedor para cada miniatura con controles
+      const thumbnailContainer = document.createElement('div');
+      thumbnailContainer.className = 'gallery-thumbnail-container';
+      
+      // Crear la imagen
       const thumbnail = document.createElement('img');
       const imageUrl = image.startsWith('http') ? image : `/${image}`;
       thumbnail.src = imageUrl;
@@ -1382,8 +1395,48 @@ function renderGallery() {
         console.error('Error al cargar miniatura:', imageUrl);
         thumbnail.style.display = 'none';
       };
-      thumbnailsContainer.appendChild(thumbnail);
-      console.log(`Miniatura ${index} agregada:`, imageUrl);
+      
+      // Crear controles de orden
+      const orderControls = document.createElement('div');
+      orderControls.className = 'order-controls';
+      
+      // Botón para subir (mover hacia arriba)
+      const moveUpBtn = document.createElement('button');
+      moveUpBtn.className = 'order-btn move-up-btn';
+      moveUpBtn.innerHTML = '↑';
+      moveUpBtn.title = 'Mover hacia arriba';
+      moveUpBtn.disabled = index === 0; // Deshabilitar si es la primera imagen
+      moveUpBtn.onclick = (e) => {
+        e.stopPropagation();
+        moveImageUp(index);
+      };
+      
+      // Botón para bajar (mover hacia abajo)
+      const moveDownBtn = document.createElement('button');
+      moveDownBtn.className = 'order-btn move-down-btn';
+      moveDownBtn.innerHTML = '↓';
+      moveDownBtn.title = 'Mover hacia abajo';
+      moveDownBtn.disabled = index === currentGalleryImages.length - 1; // Deshabilitar si es la última imagen
+      moveDownBtn.onclick = (e) => {
+        e.stopPropagation();
+        moveImageDown(index);
+      };
+      
+      // Indicador de posición
+      const positionIndicator = document.createElement('div');
+      positionIndicator.className = 'position-indicator';
+      positionIndicator.textContent = `${index + 1}`;
+      
+      // Agregar elementos al contenedor
+      orderControls.appendChild(moveUpBtn);
+      orderControls.appendChild(positionIndicator);
+      orderControls.appendChild(moveDownBtn);
+      
+      thumbnailContainer.appendChild(thumbnail);
+      thumbnailContainer.appendChild(orderControls);
+      thumbnailsContainer.appendChild(thumbnailContainer);
+      
+      console.log(`Miniatura ${index} agregada con controles:`, imageUrl);
     } else {
       console.warn(`Imagen ${index} vacía o inválida, omitiendo`);
     }
@@ -1395,6 +1448,94 @@ function renderGallery() {
 function selectImage(index) {
   selectedImageIndex = index;
   renderGallery();
+}
+
+// Funciones para reordenar imágenes
+function moveImageUp(index) {
+  console.log('Moviendo imagen hacia arriba:', index);
+  
+  if (index > 0) {
+    // Intercambiar con la imagen anterior
+    const temp = currentGalleryImages[index];
+    currentGalleryImages[index] = currentGalleryImages[index - 1];
+    currentGalleryImages[index - 1] = temp;
+    
+    // Actualizar el índice seleccionado si es necesario
+    if (selectedImageIndex === index) {
+      selectedImageIndex = index - 1;
+    } else if (selectedImageIndex === index - 1) {
+      selectedImageIndex = index;
+    }
+    
+    console.log('Imagen movida hacia arriba. Nuevo orden:', currentGalleryImages);
+    
+    // Guardar el nuevo orden en el backend
+    saveImageOrder();
+    
+    // Re-renderizar la galería
+    renderGallery();
+  }
+}
+
+function moveImageDown(index) {
+  console.log('Moviendo imagen hacia abajo:', index);
+  
+  if (index < currentGalleryImages.length - 1) {
+    // Intercambiar con la imagen siguiente
+    const temp = currentGalleryImages[index];
+    currentGalleryImages[index] = currentGalleryImages[index + 1];
+    currentGalleryImages[index + 1] = temp;
+    
+    // Actualizar el índice seleccionado si es necesario
+    if (selectedImageIndex === index) {
+      selectedImageIndex = index + 1;
+    } else if (selectedImageIndex === index + 1) {
+      selectedImageIndex = index;
+    }
+    
+    console.log('Imagen movida hacia abajo. Nuevo orden:', currentGalleryImages);
+    
+    // Guardar el nuevo orden en el backend
+    saveImageOrder();
+    
+    // Re-renderizar la galería
+    renderGallery();
+  }
+}
+
+async function saveImageOrder() {
+  if (!currentGalleryProduct) {
+    console.error('No hay producto seleccionado para guardar orden');
+    return;
+  }
+  
+  try {
+    console.log('Guardando nuevo orden de imágenes:', currentGalleryImages);
+    
+    const response = await fetch(`${API_BASE}/api/products/${currentGalleryProduct}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        images: currentGalleryImages
+      })
+    });
+    
+    if (response.ok) {
+      console.log('Orden de imágenes guardado exitosamente');
+      showNotification('Orden de imágenes actualizado', 'success');
+      // Recargar la lista de productos para reflejar los cambios
+      fetchProducts();
+    } else {
+      const error = await response.json();
+      console.error('Error al guardar orden:', error);
+      showNotification(`Error al guardar orden: ${error.error}`, 'error');
+    }
+  } catch (error) {
+    console.error('Error al guardar orden de imágenes:', error);
+    showNotification(`Error al guardar orden: ${error.message}`, 'error');
+  }
 }
 
 

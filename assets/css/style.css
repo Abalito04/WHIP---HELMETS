@@ -1305,7 +1305,7 @@ footer.legal-footer a:hover {
         border-bottom: 2px solid #f0ad4e;
         position: sticky;
         top: 0;
-        z-index: 1000;
+        z-index: 100;
     }
     
     .header-left, .header-right {

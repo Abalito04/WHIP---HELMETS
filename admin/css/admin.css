@@ -429,6 +429,23 @@ header {
     border-radius: 4px;
 }
 
+/* Contenedor para input de marca */
+.brand-input-container {
+    position: relative;
+}
+
+.brand-input-container input {
+    margin-top: 8px;
+    border: 2px solid var(--primary-color);
+    background-color: #fff9e6;
+}
+
+.brand-input-container input:focus {
+    outline: none;
+    border-color: #e6a23c;
+    box-shadow: 0 0 5px rgba(240, 173, 78, 0.3);
+}
+
 /* ================================================== */
 /*                  RESPONSIVE DESIGN                 */
 /* ================================================== */

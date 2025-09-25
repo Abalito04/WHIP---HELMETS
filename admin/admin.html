@@ -212,15 +212,19 @@
                 </div>
                 <div class="form-group">
                     <label for="new-brand">Marca</label>
-                    <select id="new-brand" required>
-                        <option value="">Seleccione una marca</option>
-                        <option value="fox">Fox</option>
-                        <option value="bell">Bell</option>
-                        <option value="fly">Fly Racing</option>
-                        <option value="alpinestars">Alpinestars</option>
-                        <option value="aircraft">Aircraft</option>
-                        <option value="troylee">Troy Lee Design</option>
-                    </select>
+                    <div class="brand-input-container">
+                        <select id="new-brand" required>
+                            <option value="">Seleccione una marca</option>
+                            <option value="fox">Fox</option>
+                            <option value="bell">Bell</option>
+                            <option value="fly">Fly Racing</option>
+                            <option value="alpinestars">Alpinestars</option>
+                            <option value="aircraft">Aircraft</option>
+                            <option value="troylee">Troy Lee Design</option>
+                            <option value="new">+ Agregar nueva marca</option>
+                        </select>
+                        <input type="text" id="new-brand-input" placeholder="Escriba la nueva marca" style="display: none;">
+                    </div>
                 </div>
                 <div class="form-group">
                     <label for="new-price">Precio Normal</label>

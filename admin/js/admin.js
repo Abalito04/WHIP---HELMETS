@@ -415,6 +415,20 @@ function closeAddProductModal() {
   }
   preview.style.display = "none";
   
+  // Limpiar el input de nueva marca
+  const brandInput = document.getElementById("new-brand-input");
+  if (brandInput) {
+    brandInput.style.display = "none";
+    brandInput.value = "";
+    brandInput.required = false;
+  }
+  
+  // Resetear el select de marca
+  const brandSelect = document.getElementById("new-brand");
+  if (brandSelect) {
+    brandSelect.required = true;
+  }
+  
   // Limpiar múltiples imágenes
   const multiplePreview = document.getElementById("multiple-images-preview");
   const imagesList = document.getElementById("images-list");
@@ -457,6 +471,26 @@ function setupEventListeners() {
   
   if (exportDataBtn) {
     exportDataBtn.addEventListener("click", exportData);
+  }
+  
+  // Manejar select de marca para permitir agregar nuevas
+  const brandSelect = document.getElementById("new-brand");
+  const brandInput = document.getElementById("new-brand-input");
+  
+  if (brandSelect && brandInput) {
+    brandSelect.addEventListener("change", (e) => {
+      if (e.target.value === "new") {
+        brandInput.style.display = "block";
+        brandInput.required = true;
+        brandSelect.required = false;
+        brandInput.focus();
+      } else {
+        brandInput.style.display = "none";
+        brandInput.required = false;
+        brandSelect.required = true;
+        brandInput.value = "";
+      }
+    });
   }
   
   // Ver estadísticas de productos
@@ -732,10 +766,20 @@ function setupEventListeners() {
     e.preventDefault();
     
     const condition = document.getElementById("new-condition").value;
+    const brandSelect = document.getElementById("new-brand");
+    const brandInput = document.getElementById("new-brand-input");
+    
+    // Determinar la marca a usar
+    let brand;
+    if (brandSelect.value === "new" && brandInput.value.trim()) {
+      brand = brandInput.value.trim().toLowerCase().replace(/\s+/g, '');
+    } else {
+      brand = brandSelect.value;
+    }
     
     const newProduct = {
       name: document.getElementById("new-name").value,
-      brand: document.getElementById("new-brand").value,
+      brand: brand,
       price: parseFloat(document.getElementById("new-price").value),
       porcentaje_descuento: document.getElementById("new-porcentaje-descuento").value ? parseFloat(document.getElementById("new-porcentaje-descuento").value) : null,
       category: document.getElementById("new-category").value,

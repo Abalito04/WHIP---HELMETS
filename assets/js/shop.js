@@ -103,12 +103,12 @@ function createProductCard(product) {
     card.dataset.brand = product.brand;
     card.dataset.id = product.id;
     
-    // Crear imágenes (usar primera imagen de la galería si hay múltiples, sino la imagen principal)
+    // Crear imágenes (usar imagen principal como prioridad, sino primera de la galería)
     let imageUrl;
-    if (product.images && Array.isArray(product.images) && product.images.length > 0) {
-        imageUrl = product.images[0]; // Usar la primera imagen de la galería
-    } else if (product.image) {
-        imageUrl = product.image; // Usar la imagen principal
+    if (product.image) {
+        imageUrl = product.image; // Usar la imagen principal (prioridad)
+    } else if (product.images && Array.isArray(product.images) && product.images.length > 0) {
+        imageUrl = product.images[0]; // Fallback: primera imagen de la galería
     } else {
         imageUrl = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIGZpbGw9IiNFRUVFRUUiLz48cGF0aCBkPSJNMTUgMzBINjBWNDBIMzVWMzBIMjVWMTVIMjBWMzBIMTVaIiBmaWxsPSIjOTk5Ii8+PC9zdmc+";
     }
@@ -603,17 +603,26 @@ async function loadProductImages(productId) {
         console.log('Producto encontrado:', product);
         
         if (product) {
-            // Usar las múltiples imágenes si existen, sino usar la imagen principal
-            if (product.images && Array.isArray(product.images) && product.images.length > 0) {
-                console.log('Usando múltiples imágenes:', product.images);
-                currentGalleryImages = product.images;
-            } else if (product.image) {
-                console.log('Usando imagen principal:', product.image);
-                currentGalleryImages = [product.image];
-            } else {
-                console.log('No hay imágenes disponibles');
-                currentGalleryImages = [];
+            // Crear array de imágenes con la imagen principal como primera
+            currentGalleryImages = [];
+            
+            // Agregar imagen principal como primera
+            if (product.image) {
+                currentGalleryImages.push(product.image);
+                console.log('Imagen principal agregada:', product.image);
             }
+            
+            // Agregar imágenes adicionales de la galería (sin duplicar la principal)
+            if (product.images && Array.isArray(product.images) && product.images.length > 0) {
+                product.images.forEach(img => {
+                    if (img !== product.image) { // Evitar duplicar la imagen principal
+                        currentGalleryImages.push(img);
+                    }
+                });
+                console.log('Imágenes adicionales agregadas:', product.images);
+            }
+            
+            console.log('Galería final:', currentGalleryImages);
         } else {
             console.log('Producto no encontrado');
             currentGalleryImages = [];

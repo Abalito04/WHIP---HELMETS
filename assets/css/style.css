@@ -402,11 +402,13 @@ main {
     color: #f0ad4e;
 }
 
-/* Sección específica de accesorios */
+/* Sección específica de accesorios - COMENTADA TEMPORALMENTE */
+/*
 #accesorios .product-card {
     max-width: 300px;
     margin: 0 auto;
 }
+*/
 
 #cascos .product-image {
     width: 100%;          /* Ocupa todo el ancho del contenedor */

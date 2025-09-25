@@ -17,7 +17,7 @@ let cart = JSON.parse(localStorage.getItem("cart_v1")) || [];
 
 // Elementos DOM
 const productsGrid = document.getElementById("destacados");
-const accessoriesGrid = document.getElementById("accesorios");
+// const accessoriesGrid = document.getElementById("accesorios"); // COMENTADO - Sección de accesorios deshabilitada
 const cartCountEl = document.querySelector(".cart");
 const miniCartCount = document.getElementById("mini-cart-count");
 
@@ -25,7 +25,7 @@ const miniCartCount = document.getElementById("mini-cart-count");
 async function loadProducts() {
     try {
         showLoading(productsGrid, "Cargando cascos...");
-        showLoading(accessoriesGrid, "Cargando accesorios...");
+        // showLoading(accessoriesGrid, "Cargando accesorios..."); // COMENTADO - Sección de accesorios deshabilitada
         
         const response = await fetch(`${API_BASE}/api/products`);
         if (!response.ok) throw new Error("Error al cargar productos");
@@ -35,7 +35,7 @@ async function loadProducts() {
     } catch (error) {
         console.error("Error:", error);
         showError(productsGrid, "Error al cargar los productos. Por favor, recarga la página.");
-        showError(accessoriesGrid, "Error al cargar los accesorios. Por favor, recarga la página.");
+        // showError(accessoriesGrid, "Error al cargar los accesorios. Por favor, recarga la página."); // COMENTADO
     }
 }
 
@@ -69,7 +69,8 @@ function renderProducts() {
         });
     }
     
-    // Renderizar accesorios
+    // Renderizar accesorios - COMENTADO TEMPORALMENTE
+    /*
     if (accessories.length === 0) {
         accessoriesGrid.innerHTML = '<div class="no-products">No hay accesorios disponibles en este momento.</div>';
     } else {
@@ -78,6 +79,7 @@ function renderProducts() {
             accessoriesGrid.appendChild(productCard);
         });
     }
+    */
     
     // Actualizar contador del carrito
     updateCartCount();

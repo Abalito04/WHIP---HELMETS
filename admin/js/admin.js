@@ -1146,102 +1146,250 @@ let currentGalleryImages = [];
 let selectedImageIndex = 0;
 
 async function openGallery(productId, productName) {
+  console.log('=== ABRIENDO GALERÍA ===');
   console.log('openGallery llamado para producto:', productId, 'nombre:', productName);
-  currentGalleryProduct = productId;
-  document.getElementById('gallery-title').textContent = `Galería de Imágenes - ${productName}`;
   
-  // Cargar imágenes desde la API
-  await loadProductImages(productId);
+  // Validar parámetros
+  if (!productId) {
+    console.error('ID de producto no proporcionado');
+    showNotification('Error: ID de producto no válido', 'error');
+    return;
+  }
   
-  document.getElementById('gallery-modal').style.display = 'block';
+  if (!productName) {
+    productName = 'Producto';
+    console.warn('Nombre de producto no proporcionado, usando valor por defecto');
+  }
+  
+  // Verificar que los elementos del modal existan
+  const galleryModal = document.getElementById('gallery-modal');
+  const galleryTitle = document.getElementById('gallery-title');
+  
+  if (!galleryModal) {
+    console.error('Modal de galería no encontrado');
+    showNotification('Error: Modal de galería no encontrado', 'error');
+    return;
+  }
+  
+  if (!galleryTitle) {
+    console.error('Título de galería no encontrado');
+    showNotification('Error: Título de galería no encontrado', 'error');
+    return;
+  }
+  
+  try {
+    currentGalleryProduct = productId;
+    galleryTitle.textContent = `Galería de Imágenes - ${productName}`;
+    
+    console.log('Cargando imágenes para producto:', productId);
+    // Cargar imágenes desde la API
+    await loadProductImages(productId);
+    
+    console.log('Mostrando modal de galería');
+    galleryModal.style.display = 'block';
+    
+    console.log('Galería abierta exitosamente');
+  } catch (error) {
+    console.error('Error al abrir galería:', error);
+    showNotification(`Error al abrir galería: ${error.message}`, 'error');
+  }
 }
 
 async function loadProductImages(productId) {
+  console.log('=== CARGANDO IMÁGENES DEL PRODUCTO ===');
   console.log('loadProductImages llamado para producto:', productId);
+  console.log('API_BASE:', API_BASE);
   
   try {
     // Primero intentar cargar desde la API para obtener datos actualizados
-    const response = await fetch(`${API_BASE}/api/products/${productId}`);
+    const url = `${API_BASE}/api/products/${productId}`;
+    console.log('Intentando cargar desde URL:', url);
+    
+    const response = await fetch(url);
+    console.log('Respuesta de la API:', response.status, response.statusText);
+    
     if (response.ok) {
       const product = await response.json();
       console.log('Producto cargado desde API:', product);
+      console.log('Imagen principal:', product.image);
+      console.log('Imágenes adicionales:', product.images);
       
       // Crear array de imágenes con la imagen principal como primera
       currentGalleryImages = [];
       
       // Agregar imagen principal como primera
-      if (product.image) {
+      if (product.image && product.image.trim() !== '') {
         currentGalleryImages.push(product.image);
         console.log('Imagen principal agregada:', product.image);
       }
       
       // Agregar imágenes adicionales de la galería (sin duplicar la principal)
       if (product.images && Array.isArray(product.images) && product.images.length > 0) {
-        product.images.forEach(img => {
-          if (img !== product.image) { // Evitar duplicar la imagen principal
+        product.images.forEach((img, index) => {
+          if (img && img.trim() !== '' && img !== product.image) { // Evitar duplicar la imagen principal
             currentGalleryImages.push(img);
+            console.log(`Imagen adicional ${index} agregada:`, img);
           }
         });
-        console.log('Imágenes adicionales agregadas:', product.images);
+        console.log('Total de imágenes adicionales agregadas:', product.images.length);
       }
       
       console.log('Galería final:', currentGalleryImages);
+      console.log('Total de imágenes en galería:', currentGalleryImages.length);
     } else {
       console.log('No se pudo cargar desde API, usando datos locales');
       // Fallback: usar datos locales
       const product = productsData.find(p => p.id == productId);
+      console.log('Producto encontrado en datos locales:', product);
+      
       if (product) {
-        if (product.images && Array.isArray(product.images) && product.images.length > 0) {
-          currentGalleryImages = product.images;
-        } else {
-          currentGalleryImages = [product.image];
+        currentGalleryImages = [];
+        
+        // Agregar imagen principal
+        if (product.image && product.image.trim() !== '') {
+          currentGalleryImages.push(product.image);
+          console.log('Imagen principal (local) agregada:', product.image);
         }
+        
+        // Agregar imágenes adicionales
+        if (product.images && Array.isArray(product.images) && product.images.length > 0) {
+          product.images.forEach((img, index) => {
+            if (img && img.trim() !== '' && img !== product.image) {
+              currentGalleryImages.push(img);
+              console.log(`Imagen adicional ${index} (local) agregada:`, img);
+            }
+          });
+        }
+        
+        console.log('Galería final (local):', currentGalleryImages);
+      } else {
+        console.error('Producto no encontrado en datos locales');
+        currentGalleryImages = [];
       }
     }
     
+    // Asegurar que selectedImageIndex esté dentro del rango
+    if (currentGalleryImages.length > 0) {
+      selectedImageIndex = Math.min(selectedImageIndex, currentGalleryImages.length - 1);
+    } else {
+      selectedImageIndex = 0;
+    }
+    
+    console.log('Índice seleccionado ajustado:', selectedImageIndex);
     renderGallery();
   } catch (error) {
     console.error('Error al cargar imágenes del producto:', error);
+    console.error('Detalles del error:', error.message);
+    
     // Fallback: usar datos locales
     const product = productsData.find(p => p.id == productId);
+    console.log('Producto encontrado en fallback:', product);
+    
     if (product) {
-      if (product.images && Array.isArray(product.images) && product.images.length > 0) {
-        currentGalleryImages = product.images;
-      } else {
-        currentGalleryImages = [product.image];
+      currentGalleryImages = [];
+      
+      // Agregar imagen principal
+      if (product.image && product.image.trim() !== '') {
+        currentGalleryImages.push(product.image);
+        console.log('Imagen principal (fallback) agregada:', product.image);
       }
+      
+      // Agregar imágenes adicionales
+      if (product.images && Array.isArray(product.images) && product.images.length > 0) {
+        product.images.forEach((img, index) => {
+          if (img && img.trim() !== '' && img !== product.image) {
+            currentGalleryImages.push(img);
+            console.log(`Imagen adicional ${index} (fallback) agregada:`, img);
+          }
+        });
+      }
+      
+      console.log('Galería final (fallback):', currentGalleryImages);
+    } else {
+      console.error('Producto no encontrado en fallback');
+      currentGalleryImages = [];
     }
+    
+    // Asegurar que selectedImageIndex esté dentro del rango
+    if (currentGalleryImages.length > 0) {
+      selectedImageIndex = Math.min(selectedImageIndex, currentGalleryImages.length - 1);
+    } else {
+      selectedImageIndex = 0;
+    }
+    
     renderGallery();
   }
 }
 
 function renderGallery() {
-  if (currentGalleryImages.length === 0) {
-    document.getElementById('gallery-main-img').src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjQwMCIgdmlld0JveD0iMCAwIDQwMCA0MDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjQwMCIgaGVpZ2h0PSI0MDAiIGZpbGw9IiNFRUVFRUUiLz48cGF0aCBkPSJNMTUwIDIwMEg0MDBWMzAwSDI1MFYyMEgyMDBWMjAwSDE1MFoiIGZpbGw9IiM5OTkiLz48L3N2Zz4=';
-    document.getElementById('gallery-thumbnails').innerHTML = '<p style="text-align: center; color: #666;">No hay imágenes disponibles</p>';
+  console.log('=== RENDERIZANDO GALERÍA ===');
+  console.log('currentGalleryImages:', currentGalleryImages);
+  console.log('selectedImageIndex:', selectedImageIndex);
+  console.log('Total de imágenes:', currentGalleryImages.length);
+  
+  const mainImg = document.getElementById('gallery-main-img');
+  const thumbnailsContainer = document.getElementById('gallery-thumbnails');
+  
+  if (!mainImg || !thumbnailsContainer) {
+    console.error('Elementos de la galería no encontrados');
     return;
   }
   
+  if (currentGalleryImages.length === 0) {
+    console.log('No hay imágenes, mostrando placeholder');
+    mainImg.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjQwMCIgdmlld0JveD0iMCAwIDQwMCA0MDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjQwMCIgaGVpZ2h0PSI0MDAiIGZpbGw9IiNFRUVFRUUiLz48cGF0aCBkPSJNMTUwIDIwMEg0MDBWMzAwSDI1MFYyMEgyMDBWMjAwSDE1MFoiIGZpbGw9IiM5OTkiLz48L3N2Zz4=';
+    thumbnailsContainer.innerHTML = '<p style="text-align: center; color: #666; padding: 20px;">No hay imágenes disponibles para este producto</p>';
+    return;
+  }
+  
+  // Asegurar que selectedImageIndex esté dentro del rango
+  if (selectedImageIndex >= currentGalleryImages.length) {
+    selectedImageIndex = 0;
+    console.log('Índice seleccionado ajustado a 0');
+  }
+  
   // Mostrar imagen principal
-  const mainImg = document.getElementById('gallery-main-img');
   const mainImageUrl = currentGalleryImages[selectedImageIndex];
-  mainImg.src = mainImageUrl.startsWith('http') ? mainImageUrl : `/${mainImageUrl}`;
+  console.log('Mostrando imagen principal:', mainImageUrl);
+  
+  if (mainImageUrl && mainImageUrl.trim() !== '') {
+    const fullImageUrl = mainImageUrl.startsWith('http') ? mainImageUrl : `/${mainImageUrl}`;
+    mainImg.src = fullImageUrl;
+    mainImg.onerror = () => {
+      console.error('Error al cargar imagen principal:', fullImageUrl);
+      mainImg.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjQwMCIgdmlld0JveD0iMCAwIDQwMCA0MDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjQwMCIgaGVpZ2h0PSI0MDAiIGZpbGw9IiNFRUVFRUUiLz48cGF0aCBkPSJNMTUwIDIwMEg0MDBWMzAwSDI1MFYyMEgyMDBWMjAwSDE1MFoiIGZpbGw9IiM5OTkiLz48L3N2Zz4=';
+    };
+  } else {
+    console.error('Imagen principal vacía o inválida');
+    mainImg.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjQwMCIgdmlld0JveD0iMCAwIDQwMCA0MDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjQwMCIgaGVpZ2h0PSI0MDAiIGZpbGw9IiNFRUVFRUUiLz48cGF0aCBkPSJNMTUwIDIwMEg0MDBWMzAwSDI1MFYyMEgyMDBWMjAwSDE1MFoiIGZpbGw9IiM5OTkiLz48L3N2Zz4=';
+  }
   
   // Renderizar miniaturas
-  const thumbnailsContainer = document.getElementById('gallery-thumbnails');
   thumbnailsContainer.innerHTML = '';
+  console.log('Renderizando', currentGalleryImages.length, 'miniaturas');
   
   currentGalleryImages.forEach((image, index) => {
-    const thumbnail = document.createElement('img');
-    const imageUrl = image.startsWith('http') ? image : `/${image}`;
-    thumbnail.src = imageUrl;
-    thumbnail.className = `gallery-thumbnail ${index === selectedImageIndex ? 'active' : ''}`;
-    thumbnail.onclick = () => selectImage(index);
-    thumbnail.onerror = () => {
-      thumbnail.style.display = 'none';
-    };
-    thumbnailsContainer.appendChild(thumbnail);
+    if (image && image.trim() !== '') {
+      const thumbnail = document.createElement('img');
+      const imageUrl = image.startsWith('http') ? image : `/${image}`;
+      thumbnail.src = imageUrl;
+      thumbnail.className = `gallery-thumbnail ${index === selectedImageIndex ? 'active' : ''}`;
+      thumbnail.onclick = () => {
+        console.log('Seleccionando imagen:', index);
+        selectImage(index);
+      };
+      thumbnail.onerror = () => {
+        console.error('Error al cargar miniatura:', imageUrl);
+        thumbnail.style.display = 'none';
+      };
+      thumbnailsContainer.appendChild(thumbnail);
+      console.log(`Miniatura ${index} agregada:`, imageUrl);
+    } else {
+      console.warn(`Imagen ${index} vacía o inválida, omitiendo`);
+    }
   });
+  
+  console.log('Galería renderizada exitosamente');
 }
 
 function selectImage(index) {

@@ -1243,7 +1243,6 @@ function renderGallery() {
     // Crear contenedor para cada miniatura
     const thumbnailContainer = document.createElement('div');
     thumbnailContainer.className = 'gallery-thumbnail-container';
-    thumbnailContainer.draggable = true;
     thumbnailContainer.dataset.index = index;
     
     // Crear la imagen
@@ -1251,7 +1250,10 @@ function renderGallery() {
     const imageUrl = image.startsWith('http') ? image : `/${image}`;
     thumbnail.src = imageUrl;
     thumbnail.className = `gallery-thumbnail ${index === selectedImageIndex ? 'active' : ''}`;
-    thumbnail.onclick = () => selectImage(index);
+    thumbnail.onclick = (e) => {
+      e.stopPropagation();
+      selectImage(index);
+    };
     thumbnail.onerror = () => {
       thumbnail.style.display = 'none';
     };
@@ -1262,12 +1264,15 @@ function renderGallery() {
     dragIndicator.innerHTML = '⋮⋮';
     dragIndicator.title = 'Arrastra para reordenar';
     
-    // Eventos de drag and drop
-    thumbnailContainer.addEventListener('dragstart', handleDragStart);
+    // Hacer solo el indicador de drag arrastrable, no toda la imagen
+    dragIndicator.draggable = true;
+    dragIndicator.addEventListener('dragstart', (e) => handleDragStart(e, index));
+    dragIndicator.addEventListener('dragend', handleDragEnd);
+    
+    // Eventos de drop en el contenedor
     thumbnailContainer.addEventListener('dragover', handleDragOver);
     thumbnailContainer.addEventListener('dragleave', handleDragLeave);
-    thumbnailContainer.addEventListener('drop', handleDrop);
-    thumbnailContainer.addEventListener('dragend', handleDragEnd);
+    thumbnailContainer.addEventListener('drop', (e) => handleDrop(e, index));
     
     // Agregar elementos al contenedor
     thumbnailContainer.appendChild(thumbnail);
@@ -1283,13 +1288,17 @@ function selectImage(index) {
 
 // Variables para drag and drop
 let draggedIndex = null;
+let originalImageOrder = [];
 
-function handleDragStart(e) {
-  draggedIndex = parseInt(e.target.dataset.index);
+function handleDragStart(e, index) {
+  draggedIndex = index;
+  // Guardar el orden original antes de empezar a arrastrar
+  originalImageOrder = [...currentGalleryImages];
   e.target.classList.add('dragging');
   e.dataTransfer.effectAllowed = 'move';
   e.dataTransfer.setData('text/html', e.target.outerHTML);
   console.log('Iniciando drag de imagen:', draggedIndex);
+  console.log('Orden original guardado:', originalImageOrder.length);
 }
 
 function handleDragOver(e) {
@@ -1311,7 +1320,7 @@ function handleDragLeave(e) {
   }
 }
 
-function handleDrop(e) {
+function handleDrop(e, dropIndex) {
   e.preventDefault();
   
   // Limpiar todos los estilos de drag-over
@@ -1319,35 +1328,45 @@ function handleDrop(e) {
     el.classList.remove('drag-over');
   });
   
-  // Encontrar el contenedor de destino
-  const dropContainer = e.target.closest('.gallery-thumbnail-container');
-  if (!dropContainer) return;
-  
-  const dropIndex = parseInt(dropContainer.dataset.index);
   console.log('Soltando imagen:', draggedIndex, 'en posición:', dropIndex);
+  console.log('Imágenes antes del reordenamiento:', currentGalleryImages.length);
   
-  if (draggedIndex !== null && draggedIndex !== dropIndex) {
+  if (draggedIndex !== null && draggedIndex !== dropIndex && 
+      draggedIndex >= 0 && draggedIndex < currentGalleryImages.length &&
+      dropIndex >= 0 && dropIndex < currentGalleryImages.length) {
+    
+    // Crear una copia del array para evitar mutaciones
+    const newOrder = [...currentGalleryImages];
+    const draggedImage = newOrder[draggedIndex];
+    
     // Reordenar las imágenes
-    const draggedImage = currentGalleryImages[draggedIndex];
-    currentGalleryImages.splice(draggedIndex, 1);
-    currentGalleryImages.splice(dropIndex, 0, draggedImage);
+    newOrder.splice(draggedIndex, 1);
+    newOrder.splice(dropIndex, 0, draggedImage);
     
-    // Actualizar el índice seleccionado si es necesario
-    if (selectedImageIndex === draggedIndex) {
-      selectedImageIndex = dropIndex;
-    } else if (selectedImageIndex > draggedIndex && selectedImageIndex <= dropIndex) {
-      selectedImageIndex--;
-    } else if (selectedImageIndex < draggedIndex && selectedImageIndex >= dropIndex) {
-      selectedImageIndex++;
+    // Validar que no se perdieron imágenes
+    if (newOrder.length === currentGalleryImages.length) {
+      currentGalleryImages = newOrder;
+      
+      // Actualizar el índice seleccionado si es necesario
+      if (selectedImageIndex === draggedIndex) {
+        selectedImageIndex = dropIndex;
+      } else if (selectedImageIndex > draggedIndex && selectedImageIndex <= dropIndex) {
+        selectedImageIndex--;
+      } else if (selectedImageIndex < draggedIndex && selectedImageIndex >= dropIndex) {
+        selectedImageIndex++;
+      }
+      
+      console.log('Imágenes reordenadas correctamente:', currentGalleryImages.length);
+      
+      // Guardar el nuevo orden en el backend
+      saveImageOrder();
+      
+      // Re-renderizar la galería
+      renderGallery();
+    } else {
+      console.error('Error: Se perdieron imágenes durante el reordenamiento');
+      showNotification('Error al reordenar imágenes', 'error');
     }
-    
-    console.log('Imágenes reordenadas:', currentGalleryImages);
-    
-    // Guardar el nuevo orden en el backend
-    saveImageOrder();
-    
-    // Re-renderizar la galería
-    renderGallery();
   }
   
   draggedIndex = null;
@@ -1359,7 +1378,16 @@ function handleDragEnd(e) {
   document.querySelectorAll('.gallery-thumbnail-container').forEach(el => {
     el.classList.remove('drag-over');
   });
+  
+  // Si no se completó el drop, restaurar el orden original
+  if (draggedIndex !== null) {
+    console.log('Restaurando orden original');
+    currentGalleryImages = [...originalImageOrder];
+    renderGallery();
+  }
+  
   draggedIndex = null;
+  originalImageOrder = [];
 }
 
 async function saveImageOrder() {

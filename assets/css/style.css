@@ -1558,9 +1558,11 @@ footer.legal-footer a:hover {
     
     /* Galería responsive */
     .gallery-content {
-        margin: 5% auto;
-        width: 95%;
-        padding: 15px;
+        margin: 2% auto;
+        width: 98%;
+        padding: 10px;
+        max-height: 96vh;
+        overflow-y: auto;
     }
     
     .gallery-header h2 {
@@ -1568,7 +1570,9 @@ footer.legal-footer a:hover {
     }
     
     .gallery-main-image img {
-        max-height: 300px;
+        max-height: 60vh;
+        width: 100%;
+        object-fit: contain;
     }
     
     .gallery-thumbnails {
@@ -1640,11 +1644,15 @@ footer.legal-footer a:hover {
     
     .product-card {
         margin-bottom: 0.8em;
-        min-height: 480px;
+        min-height: 520px;
+    }
+    
+    .product-images-container {
+        height: 300px;
     }
     
     .product-image {
-        height: 240px;
+        height: 300px;
     }
     
     .product-info h3 {
@@ -1678,12 +1686,17 @@ footer.legal-footer a:hover {
     }
     
     .gallery-content {
-        width: 98%;
-        padding: 10px;
+        width: 100%;
+        padding: 5px;
+        margin: 1% auto;
+        max-height: 98vh;
+        overflow-y: auto;
     }
     
     .gallery-main-image img {
-        max-height: 250px;
+        max-height: 65vh;
+        width: 100%;
+        object-fit: contain;
     }
     
     .gallery-thumbnails {
@@ -1739,6 +1752,21 @@ footer.legal-footer a:hover {
     
     .mini-cart {
         max-height: 90vh;
+    }
+    
+    /* Galería en móviles pequeños */
+    .gallery-content {
+        width: 100%;
+        padding: 5px;
+        margin: 0.5% auto;
+        max-height: 99vh;
+        overflow-y: auto;
+    }
+    
+    .gallery-main-image img {
+        max-height: 70vh;
+        width: 100%;
+        object-fit: contain;
     }
 }
 

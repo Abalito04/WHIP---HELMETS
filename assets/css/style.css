@@ -1117,7 +1117,7 @@ footer.legal-footer a:hover {
 
 .gallery-thumbnail:hover {
     border-color: #f0ad4e;
-    transform: scale(1.05);
+    /* Removido transform: scale(1.05) para evitar movimiento */
 }
 
 .gallery-thumbnail.active {

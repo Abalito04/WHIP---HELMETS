@@ -990,8 +990,14 @@ function closeGallery() {
 }
 
 async function setMainImage() {
+  console.log('setMainImage llamado');
+  console.log('currentGalleryImages:', currentGalleryImages);
+  console.log('currentGalleryProduct:', currentGalleryProduct);
+  console.log('selectedImageIndex:', selectedImageIndex);
+  
   if (currentGalleryImages.length > 0 && currentGalleryProduct) {
     const newMainImage = currentGalleryImages[selectedImageIndex];
+    console.log('Nueva imagen principal:', newMainImage);
     
     try {
       const response = await fetch(`${API_BASE}/api/products/${currentGalleryProduct}`, {
@@ -1004,17 +1010,24 @@ async function setMainImage() {
         })
       });
 
+      console.log('Respuesta del servidor:', response.status);
+      
       if (response.ok) {
         showNotification('Imagen principal actualizada', 'success');
         // Recargar la lista de productos para reflejar los cambios
         fetchProducts();
       } else {
         const error = await response.json();
+        console.error('Error del servidor:', error);
         showNotification(`Error: ${error.error}`, 'error');
       }
     } catch (error) {
+      console.error('Error en la petición:', error);
       showNotification(`Error al actualizar imagen principal: ${error.message}`, 'error');
     }
+  } else {
+    console.log('No se puede establecer imagen principal: datos insuficientes');
+    showNotification('No hay imagen seleccionada o producto válido', 'error');
   }
 }
 
@@ -1092,9 +1105,21 @@ async function uploadImagesToGallery(files) {
   });
   
   // Botones de acción
-  document.getElementById('set-main-image').addEventListener('click', setMainImage);
-  document.getElementById('delete-image').addEventListener('click', deleteImage);
-  document.getElementById('add-images').addEventListener('click', addImages);
+  const setMainImageBtn = document.getElementById('set-main-image');
+  const deleteImageBtn = document.getElementById('delete-image');
+  const addImagesBtn = document.getElementById('add-images');
+  
+  if (setMainImageBtn) {
+    setMainImageBtn.addEventListener('click', setMainImage);
+  }
+  
+  if (deleteImageBtn) {
+    deleteImageBtn.addEventListener('click', deleteImage);
+  }
+  
+  if (addImagesBtn) {
+    addImagesBtn.addEventListener('click', addImages);
+  }
   
   // Subida de archivos
   document.getElementById('gallery-file-input').addEventListener('change', (e) => {

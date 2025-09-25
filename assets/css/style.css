@@ -154,6 +154,7 @@ main {
     text-align: center;
     margin: 50px auto 20px;
     color: #ffffff;
+    position: static;
 }
 
 #destacados h2 {
@@ -591,6 +592,7 @@ main {
   font-size: 2rem;
   margin-bottom: 20px;
   color: var(--main-color);
+  position: static;
 }
 
 .contact-options {
@@ -1303,9 +1305,6 @@ footer.legal-footer a:hover {
         gap: 1em;
         background: rgba(0, 0, 0, 0.9);
         border-bottom: 2px solid #f0ad4e;
-        position: sticky;
-        top: 0;
-        z-index: 100;
     }
     
     .header-left, .header-right {

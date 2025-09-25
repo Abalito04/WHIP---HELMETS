@@ -1145,27 +1145,72 @@ let currentGalleryProduct = null;
 let currentGalleryImages = [];
 let selectedImageIndex = 0;
 
-function openGallery(productId, productName) {
+async function openGallery(productId, productName) {
+  console.log('openGallery llamado para producto:', productId, 'nombre:', productName);
   currentGalleryProduct = productId;
   document.getElementById('gallery-title').textContent = `Galería de Imágenes - ${productName}`;
   
-  // Simular carga de imágenes (en un caso real, esto vendría de la API)
-  loadProductImages(productId);
+  // Cargar imágenes desde la API
+  await loadProductImages(productId);
   
   document.getElementById('gallery-modal').style.display = 'block';
 }
 
-function loadProductImages(productId) {
-  // Cargar imágenes del producto desde la API
-  const product = productsData.find(p => p.id == productId);
-  if (product) {
-    // Si el producto tiene múltiples imágenes, usarlas; si no, usar solo la principal
-    if (product.images && Array.isArray(product.images) && product.images.length > 0) {
-      currentGalleryImages = product.images;
+async function loadProductImages(productId) {
+  console.log('loadProductImages llamado para producto:', productId);
+  
+  try {
+    // Primero intentar cargar desde la API para obtener datos actualizados
+    const response = await fetch(`${API_BASE}/api/products/${productId}`);
+    if (response.ok) {
+      const product = await response.json();
+      console.log('Producto cargado desde API:', product);
+      
+      // Crear array de imágenes con la imagen principal como primera
+      currentGalleryImages = [];
+      
+      // Agregar imagen principal como primera
+      if (product.image) {
+        currentGalleryImages.push(product.image);
+        console.log('Imagen principal agregada:', product.image);
+      }
+      
+      // Agregar imágenes adicionales de la galería (sin duplicar la principal)
+      if (product.images && Array.isArray(product.images) && product.images.length > 0) {
+        product.images.forEach(img => {
+          if (img !== product.image) { // Evitar duplicar la imagen principal
+            currentGalleryImages.push(img);
+          }
+        });
+        console.log('Imágenes adicionales agregadas:', product.images);
+      }
+      
+      console.log('Galería final:', currentGalleryImages);
     } else {
-      currentGalleryImages = [product.image];
+      console.log('No se pudo cargar desde API, usando datos locales');
+      // Fallback: usar datos locales
+      const product = productsData.find(p => p.id == productId);
+      if (product) {
+        if (product.images && Array.isArray(product.images) && product.images.length > 0) {
+          currentGalleryImages = product.images;
+        } else {
+          currentGalleryImages = [product.image];
+        }
+      }
     }
     
+    renderGallery();
+  } catch (error) {
+    console.error('Error al cargar imágenes del producto:', error);
+    // Fallback: usar datos locales
+    const product = productsData.find(p => p.id == productId);
+    if (product) {
+      if (product.images && Array.isArray(product.images) && product.images.length > 0) {
+        currentGalleryImages = product.images;
+      } else {
+        currentGalleryImages = [product.image];
+      }
+    }
     renderGallery();
   }
 }
@@ -1321,10 +1366,13 @@ function addImages() {
 }
 
 async function uploadImagesToGallery(files) {
+  console.log('=== SUBIENDO IMÁGENES ===');
   console.log('uploadImagesToGallery llamado con archivos:', files);
   console.log('currentGalleryProduct:', currentGalleryProduct);
+  console.log('API_BASE:', API_BASE);
   
   if (!currentGalleryProduct) {
+    console.error('No hay producto seleccionado');
     showNotification('Error: No hay producto seleccionado', 'error');
     return;
   }
@@ -1342,33 +1390,54 @@ async function uploadImagesToGallery(files) {
   
   try {
     const formData = new FormData();
-    files.forEach(file => {
+    files.forEach((file, index) => {
+      console.log(`Agregando archivo ${index}:`, {
+        name: file.name,
+        size: file.size,
+        type: file.type
+      });
       formData.append('files', file);
     });
 
-    console.log('Enviando petición a:', `${API_BASE}/api/products/${currentGalleryProduct}/images`);
-    const response = await fetch(`${API_BASE}/api/products/${currentGalleryProduct}/images`, {
+    const url = `${API_BASE}/api/products/${currentGalleryProduct}/images`;
+    console.log('Enviando petición a:', url);
+    console.log('FormData entries:', Array.from(formData.entries()));
+    
+    const response = await fetch(url, {
       method: 'POST',
       body: formData
     });
 
-    console.log('Respuesta del servidor:', response.status);
+    console.log('Respuesta del servidor:', response.status, response.statusText);
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Error del servidor:', errorText);
+      throw new Error(`Error del servidor: ${response.status} ${response.statusText}`);
+    }
+    
     const result = await response.json();
     console.log('Resultado:', result);
 
     if (result.success) {
       showNotification(result.message, 'success');
+      console.log('Recargando imágenes de la galería...');
       // Recargar las imágenes de la galería
-      loadProductImages(currentGalleryProduct);
+      await loadProductImages(currentGalleryProduct);
+      console.log('Recargando lista de productos...');
       // Recargar la lista de productos para reflejar los cambios
       fetchProducts();
     } else {
+      console.error('Error en la respuesta:', result.error);
       showNotification(`Error: ${result.error}`, 'error');
     }
   } catch (error) {
+    console.error('Error al subir imágenes:', error);
     showNotification(`Error al subir imágenes: ${error.message}`, 'error');
   } finally {
-    progressElement.style.display = 'none';
+    if (progressElement) {
+      progressElement.style.display = 'none';
+    }
   }
 }
 

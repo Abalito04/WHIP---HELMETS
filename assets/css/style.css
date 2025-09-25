@@ -1290,16 +1290,10 @@ footer.legal-footer a:hover {
 @media (max-width: 768px) {
     body {
         font-size: 1em;
-        display: flex;
-        flex-direction: column;
-        min-height: 100vh;
     }
     
     main {
         padding: 1em;
-        display: flex;
-        flex-direction: column;
-        flex: 1;
     }
     
     /* Header responsive */
@@ -1312,24 +1306,6 @@ footer.legal-footer a:hover {
         position: sticky;
         top: 0;
         z-index: 1000;
-        order: 1;
-    }
-    
-    /* Hero banner */
-    .hero-banner {
-        order: 2;
-    }
-    
-    /* Main content */
-    main {
-        order: 3;
-        display: flex;
-        flex-direction: column;
-    }
-    
-    /* Footer */
-    .main-footer {
-        order: 4;
     }
     
     .header-left, .header-right {
@@ -1384,15 +1360,6 @@ footer.legal-footer a:hover {
         line-height: 1.4;
     }
     
-    /* Sección de productos */
-    #destacados {
-        order: 1;
-    }
-    
-    /* Sección de contacto */
-    #contacto {
-        order: 2;
-    }
     
     
     /* Productos responsive */

@@ -788,6 +788,68 @@ header {
     box-shadow: 0 2px 8px rgba(240, 173, 78, 0.3);
 }
 
+/* Estilos para drag and drop de miniaturas */
+.gallery-thumbnail-container {
+    position: relative;
+    display: inline-block;
+    cursor: move;
+    transition: all 0.2s ease;
+}
+
+.gallery-thumbnail-container:hover {
+    transform: scale(1.05);
+}
+
+.gallery-thumbnail-container.dragging {
+    opacity: 0.5;
+    transform: rotate(5deg);
+}
+
+.gallery-thumbnail-container.drag-over {
+    border: 2px dashed var(--primary-color) !important;
+    background-color: rgba(240, 173, 78, 0.1);
+}
+
+.drag-indicator {
+    position: absolute;
+    top: 2px;
+    right: 2px;
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    font-size: 10px;
+    padding: 2px 4px;
+    border-radius: 3px;
+    cursor: move;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    user-select: none;
+    pointer-events: none;
+}
+
+.gallery-thumbnail-container:hover .drag-indicator {
+    opacity: 1;
+}
+
+.gallery-thumbnail-container.dragging .drag-indicator {
+    opacity: 1;
+}
+
+.gallery-info {
+    background: #e8f4fd;
+    border: 1px solid #bee5eb;
+    border-radius: 6px;
+    padding: 12px;
+    margin: 15px 0;
+    text-align: center;
+    color: #0c5460;
+    font-size: 14px;
+}
+
+.gallery-info p {
+    margin: 0;
+    line-height: 1.4;
+}
+
 .gallery-actions {
     display: flex;
     gap: 10px;

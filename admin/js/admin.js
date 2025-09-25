@@ -1227,11 +1227,26 @@ function renderGallery() {
   const mainImageUrl = currentGalleryImages[selectedImageIndex];
   mainImg.src = mainImageUrl.startsWith('http') ? mainImageUrl : `/${mainImageUrl}`;
   
-  // Renderizar miniaturas
+  // Mostrar/ocultar mensaje informativo
+  const galleryInfo = document.getElementById('gallery-info');
+  if (currentGalleryImages.length > 1) {
+    galleryInfo.style.display = 'block';
+  } else {
+    galleryInfo.style.display = 'none';
+  }
+  
+  // Renderizar miniaturas con drag and drop
   const thumbnailsContainer = document.getElementById('gallery-thumbnails');
   thumbnailsContainer.innerHTML = '';
   
   currentGalleryImages.forEach((image, index) => {
+    // Crear contenedor para cada miniatura
+    const thumbnailContainer = document.createElement('div');
+    thumbnailContainer.className = 'gallery-thumbnail-container';
+    thumbnailContainer.draggable = true;
+    thumbnailContainer.dataset.index = index;
+    
+    // Crear la imagen
     const thumbnail = document.createElement('img');
     const imageUrl = image.startsWith('http') ? image : `/${image}`;
     thumbnail.src = imageUrl;
@@ -1240,13 +1255,146 @@ function renderGallery() {
     thumbnail.onerror = () => {
       thumbnail.style.display = 'none';
     };
-    thumbnailsContainer.appendChild(thumbnail);
+    
+    // Agregar indicador de drag
+    const dragIndicator = document.createElement('div');
+    dragIndicator.className = 'drag-indicator';
+    dragIndicator.innerHTML = '⋮⋮';
+    dragIndicator.title = 'Arrastra para reordenar';
+    
+    // Eventos de drag and drop
+    thumbnailContainer.addEventListener('dragstart', handleDragStart);
+    thumbnailContainer.addEventListener('dragover', handleDragOver);
+    thumbnailContainer.addEventListener('dragleave', handleDragLeave);
+    thumbnailContainer.addEventListener('drop', handleDrop);
+    thumbnailContainer.addEventListener('dragend', handleDragEnd);
+    
+    // Agregar elementos al contenedor
+    thumbnailContainer.appendChild(thumbnail);
+    thumbnailContainer.appendChild(dragIndicator);
+    thumbnailsContainer.appendChild(thumbnailContainer);
   });
 }
 
 function selectImage(index) {
   selectedImageIndex = index;
   renderGallery();
+}
+
+// Variables para drag and drop
+let draggedIndex = null;
+
+function handleDragStart(e) {
+  draggedIndex = parseInt(e.target.dataset.index);
+  e.target.classList.add('dragging');
+  e.dataTransfer.effectAllowed = 'move';
+  e.dataTransfer.setData('text/html', e.target.outerHTML);
+  console.log('Iniciando drag de imagen:', draggedIndex);
+}
+
+function handleDragOver(e) {
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  
+  // Encontrar el contenedor más cercano
+  const container = e.target.closest('.gallery-thumbnail-container');
+  if (container && container !== e.target.closest('.dragging')) {
+    container.classList.add('drag-over');
+  }
+}
+
+function handleDragLeave(e) {
+  // Solo limpiar si realmente salimos del contenedor
+  const container = e.target.closest('.gallery-thumbnail-container');
+  if (container && !container.contains(e.relatedTarget)) {
+    container.classList.remove('drag-over');
+  }
+}
+
+function handleDrop(e) {
+  e.preventDefault();
+  
+  // Limpiar todos los estilos de drag-over
+  document.querySelectorAll('.gallery-thumbnail-container').forEach(el => {
+    el.classList.remove('drag-over');
+  });
+  
+  // Encontrar el contenedor de destino
+  const dropContainer = e.target.closest('.gallery-thumbnail-container');
+  if (!dropContainer) return;
+  
+  const dropIndex = parseInt(dropContainer.dataset.index);
+  console.log('Soltando imagen:', draggedIndex, 'en posición:', dropIndex);
+  
+  if (draggedIndex !== null && draggedIndex !== dropIndex) {
+    // Reordenar las imágenes
+    const draggedImage = currentGalleryImages[draggedIndex];
+    currentGalleryImages.splice(draggedIndex, 1);
+    currentGalleryImages.splice(dropIndex, 0, draggedImage);
+    
+    // Actualizar el índice seleccionado si es necesario
+    if (selectedImageIndex === draggedIndex) {
+      selectedImageIndex = dropIndex;
+    } else if (selectedImageIndex > draggedIndex && selectedImageIndex <= dropIndex) {
+      selectedImageIndex--;
+    } else if (selectedImageIndex < draggedIndex && selectedImageIndex >= dropIndex) {
+      selectedImageIndex++;
+    }
+    
+    console.log('Imágenes reordenadas:', currentGalleryImages);
+    
+    // Guardar el nuevo orden en el backend
+    saveImageOrder();
+    
+    // Re-renderizar la galería
+    renderGallery();
+  }
+  
+  draggedIndex = null;
+}
+
+function handleDragEnd(e) {
+  e.target.classList.remove('dragging');
+  // Limpiar todos los estilos de drag-over
+  document.querySelectorAll('.gallery-thumbnail-container').forEach(el => {
+    el.classList.remove('drag-over');
+  });
+  draggedIndex = null;
+}
+
+async function saveImageOrder() {
+  if (!currentGalleryProduct) {
+    console.error('No hay producto seleccionado para guardar orden');
+    return;
+  }
+  
+  try {
+    console.log('Guardando nuevo orden de imágenes:', currentGalleryImages);
+    
+    const response = await fetch(`${API_BASE}/api/products/${currentGalleryProduct}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        images: currentGalleryImages
+      })
+    });
+    
+    if (response.ok) {
+      console.log('Orden de imágenes guardado exitosamente');
+      showNotification('Orden de imágenes actualizado', 'success');
+      // Recargar la lista de productos para reflejar los cambios
+      fetchProducts();
+    } else {
+      const error = await response.json();
+      console.error('Error al guardar orden:', error);
+      showNotification(`Error al guardar orden: ${error.error}`, 'error');
+    }
+  } catch (error) {
+    console.error('Error al guardar orden de imágenes:', error);
+    showNotification(`Error al guardar orden: ${error.message}`, 'error');
+  }
 }
 
 function closeGallery() {

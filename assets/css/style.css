@@ -1823,24 +1823,24 @@ footer.legal-footer a:hover {
     }
     
     .stats-grid {
-        grid-template-columns: 1fr;
-        gap: 0.8em;
-        max-width: 280px;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.6em;
+        max-width: 100%;
         margin: 0 auto;
     }
     
     .stat-item {
-        padding: 0.8em 0.6em;
-        border-radius: 12px;
+        padding: 0.6em 0.4em;
+        border-radius: 10px;
     }
     
     .stat-number {
-        font-size: 1.8em;
+        font-size: 1.5em;
         margin-bottom: 0.1em;
     }
     
     .stat-label {
-        font-size: 0.85em;
+        font-size: 0.75em;
         font-weight: 600;
     }
     

@@ -152,7 +152,10 @@ main {
 .hero-banner {
     text-align: center;
     padding: 4em 2em;
-    background: linear-gradient(135deg, #f0ad4e 0%, #e09d3e 100%);
+    background: url('../images/backgrounds/fondo1.jpg');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
     min-height: 100px;
     color: #333;
     position: relative;
@@ -161,67 +164,11 @@ main {
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
 }
 
-.hero-banner::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="75" cy="75" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="50" cy="10" r="0.5" fill="rgba(255,255,255,0.05)"/><circle cx="10" cy="60" r="0.5" fill="rgba(255,255,255,0.05)"/><circle cx="90" cy="40" r="0.5" fill="rgba(255,255,255,0.05)"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
-    opacity: 0.3;
-    pointer-events: none;
-}
 
-.hero-banner::after {
-    content: '';
-    position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
-    animation: shimmer 8s ease-in-out infinite;
-    pointer-events: none;
-}
 
-@keyframes shimmer {
-    0%, 100% { transform: translateX(-100%) translateY(-100%) rotate(0deg); }
-    50% { transform: translateX(0%) translateY(0%) rotate(180deg); }
-}
 
-/* Patrón de logos infinito en el banner */
-.hero-banner::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-image: url('../images/logo.png');
-    background-size: 120px 120px;
-    background-repeat: repeat;
-    background-position: 0 0;
-    opacity: 0.15;
-    filter: blur(0.2px);
-    z-index: 0;
-    pointer-events: none;
-}
 
-/* Responsive para patrón de logos del banner */
-@media (max-width: 768px) {
-    .hero-banner::before {
-        background-size: 100px 100px;
-        opacity: 0.15;
-    }
-}
 
-@media (max-width: 480px) {
-    .hero-banner::before {
-        background-size: 80px 80px;
-        opacity: 0.12;
-    }
-}
 
 /* ================================================== */
 /*                NAVEGACIÓN CON BOTONES              */
@@ -278,20 +225,20 @@ main {
 .hero-banner h2 {
     font-size: 5em;
     margin-bottom: 0.4em;
-    text-shadow: 3px 3px 6px rgba(255,255,255,0.4);
+    text-shadow: 3px 3px 8px rgba(0,0,0,0.7);
     font-weight: bold;
     letter-spacing: 4px;
-    color: #000;
+    color: #fff;
 }
 
 .hero-banner p {
     font-size: 2em;
     margin-bottom: 1.8em;
     line-height: 1.7;
-    text-shadow: 2px 2px 4px rgba(255,255,255,0.4);
+    text-shadow: 2px 2px 6px rgba(0,0,0,0.7);
     opacity: 0.95;
     font-weight: 600;
-    color: #000;
+    color: #fff;
 }
 
 .stats-grid {
@@ -323,16 +270,16 @@ main {
 .stat-number {
     font-size: 2.8em;
     font-weight: bold;
-    color: #000;
-    text-shadow: 2px 2px 6px rgba(255,255,255,0.7), 0 0 10px rgba(255,255,255,0.3);
+    color: #fff;
+    text-shadow: 2px 2px 8px rgba(0,0,0,0.8), 0 0 15px rgba(0,0,0,0.5);
     margin-bottom: 0.3em;
     letter-spacing: 1px;
 }
 
 .stat-label {
     font-size: 1.1em;
-    color: #000;
-    text-shadow: 1px 1px 3px rgba(255,255,255,0.6);
+    color: #fff;
+    text-shadow: 1px 1px 5px rgba(0,0,0,0.8);
     font-weight: 600;
     opacity: 0.95;
     letter-spacing: 0.5px;
@@ -1525,6 +1472,10 @@ footer.legal-footer a:hover {
     
     .hero-banner {
         padding: 3em 1.5em;
+        background-attachment: scroll;
+        background-size: cover;
+        background-position: center;
+        min-height: 300px;
     }
     
     .hero-banner h2 {
@@ -1611,8 +1562,11 @@ footer.legal-footer a:hover {
     /* Hero banner responsive */
     .hero-banner {
         padding: 2em 1em;
-        min-height: auto;
+        min-height: 250px;
         text-align: center;
+        background-attachment: scroll;
+        background-size: cover;
+        background-position: center;
     }
     
     .hero-banner h2 {
@@ -1949,6 +1903,10 @@ footer.legal-footer a:hover {
     
     .hero-banner {
         padding: 1.5em 0.5em;
+        background-attachment: scroll;
+        background-size: cover;
+        background-position: center;
+        min-height: 200px;
     }
     
     .hero-banner h2 {
@@ -2087,7 +2045,10 @@ footer.legal-footer a:hover {
 @media (max-width: 768px) and (orientation: landscape) {
     .hero-banner {
         padding: 1.5em 0.5em;
-        min-height: auto;
+        min-height: 150px;
+        background-attachment: scroll;
+        background-size: cover;
+        background-position: center;
     }
     
     .hero-banner h2 {

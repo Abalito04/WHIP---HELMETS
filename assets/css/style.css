@@ -1126,7 +1126,7 @@ footer.legal-footer a:hover {
     position: fixed;
     bottom: 20px;
     right: 100px;
-    background: #f0ad4e;
+    background: linear-gradient(135deg, #f0a946, #f3b927);
     color: #000;
     width: 70px;
     height: 70px;
@@ -1151,18 +1151,16 @@ footer.legal-footer a:hover {
     top: -5px;
     right: -5px;
     background: #d9534f;
-    color: #fff;
-    font-size: 0.7rem;
-    font-weight: bold;
+    color: white;
     border-radius: 50%;
-    padding: 2px 5px;
-    min-width: 16px;
-    height: 16px;
-    text-align: center;
-    border: 2px solid #fff;
+    width: 20px;
+    height: 20px;
     display: flex;
     align-items: center;
     justify-content: center;
+    font-size: 12px;
+    font-weight: bold;
+    animation: pulse 2s infinite;
 }
 
 /* Dropdown del mini carrito con animación */

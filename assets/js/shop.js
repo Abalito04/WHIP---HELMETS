@@ -207,7 +207,7 @@ function createProductCard(product) {
 // Función para actualizar contador del carrito
 function updateCartCount() {
     if (cartCountEl) {
-        cartCountEl.textContent = `🛒 Carrito (${cart.length})`;
+        cartCountEl.textContent = `Carrito (${cart.length})`;
     }
     
     if (miniCartCount) {

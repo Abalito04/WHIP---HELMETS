@@ -101,13 +101,25 @@ main {
 
 .user-actions a {
     color: #fff;
-    margin-left: 20px;
+    margin-left: 0;
     font-size: 1.3em;
     padding: 0.8em 1.2em;
     border-radius: 8px;
     transition: all 0.3s ease;
     background: rgba(240, 173, 78, 0.1);
     border: 1px solid rgba(240, 173, 78, 0.3);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 48px;
+    text-align: center;
+    line-height: 1.2;
+}
+
+.user-actions {
+    display: flex;
+    align-items: center;
+    gap: 15px;
 }
 
 .user-actions a:hover {
@@ -139,12 +151,76 @@ main {
 /* ================================================== */
 .hero-banner {
     text-align: center;
-    padding: 3em 2em;
+    padding: 4em 2em;
     background: linear-gradient(135deg, #f0ad4e 0%, #e09d3e 100%);
     min-height: 100px;
     color: #333;
     position: relative;
     overflow: hidden;
+    border-bottom: 4px solid rgba(0, 0, 0, 0.1);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+.hero-banner::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="75" cy="75" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="50" cy="10" r="0.5" fill="rgba(255,255,255,0.05)"/><circle cx="10" cy="60" r="0.5" fill="rgba(255,255,255,0.05)"/><circle cx="90" cy="40" r="0.5" fill="rgba(255,255,255,0.05)"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+    opacity: 0.3;
+    pointer-events: none;
+}
+
+.hero-banner::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+    animation: shimmer 8s ease-in-out infinite;
+    pointer-events: none;
+}
+
+@keyframes shimmer {
+    0%, 100% { transform: translateX(-100%) translateY(-100%) rotate(0deg); }
+    50% { transform: translateX(0%) translateY(0%) rotate(180deg); }
+}
+
+/* Patrón de logos infinito en el banner */
+.hero-banner::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: url('../images/logo.png');
+    background-size: 120px 120px;
+    background-repeat: repeat;
+    background-position: 0 0;
+    opacity: 0.12;
+    filter: blur(0.5px);
+    z-index: 0;
+    pointer-events: none;
+}
+
+/* Responsive para patrón de logos del banner */
+@media (max-width: 768px) {
+    .hero-banner::before {
+        background-size: 80px 80px;
+        opacity: 0.06;
+    }
+}
+
+@media (max-width: 480px) {
+    .hero-banner::before {
+        background-size: 60px 60px;
+        opacity: 0.04;
+    }
 }
 
 /* ================================================== */
@@ -200,21 +276,21 @@ main {
 }
 
 .hero-banner h2 {
-    font-size: 3.5em;
-    margin-bottom: 0.3em;
-    text-shadow: 2px 2px 4px rgba(255,255,255,0.3);
+    font-size: 4.2em;
+    margin-bottom: 0.4em;
+    text-shadow: 3px 3px 6px rgba(255,255,255,0.4);
     font-weight: bold;
-    letter-spacing: 2px;
+    letter-spacing: 3px;
     color: #000;
 }
 
 .hero-banner p {
-    font-size: 1.4em;
-    margin-bottom: 1.5em;
-    line-height: 1.6;
-    text-shadow: 1px 1px 2px rgba(255,255,255,0.3);
+    font-size: 1.6em;
+    margin-bottom: 1.8em;
+    line-height: 1.7;
+    text-shadow: 2px 2px 4px rgba(255,255,255,0.4);
     opacity: 0.95;
-    font-weight: 500;
+    font-weight: 600;
     color: #000;
 }
 
@@ -2044,8 +2120,8 @@ footer.legal-footer a:hover {
 }
 
 .chatbot-toggle {
-    width: 60px;
-    height: 60px;
+    width: 70px;
+    height: 70px;
     background: linear-gradient(135deg, #f0a946, #f3b927);
     border-radius: 50%;
     display: flex !important;
@@ -2055,6 +2131,7 @@ footer.legal-footer a:hover {
     box-shadow: 0 4px 20px rgba(240, 169, 70, 0.4);
     transition: all 0.3s ease;
     position: relative;
+    border: 3px solid rgba(255, 255, 255, 0.2);
     /* Debug: asegurar visibilidad */
     visibility: visible !important;
     opacity: 1 !important;
@@ -2066,7 +2143,7 @@ footer.legal-footer a:hover {
 }
 
 .chatbot-toggle i {
-    font-size: 24px;
+    font-size: 28px;
     color: #000;
 }
 

@@ -211,15 +211,15 @@ main {
 /* Responsive para patrón de logos del banner */
 @media (max-width: 768px) {
     .hero-banner::before {
-        background-size: 80px 80px;
-        opacity: 0.06;
+        background-size: 100px 100px;
+        opacity: 0.15;
     }
 }
 
 @media (max-width: 480px) {
     .hero-banner::before {
-        background-size: 60px 60px;
-        opacity: 0.04;
+        background-size: 80px 80px;
+        opacity: 0.12;
     }
 }
 

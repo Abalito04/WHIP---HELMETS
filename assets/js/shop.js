@@ -765,13 +765,14 @@ function updateNavigationButtons() {
     const prevBtnBottom = document.getElementById('gallery-prev-bottom');
     const nextBtnBottom = document.getElementById('gallery-next-bottom');
     
-    const isFirst = selectedImageIndex === 0;
-    const isLast = selectedImageIndex === currentGalleryImages.length - 1;
+    // Con navegación circular, los botones nunca se deshabilitan
+    // Solo se deshabilitan si hay menos de 2 imágenes
+    const hasMultipleImages = currentGalleryImages.length > 1;
     
-    if (prevBtn) prevBtn.disabled = isFirst;
-    if (nextBtn) nextBtn.disabled = isLast;
-    if (prevBtnBottom) prevBtnBottom.disabled = isFirst;
-    if (nextBtnBottom) nextBtnBottom.disabled = isLast;
+    if (prevBtn) prevBtn.disabled = !hasMultipleImages;
+    if (nextBtn) nextBtn.disabled = !hasMultipleImages;
+    if (prevBtnBottom) prevBtnBottom.disabled = !hasMultipleImages;
+    if (nextBtnBottom) nextBtnBottom.disabled = !hasMultipleImages;
 }
 
 function closeGallery() {
@@ -783,10 +784,20 @@ function closeGallery() {
 }
 
 function navigateGallery(direction) {
-    if (direction === 'prev' && selectedImageIndex > 0) {
-        selectedImageIndex--;
-    } else if (direction === 'next' && selectedImageIndex < currentGalleryImages.length - 1) {
-        selectedImageIndex++;
+    if (direction === 'prev') {
+        if (selectedImageIndex > 0) {
+            selectedImageIndex--;
+        } else {
+            // Si estamos en la primera imagen, ir a la última
+            selectedImageIndex = currentGalleryImages.length - 1;
+        }
+    } else if (direction === 'next') {
+        if (selectedImageIndex < currentGalleryImages.length - 1) {
+            selectedImageIndex++;
+        } else {
+            // Si estamos en la última imagen, ir a la primera
+            selectedImageIndex = 0;
+        }
     }
     renderGallery();
 }

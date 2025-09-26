@@ -1585,13 +1585,14 @@ footer.legal-footer a:hover {
     .navigation-buttons {
         gap: 1em;
         padding: 1em;
-        flex-direction: column;
+        flex-direction: row;
         align-items: center;
+        justify-content: center;
     }
     
     .nav-button {
-        padding: 1em 2em;
-        min-width: 200px;
+        padding: 1em 1.5em;
+        min-width: 140px;
         justify-content: center;
     }
     
@@ -1924,8 +1925,8 @@ footer.legal-footer a:hover {
     }
     
     .nav-button {
-        padding: 0.8em 1.5em;
-        min-width: 180px;
+        padding: 0.8em 1.2em;
+        min-width: 120px;
     }
     
     .nav-text {

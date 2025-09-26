@@ -102,7 +102,19 @@ main {
 .user-actions a {
     color: #fff;
     margin-left: 20px;
-    font-size: 1.1em;
+    font-size: 1.3em;
+    padding: 0.8em 1.2em;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    background: rgba(240, 173, 78, 0.1);
+    border: 1px solid rgba(240, 173, 78, 0.3);
+}
+
+.user-actions a:hover {
+    background: rgba(240, 173, 78, 0.2);
+    border-color: rgba(240, 173, 78, 0.5);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(240, 173, 78, 0.3);
 }
 
 .logo {
@@ -971,16 +983,17 @@ footer.legal-footer a:hover {
 
 .login-btn {
     width: 100%;
-    padding: 12px;
+    padding: 16px;
     background: linear-gradient(135deg, #f0ad4e 0%, #ec971f 100%);
     color: white;
     border: none;
-    border-radius: 8px;
-    font-size: 1rem;
+    border-radius: 10px;
+    font-size: 1.2rem;
     font-weight: bold;
     cursor: pointer;
     transition: all 0.3s ease;
-    margin-top: 10px;
+    margin-top: 15px;
+    box-shadow: 0 4px 15px rgba(240, 173, 78, 0.3);
 }
 
 .login-btn:hover {
@@ -1021,17 +1034,18 @@ footer.legal-footer a:hover {
     right: 100px;
     background: #f0ad4e;
     color: #000;
-    width: 60px;
-    height: 60px;
+    width: 70px;
+    height: 70px;
     border-radius: 50%;
     cursor: pointer;
-    font-size: 1.5rem;
+    font-size: 1.8rem;
     z-index: 1100;
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-    transition: transform 0.2s ease;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    transition: all 0.3s ease;
+    border: 3px solid rgba(255, 255, 255, 0.2);
 }
 
 #mini-cart:hover {
@@ -1040,30 +1054,35 @@ footer.legal-footer a:hover {
 
 #mini-cart span {
     position: absolute;
-    top: -5px;
-    right: -5px;
+    top: -8px;
+    right: -8px;
     background: red;
     color: #fff;
-    font-size: 0.9rem;
+    font-size: 1rem;
+    font-weight: bold;
     border-radius: 50%;
-    padding: 3px 7px;
+    padding: 4px 8px;
+    min-width: 20px;
+    text-align: center;
+    border: 2px solid #fff;
 }
 
 /* Dropdown del mini carrito con animación */
 #mini-cart-dropdown {
     position: fixed;
-    bottom: 85px;
+    bottom: 95px;
     right: 100px;
     background: #333;
     color: #fff;
-    border-radius: 10px;
-    padding: 15px;
-    width: 280px;
-    max-height: 320px;
+    border-radius: 12px;
+    padding: 20px;
+    width: 320px;
+    max-height: 400px;
     overflow-y: auto;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+    box-shadow: 0 6px 25px rgba(0,0,0,0.4);
     display: none;
     z-index: 1100;
+    border: 2px solid rgba(240, 173, 78, 0.3);
 
     /* Animación */
     opacity: 0;

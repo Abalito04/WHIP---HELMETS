@@ -762,9 +762,16 @@ function selectImage(index) {
 function updateNavigationButtons() {
     const prevBtn = document.getElementById('gallery-prev');
     const nextBtn = document.getElementById('gallery-next');
+    const prevBtnBottom = document.getElementById('gallery-prev-bottom');
+    const nextBtnBottom = document.getElementById('gallery-next-bottom');
     
-    prevBtn.disabled = selectedImageIndex === 0;
-    nextBtn.disabled = selectedImageIndex === currentGalleryImages.length - 1;
+    const isFirst = selectedImageIndex === 0;
+    const isLast = selectedImageIndex === currentGalleryImages.length - 1;
+    
+    if (prevBtn) prevBtn.disabled = isFirst;
+    if (nextBtn) nextBtn.disabled = isLast;
+    if (prevBtnBottom) prevBtnBottom.disabled = isFirst;
+    if (nextBtnBottom) nextBtnBottom.disabled = isLast;
 }
 
 function closeGallery() {
@@ -805,6 +812,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // Botones de navegación
     const prevBtn = document.getElementById('gallery-prev');
     const nextBtn = document.getElementById('gallery-next');
+    const prevBtnBottom = document.getElementById('gallery-prev-bottom');
+    const nextBtnBottom = document.getElementById('gallery-next-bottom');
     
     if (prevBtn) {
         prevBtn.addEventListener('click', () => navigateGallery('prev'));
@@ -812,6 +821,14 @@ document.addEventListener('DOMContentLoaded', () => {
     
     if (nextBtn) {
         nextBtn.addEventListener('click', () => navigateGallery('next'));
+    }
+    
+    if (prevBtnBottom) {
+        prevBtnBottom.addEventListener('click', () => navigateGallery('prev'));
+    }
+    
+    if (nextBtnBottom) {
+        nextBtnBottom.addEventListener('click', () => navigateGallery('next'));
     }
     
     // Navegación con teclado

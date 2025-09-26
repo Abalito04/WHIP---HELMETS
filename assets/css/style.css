@@ -276,16 +276,16 @@ main {
 }
 
 .hero-banner h2 {
-    font-size: 4.2em;
+    font-size: 5em;
     margin-bottom: 0.4em;
     text-shadow: 3px 3px 6px rgba(255,255,255,0.4);
     font-weight: bold;
-    letter-spacing: 3px;
+    letter-spacing: 4px;
     color: #000;
 }
 
 .hero-banner p {
-    font-size: 1.6em;
+    font-size: 2em;
     margin-bottom: 1.8em;
     line-height: 1.7;
     text-shadow: 2px 2px 4px rgba(255,255,255,0.4);
@@ -1479,6 +1479,32 @@ footer.legal-footer a:hover {
     touch-action: none;
 }
 
+/* Botones laterales de la galería */
+.gallery-nav-left,
+.gallery-nav-right {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 10;
+    display: none; /* Ocultos por defecto, se muestran en móvil */
+}
+
+.gallery-nav-left {
+    left: 10px;
+}
+
+.gallery-nav-right {
+    right: 10px;
+}
+
+/* Contenedor de imagen principal con posición relativa */
+.gallery-main-image {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
 /* ================================================== */
 /*                  RESPONSIVE DESIGN                 */
 /* ================================================== */
@@ -1873,6 +1899,17 @@ footer.legal-footer a:hover {
         touch-action: manipulation;
         -webkit-tap-highlight-color: transparent;
     }
+    
+    /* Mostrar botones laterales en tablet */
+    .gallery-nav-left,
+    .gallery-nav-right {
+        display: flex;
+    }
+    
+    /* Ocultar botones de abajo en tablet */
+    .gallery-nav-bottom {
+        display: none;
+    }
 }
 
 /* Móviles muy pequeños */
@@ -2032,6 +2069,17 @@ footer.legal-footer a:hover {
         font-size: 18px;
         touch-action: manipulation;
         -webkit-tap-highlight-color: transparent;
+    }
+    
+    /* Mostrar botones laterales en móvil */
+    .gallery-nav-left,
+    .gallery-nav-right {
+        display: flex;
+    }
+    
+    /* Ocultar botones de abajo en móvil */
+    .gallery-nav-bottom {
+        display: none;
     }
 }
 

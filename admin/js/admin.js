@@ -211,40 +211,167 @@ async function saveAllChanges() {
 }
 
 // ==================== EXPORTAR DATOS ====================
-function exportData() {
-  // Crear contenido CSV
-      let csvContent = "Nombre,Marca,Precio Normal,% Descuento,Categoría,Condición,Talles,Stock,Estado,Imagen\n";
-  
-  productsData.forEach(product => {
-    const row = [
-      `"${product.name.replace(/"/g, '""')}"`,
-      `"${product.brand}"`,
-      product.price,
-      product.porcentaje_descuento || '',
-      `"${product.category}"`,
-      `"${product.condition || 'Nuevo'}"`,
-      `"${Array.isArray(product.sizes) ? product.sizes.join(',') : product.sizes}"`,
-      product.stock || 0,
-      `"${product.status}"`,
-      `"${product.image}"`
-    ];
-    csvContent += row.join(',') + '\n';
-  });
-  
-  // Crear blob y descargar
-  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-  const link = document.createElement("a");
-  const url = URL.createObjectURL(blob);
-  
-  link.setAttribute("href", url);
-  link.setAttribute("download", "productos_whip_helmets.csv");
-  link.style.visibility = 'hidden';
-  
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  
-  showNotification("Datos exportados correctamente", "success");
+async function exportData() {
+  try {
+    // Obtener usuarios si no están cargados
+    if (usersData.length === 0) {
+      await fetchUsers();
+    }
+    
+    // Crear contenido CSV con mejor organización
+    const timestamp = new Date().toLocaleString('es-ES', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+    
+    let csvContent = `# EXPORTACIÓN COMPLETA - WHIP HELMETS\n`;
+    csvContent += `# Fecha de exportación: ${timestamp}\n`;
+    csvContent += `# Total de productos: ${productsData.length}\n`;
+    csvContent += `# Total de usuarios: ${usersData.length}\n`;
+    csvContent += `#\n`;
+    
+    // ========== SECCIÓN DE PRODUCTOS ==========
+    csvContent += `# ===========================================\n`;
+    csvContent += `# SECCIÓN: PRODUCTOS\n`;
+    csvContent += `# ===========================================\n`;
+    csvContent += `#\n`;
+    csvContent += `# INFORMACIÓN DEL PRODUCTO\n`;
+    csvContent += `# ID,Nombre,Marca,Categoría,Condición,Descripción\n`;
+    csvContent += `#\n`;
+    csvContent += `# PRECIOS Y DESCUENTOS\n`;
+    csvContent += `# Precio Normal,Precio con Descuento,% Descuento\n`;
+    csvContent += `#\n`;
+    csvContent += `# INVENTARIO Y DISPONIBILIDAD\n`;
+    csvContent += `# Stock,Estado,Talles Disponibles\n`;
+    csvContent += `#\n`;
+    csvContent += `# MEDIOS\n`;
+    csvContent += `# Imagen Principal,Imágenes Adicionales\n`;
+    csvContent += `#\n`;
+    csvContent += `# DATOS COMPLETOS DE PRODUCTOS\n`;
+    csvContent += `ID,Nombre,Marca,Categoría,Condición,Descripción,Precio Normal,Precio Descuento,% Descuento,Stock,Estado,Talles,Imagen Principal,Imágenes Adicionales,Fecha Creación\n`;
+    
+    // Agregar datos de productos organizados
+    productsData.forEach((product, index) => {
+      const precioDescuento = product.porcentaje_descuento 
+        ? (product.price * (1 - product.porcentaje_descuento / 100)).toFixed(2)
+        : product.price;
+      
+      const talles = Array.isArray(product.sizes) 
+        ? product.sizes.join('; ') 
+        : (product.sizes || 'No especificado');
+      
+      const imagenesAdicionales = Array.isArray(product.images) && product.images.length > 1
+        ? product.images.slice(1).join('; ')
+        : 'Sin imágenes adicionales';
+      
+      const fechaCreacion = product.created_at 
+        ? new Date(product.created_at).toLocaleDateString('es-ES')
+        : 'No disponible';
+      
+      const row = [
+        product.id || (index + 1),
+        `"${(product.name || 'Sin nombre').replace(/"/g, '""')}"`,
+        `"${product.brand || 'Sin marca'}"`,
+        `"${product.category || 'Sin categoría'}"`,
+        `"${product.condition || 'Nuevo'}"`,
+        `"${(product.description || 'Sin descripción').replace(/"/g, '""')}"`,
+        product.price || 0,
+        precioDescuento,
+        product.porcentaje_descuento || 0,
+        product.stock || 0,
+        `"${product.status || 'Activo'}"`,
+        `"${talles}"`,
+        `"${product.image || 'Sin imagen'}"`,
+        `"${imagenesAdicionales}"`,
+        `"${fechaCreacion}"`
+      ];
+      csvContent += row.join(',') + '\n';
+    });
+    
+    // ========== SECCIÓN DE USUARIOS ==========
+    csvContent += `#\n`;
+    csvContent += `# ===========================================\n`;
+    csvContent += `# SECCIÓN: USUARIOS\n`;
+    csvContent += `# ===========================================\n`;
+    csvContent += `#\n`;
+    csvContent += `# INFORMACIÓN PERSONAL\n`;
+    csvContent += `# ID,Usuario,Nombre,Apellido,Email\n`;
+    csvContent += `#\n`;
+    csvContent += `# INFORMACIÓN DE CONTACTO\n`;
+    csvContent += `# Teléfono,DNI,Código Postal\n`;
+    csvContent += `#\n`;
+    csvContent += `# INFORMACIÓN DE CUENTA\n`;
+    csvContent += `# Rol,Fecha de Registro,Estado\n`;
+    csvContent += `#\n`;
+    csvContent += `# DATOS COMPLETOS DE USUARIOS\n`;
+    csvContent += `ID,Usuario,Nombre,Apellido,Email,Teléfono,DNI,Código Postal,Rol,Fecha Registro,Estado\n`;
+    
+    // Agregar datos de usuarios organizados
+    usersData.forEach((user, index) => {
+      const fechaRegistro = user.created_at 
+        ? new Date(user.created_at).toLocaleDateString('es-ES')
+        : 'No disponible';
+      
+      const row = [
+        user.id || (index + 1),
+        `"${user.username || 'Sin usuario'}"`,
+        `"${user.nombre || 'Sin nombre'}"`,
+        `"${user.apellido || 'Sin apellido'}"`,
+        `"${user.email || 'Sin email'}"`,
+        `"${user.telefono || 'Sin teléfono'}"`,
+        `"${user.dni || 'Sin DNI'}"`,
+        `"${user.codigo_postal || 'Sin código postal'}"`,
+        `"${user.role || 'Usuario'}"`,
+        `"${fechaRegistro}"`,
+        `"${user.status || 'Activo'}"`
+      ];
+      csvContent += row.join(',') + '\n';
+    });
+    
+    // ========== RESUMEN FINAL ==========
+    csvContent += `#\n`;
+    csvContent += `# ===========================================\n`;
+    csvContent += `# RESUMEN DE EXPORTACIÓN\n`;
+    csvContent += `# ===========================================\n`;
+    csvContent += `#\n`;
+    csvContent += `# PRODUCTOS:\n`;
+    csvContent += `# Total productos: ${productsData.length}\n`;
+    csvContent += `# Productos activos: ${productsData.filter(p => p.status === 'Activo').length}\n`;
+    csvContent += `# Productos inactivos: ${productsData.filter(p => p.status === 'Inactivo').length}\n`;
+    csvContent += `# Con descuento: ${productsData.filter(p => p.porcentaje_descuento > 0).length}\n`;
+    csvContent += `# Sin stock: ${productsData.filter(p => (p.stock || 0) === 0).length}\n`;
+    csvContent += `#\n`;
+    csvContent += `# USUARIOS:\n`;
+    csvContent += `# Total usuarios: ${usersData.length}\n`;
+    csvContent += `# Administradores: ${usersData.filter(u => u.role === 'admin').length}\n`;
+    csvContent += `# Usuarios normales: ${usersData.filter(u => u.role === 'user').length}\n`;
+    csvContent += `# Con email: ${usersData.filter(u => u.email).length}\n`;
+    csvContent += `# Con teléfono: ${usersData.filter(u => u.telefono).length}\n`;
+    
+    // Crear blob y descargar
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    
+    const fileName = `datos_completos_whip_helmets_${new Date().toISOString().split('T')[0]}.csv`;
+    
+    link.setAttribute("href", url);
+    link.setAttribute("download", fileName);
+    link.style.visibility = 'hidden';
+    
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    showNotification(`Datos exportados correctamente: ${productsData.length} productos y ${usersData.length} usuarios`, "success");
+    
+  } catch (error) {
+    console.error("Error al exportar datos:", error);
+    showNotification(`Error al exportar datos: ${error.message}`, "error");
+  }
 }
 
 // ==================== RENDER ====================

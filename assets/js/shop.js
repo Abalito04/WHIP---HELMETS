@@ -535,6 +535,20 @@ function recalculateGridHeights() {
     visibleCards.forEach(card => {
         card.style.height = maxHeight + "px";
     });
+    
+    // Asegurar que los botones estén alineados
+    alignButtonsInCards(visibleCards);
+}
+
+// Función para alinear botones dentro de las tarjetas
+function alignButtonsInCards(cards) {
+    cards.forEach(card => {
+        const actionsContainer = card.querySelector('.product-actions');
+        if (actionsContainer) {
+            // Asegurar que el contenedor de acciones esté en la parte inferior
+            actionsContainer.style.marginTop = 'auto';
+        }
+    });
 }
 
 // Función para resetear las alturas del grid cuando no hay filtros
@@ -545,6 +559,9 @@ function resetGridHeights() {
         // Resetear altura para que use la altura natural del CSS
         card.style.height = "auto";
     });
+    
+    // Asegurar que los botones estén alineados
+    alignButtonsInCards(Array.from(productCards));
 }
 
 // Función auxiliar para obtener el precio de un producto

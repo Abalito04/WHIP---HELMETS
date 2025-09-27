@@ -498,6 +498,53 @@ function applyProductFilters() {
             productsGrid.appendChild(card);
         });
     }
+    
+    // Forzar recálculo del grid para mantener alturas uniformes
+    setTimeout(() => {
+        if (brandFilter === "Todas" && conditionFilter === "Todas" && sizeFilter === "Todos") {
+            // Si no hay filtros activos, resetear alturas
+            resetGridHeights();
+        } else {
+            // Si hay filtros activos, recalcular alturas
+            recalculateGridHeights();
+        }
+    }, 10);
+}
+
+// Función para recalcular las alturas del grid después de filtrar
+function recalculateGridHeights() {
+    const productCards = document.querySelectorAll(".product-card");
+    const visibleCards = Array.from(productCards).filter(card => 
+        card.style.display !== "none" && card.offsetParent !== null
+    );
+    
+    if (visibleCards.length === 0) return;
+    
+    // Encontrar la altura máxima de las tarjetas visibles
+    let maxHeight = 0;
+    visibleCards.forEach(card => {
+        // Resetear altura para obtener la altura natural
+        card.style.height = "auto";
+        const cardHeight = card.offsetHeight;
+        if (cardHeight > maxHeight) {
+            maxHeight = cardHeight;
+        }
+    });
+    
+    // Aplicar la altura máxima a todas las tarjetas visibles
+    visibleCards.forEach(card => {
+        card.style.height = maxHeight + "px";
+    });
+}
+
+// Función para resetear las alturas del grid cuando no hay filtros
+function resetGridHeights() {
+    const productCards = document.querySelectorAll(".product-card");
+    
+    productCards.forEach(card => {
+        // Resetear altura para que use la altura natural del CSS
+        card.style.height = "auto";
+    });
 }
 
 // Función auxiliar para obtener el precio de un producto
@@ -860,4 +907,9 @@ document.addEventListener('DOMContentLoaded', () => {
 document.addEventListener("DOMContentLoaded", function() {
     loadProducts();
     updateCartCount();
+    
+    // Asegurar que las alturas estén correctas después de cargar los productos
+    setTimeout(() => {
+        resetGridHeights();
+    }, 100);
 });

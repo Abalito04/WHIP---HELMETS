@@ -271,7 +271,7 @@ async function exportData() {
         ? new Date(product.created_at).toLocaleDateString('es-ES')
         : 'No disponible';
       
-      const row = [
+    const row = [
         product.id || (index + 1),
         `"${(product.name || 'Sin nombre').replace(/"/g, '""')}"`,
         `"${product.brand || 'Sin marca'}"`,
@@ -281,15 +281,15 @@ async function exportData() {
         product.price || 0,
         precioDescuento,
         product.porcentaje_descuento || 0,
-        product.stock || 0,
+      product.stock || 0,
         `"${product.status || 'Activo'}"`,
         `"${talles}"`,
         `"${product.image || 'Sin imagen'}"`,
         `"${imagenesAdicionales}"`,
         `"${fechaCreacion}"`
-      ];
-      csvContent += row.join(',') + '\n';
-    });
+    ];
+    csvContent += row.join(',') + '\n';
+  });
     
     // ========== SECCIÓN DE USUARIOS ==========
     csvContent += `#\n`;
@@ -350,22 +350,22 @@ async function exportData() {
     csvContent += `# Usuarios normales: ${usersData.filter(u => u.role === 'user').length}\n`;
     csvContent += `# Con email: ${usersData.filter(u => u.email).length}\n`;
     csvContent += `# Con teléfono: ${usersData.filter(u => u.telefono).length}\n`;
-    
-    // Crear blob y descargar
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement("a");
-    const url = URL.createObjectURL(blob);
+  
+  // Crear blob y descargar
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const link = document.createElement("a");
+  const url = URL.createObjectURL(blob);
     
     const fileName = `datos_completos_whip_helmets_${new Date().toISOString().split('T')[0]}.csv`;
-    
-    link.setAttribute("href", url);
+  
+  link.setAttribute("href", url);
     link.setAttribute("download", fileName);
-    link.style.visibility = 'hidden';
-    
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    
+  link.style.visibility = 'hidden';
+  
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  
     showNotification(`Datos exportados correctamente: ${productsData.length} productos y ${usersData.length} usuarios`, "success");
     
   } catch (error) {
@@ -1316,7 +1316,7 @@ async function openGallery(productId, productName) {
   }
   
   try {
-    currentGalleryProduct = productId;
+  currentGalleryProduct = productId;
     galleryTitle.textContent = `Galería de Imágenes - ${productName}`;
     
     console.log('Cargando imágenes para producto:', productId);
@@ -1377,10 +1377,10 @@ async function loadProductImages(productId) {
     } else {
       console.log('No se pudo cargar desde API, usando datos locales');
       // Fallback: usar datos locales
-      const product = productsData.find(p => p.id == productId);
+  const product = productsData.find(p => p.id == productId);
       console.log('Producto encontrado en datos locales:', product);
       
-      if (product) {
+  if (product) {
         currentGalleryImages = [];
         
         // Agregar imagen principal
@@ -1390,7 +1390,7 @@ async function loadProductImages(productId) {
         }
         
         // Agregar imágenes adicionales
-        if (product.images && Array.isArray(product.images) && product.images.length > 0) {
+    if (product.images && Array.isArray(product.images) && product.images.length > 0) {
           product.images.forEach((img, index) => {
             if (img && img.trim() !== '' && img !== product.image) {
               currentGalleryImages.push(img);
@@ -1400,7 +1400,7 @@ async function loadProductImages(productId) {
         }
         
         console.log('Galería final (local):', currentGalleryImages);
-      } else {
+    } else {
         console.error('Producto no encontrado en datos locales');
         currentGalleryImages = [];
       }
@@ -1521,18 +1521,18 @@ function renderGallery() {
       thumbnailContainer.className = 'gallery-thumbnail-container';
       
       // Crear la imagen
-      const thumbnail = document.createElement('img');
-      const imageUrl = image.startsWith('http') ? image : `/${image}`;
-      thumbnail.src = imageUrl;
-      thumbnail.className = `gallery-thumbnail ${index === selectedImageIndex ? 'active' : ''}`;
+    const thumbnail = document.createElement('img');
+    const imageUrl = image.startsWith('http') ? image : `/${image}`;
+    thumbnail.src = imageUrl;
+    thumbnail.className = `gallery-thumbnail ${index === selectedImageIndex ? 'active' : ''}`;
       thumbnail.onclick = () => {
         console.log('Seleccionando imagen:', index);
         selectImage(index);
       };
-      thumbnail.onerror = () => {
+    thumbnail.onerror = () => {
         console.error('Error al cargar miniatura:', imageUrl);
-        thumbnail.style.display = 'none';
-      };
+      thumbnail.style.display = 'none';
+    };
       
       // Crear controles de orden
       const orderControls = document.createElement('div');
@@ -1706,7 +1706,7 @@ async function setMainImage() {
       });
 
       console.log('Respuesta del servidor:', response.status);
-      
+
       if (response.ok) {
         showNotification('Imagen principal actualizada', 'success');
         // Recargar la lista de productos para reflejar los cambios
@@ -1759,7 +1759,7 @@ async function deleteImage() {
         
         if (response.ok) {
           showNotification('Imagen eliminada correctamente', 'success');
-          renderGallery();
+      renderGallery();
           // Recargar la lista de productos para reflejar los cambios
           fetchProducts();
         } else {
@@ -1810,10 +1810,10 @@ async function uploadImagesToGallery(files) {
   const progressText = document.getElementById('progress-text');
   
   if (progressElement) {
-    progressElement.style.display = 'block';
+  progressElement.style.display = 'block';
   }
   if (progressText) {
-    progressText.textContent = 'Subiendo imágenes...';
+  progressText.textContent = 'Subiendo imágenes...';
   }
   
   try {
@@ -1843,7 +1843,7 @@ async function uploadImagesToGallery(files) {
       console.error('Error del servidor:', errorText);
       throw new Error(`Error del servidor: ${response.status} ${response.statusText}`);
     }
-    
+
     const result = await response.json();
     console.log('Resultado:', result);
 
@@ -1864,7 +1864,7 @@ async function uploadImagesToGallery(files) {
     showNotification(`Error al subir imágenes: ${error.message}`, 'error');
   } finally {
     if (progressElement) {
-      progressElement.style.display = 'none';
+    progressElement.style.display = 'none';
     }
   }
 }
@@ -1902,13 +1902,13 @@ async function uploadImagesToGallery(files) {
   const galleryFileInput = document.getElementById('gallery-file-input');
   if (galleryFileInput) {
     galleryFileInput.addEventListener('change', (e) => {
-      const files = Array.from(e.target.files);
-      if (files.length > 0) {
+    const files = Array.from(e.target.files);
+    if (files.length > 0) {
         console.log('Archivos seleccionados:', files);
         uploadImagesToGallery(files);
-        e.target.value = ''; // Limpiar input
-      }
-    });
+      e.target.value = ''; // Limpiar input
+    }
+  });
   }
   
   // Drag and drop

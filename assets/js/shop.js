@@ -135,25 +135,24 @@ function createProductCard(product) {
         imageUrl = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIGZpbGw9IiNFRUVFRUUiLz48cGF0aCBkPSJNMTUgMzBINjBWNDBIMzVWMzBIMjVWMTVIMjBWMzBIMTVaIiBmaWxsPSIjOTk5Ii8+PC9zdmc+";
     }
     
-    // Formatear precios
-    const formattedPrice = '$' + new Intl.NumberFormat('es-ES').format(product.price);
-    const hasDiscount = product.porcentaje_descuento && product.porcentaje_descuento > 0;
-    let priceDisplay = '';
+    // Formatear precios - Sistema de dos precios
+    const listPrice = product.price; // Precio de lista
+    const formattedListPrice = '$' + new Intl.NumberFormat('es-ES').format(listPrice);
     
-    if (hasDiscount) {
-        const discountAmount = product.price * (product.porcentaje_descuento / 100);
-        const effectivePrice = product.price - discountAmount;
+    // Calcular precio efectivo/transferencia (siempre aplicando descuento si existe)
+    const discountPercentage = product.porcentaje_descuento || 0;
+    const discountAmount = listPrice * (discountPercentage / 100);
+    const effectivePrice = listPrice - discountAmount;
         const formattedEffectivePrice = '$' + new Intl.NumberFormat('es-ES').format(Math.round(effectivePrice));
-        priceDisplay = `
+    
+    // Mostrar siempre dos precios: efectivo (llamativo) y lista (pequeño)
+    const priceDisplay = `
             <div class="price-container">
-                <p class="price original-price">${formattedPrice}</p>
                 <p class="price effective-price">${formattedEffectivePrice}</p>
-                <p class="discount-badge">-${product.porcentaje_descuento}%</p>
+            <p class="price list-price">${formattedListPrice}</p>
+            ${discountPercentage > 0 ? `<p class="discount-badge">-${discountPercentage}%</p>` : ''}
             </div>
         `;
-    } else {
-        priceDisplay = `<p class="price">${formattedPrice}</p>`;
-    }
     
     // Determinar estado del stock
     const stock = product.stock || 0;
@@ -582,14 +581,14 @@ function resetGridHeights() {
 
 // Función auxiliar para obtener el precio de un producto
 function getProductPrice(card) {
-    // Buscar precio efectivo primero (si hay descuento)
+    // Buscar precio efectivo (siempre presente ahora)
     const effectivePriceElement = card.querySelector(".effective-price");
     if (effectivePriceElement) {
         const priceText = effectivePriceElement.textContent.replace(/[^\d]/g, "");
         return parseInt(priceText) || 0;
     }
     
-    // Si no hay precio efectivo, buscar precio normal
+    // Fallback: buscar precio normal (por compatibilidad)
     const priceElement = card.querySelector(".price");
     if (priceElement) {
         const priceText = priceElement.textContent.replace(/[^\d]/g, "");

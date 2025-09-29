@@ -558,13 +558,14 @@ main {
 .price-container {
     position: relative;
     margin-bottom: 10px;
-    padding: 15px 18px;
+    padding: 20px 30px;
     background: linear-gradient(135deg, rgba(240, 173, 78, 0.1) 0%, rgba(224, 157, 62, 0.1) 100%);
     border-radius: 8px;
     border: 1px solid rgba(240, 173, 78, 0.2);
-    min-height: 120px;
+    min-height: 140px;
     width: 100%;
     box-sizing: border-box;
+    overflow: visible;
 }
 
 .price-container .effective-price {
@@ -579,6 +580,16 @@ main {
     hyphens: auto;
     display: block;
     width: 100%;
+    text-align: center;
+}
+
+.payment-method {
+    font-size: 0.7em;
+    font-weight: 600;
+    color: #e74c3c;
+    display: block;
+    margin-top: 2px;
+    letter-spacing: 0.2px;
 }
 
 .price-container .list-price {
@@ -1849,12 +1860,16 @@ footer.legal-footer a:hover {
     }
     
     .price-container {
-        padding: 12px 15px;
-        min-height: 100px;
+        padding: 15px 20px;
+        min-height: 120px;
     }
     
     .price-container .effective-price {
         font-size: 1.3em;
+    }
+    
+    .payment-method {
+        font-size: 0.65em;
     }
     
     .price-container .list-price {
@@ -2246,12 +2261,16 @@ footer.legal-footer a:hover {
     }
     
     .price-container {
-        padding: 10px 12px;
-        min-height: 90px;
+        padding: 12px 15px;
+        min-height: 100px;
     }
     
     .price-container .effective-price {
-        font-size: 1.1em;
+        font-size: 1.2em;
+    }
+    
+    .payment-method {
+        font-size: 0.6em;
     }
     
     .price-container .list-price {

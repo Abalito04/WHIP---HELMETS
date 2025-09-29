@@ -148,7 +148,7 @@ function createProductCard(product) {
     // Mostrar precios al estilo Pachamama Bike Shop
     const priceDisplay = `
         <div class="price-container">
-            <p class="price effective-price">${formattedEffectivePrice} con Efectivo/Transferencia</p>
+            <p class="price effective-price">${formattedEffectivePrice}<br><span class="payment-method">Efectivo/Transferencia</span></p>
             ${discountPercentage > 0 ? `<p class="discount-badge">-${discountPercentage}% OFF</p>` : ''}
         </div>
         <p class="price list-price-outside">${formattedListPrice} Precio Lista</p>

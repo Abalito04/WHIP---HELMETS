@@ -589,6 +589,16 @@ main {
     line-height: 1.2;
 }
 
+.price.list-price-outside {
+    color: #666;
+    font-size: 0.9em;
+    margin: 8px 0 4px 0;
+    font-weight: 500;
+    line-height: 1.2;
+    text-align: center;
+    padding: 0 10px;
+}
+
 
 .discount-badge {
     position: absolute;
@@ -1851,6 +1861,12 @@ footer.legal-footer a:hover {
         font-size: 0.85em;
     }
     
+    .price.list-price-outside {
+        font-size: 0.85em;
+        margin: 6px 0 3px 0;
+        padding: 0 8px;
+    }
+    
     
     .discount-badge {
         font-size: 0.8em;
@@ -2240,6 +2256,12 @@ footer.legal-footer a:hover {
     
     .price-container .list-price {
         font-size: 0.8em;
+    }
+    
+    .price.list-price-outside {
+        font-size: 0.8em;
+        margin: 5px 0 3px 0;
+        padding: 0 6px;
     }
     
     

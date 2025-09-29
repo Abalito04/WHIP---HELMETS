@@ -149,9 +149,9 @@ function createProductCard(product) {
     const priceDisplay = `
         <div class="price-container">
             <p class="price effective-price">${formattedEffectivePrice} con Efectivo/Transferencia</p>
-            <p class="price list-price">${formattedListPrice} Precio Lista</p>
             ${discountPercentage > 0 ? `<p class="discount-badge">-${discountPercentage}% OFF</p>` : ''}
         </div>
+        <p class="price list-price-outside">${formattedListPrice} Precio Lista</p>
     `;
     
     // Determinar estado del stock

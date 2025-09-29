@@ -75,7 +75,11 @@ function renderProducts() {
     );
     console.log('helmets encontrados:', helmets);
     console.log('Todos los productos:', products.map(p => ({ id: p.id, name: p.name, category: p.category, status: p.status })));
-    // const accessories = products.filter(p => p.category === "Accesorios" && p.status === "Activo"); // COMENTADO
+    const accessories = products.filter(p => 
+        (p.category === "Accesorios" || p.category === "accesorios" || p.category === "ACCESORIOS") && 
+        p.status === "Activo"
+    );
+    console.log('accessories encontrados:', accessories);
     
     // Renderizar cascos
     if (helmets.length === 0) {

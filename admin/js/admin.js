@@ -1232,6 +1232,17 @@ function showNotification(message, type = "success") {
 function init() {
   console.log("Inicializando panel de administración...");
   
+  // Verificar autenticación primero
+  const authToken = localStorage.getItem('authToken');
+  if (!authToken) {
+    console.log("No hay token de autenticación, redirigiendo al login...");
+    showNotification('No hay sesión activa. Redirigiendo al login...', "error");
+    setTimeout(() => {
+      window.location.href = '/admin';
+    }, 2000);
+    return;
+  }
+  
   // Verificar que los elementos críticos existan
   if (!productsBody) {
     console.error("productsBody no encontrado - el panel no se puede inicializar");
@@ -1939,17 +1950,56 @@ const userForm = document.getElementById("user-form");
 const deleteUserModal = document.getElementById("delete-user-modal");
 const manageUsersBtn = document.getElementById("manage-users");
 
+// Función para verificar si el token es válido
+async function validateAuthToken() {
+  try {
+    const authToken = localStorage.getItem('authToken');
+    if (!authToken) {
+      return false;
+    }
+    
+    const res = await fetch(`${API_BASE}/api/auth/validate`, {
+      headers: {
+        'Authorization': `Bearer ${authToken}`
+      }
+    });
+    
+    return res.ok;
+  } catch (error) {
+    console.error('Error validando token:', error);
+    return false;
+  }
+}
+
 // API calls para usuarios
 async function fetchUsers() {
   try {
     const authToken = localStorage.getItem('authToken');
+    console.log('Auth token:', authToken ? 'Presente' : 'Ausente');
+    
+    if (!authToken) {
+      showNotification('No hay sesión activa. Por favor, inicia sesión nuevamente.', "error");
+      // Redirigir al login
+      window.location.href = '/admin';
+      return;
+    }
+    
     const res = await fetch(`${API_BASE}/api/admin/users`, {
       headers: {
         'Authorization': `Bearer ${authToken}`
       }
     });
     
+    console.log('Response status:', res.status);
+    
     if (!res.ok) {
+      if (res.status === 401) {
+        showNotification('Sesión expirada. Por favor, inicia sesión nuevamente.', "error");
+        // Limpiar token y redirigir
+        localStorage.removeItem('authToken');
+        window.location.href = '/admin';
+        return;
+      }
       throw new Error(`Error HTTP: ${res.status} ${res.statusText}`);
     }
     
@@ -2208,8 +2258,19 @@ function formatDate(dateString) {
 // Event listeners para gestión de usuarios (movidos a setupEventListeners)
 // document.addEventListener("DOMContentLoaded", () => {
   // Botón para cambiar entre paneles
-  manageUsersBtn.addEventListener("click", () => {
+  manageUsersBtn.addEventListener("click", async () => {
     if (usersPanel.style.display === "none") {
+      // Verificar autenticación antes de cargar usuarios
+      const isValidToken = await validateAuthToken();
+      if (!isValidToken) {
+        showNotification('Sesión expirada. Por favor, inicia sesión nuevamente.', "error");
+        localStorage.removeItem('authToken');
+        setTimeout(() => {
+          window.location.href = '/admin';
+        }, 2000);
+        return;
+      }
+      
       usersPanel.style.display = "block";
       productsPanel.style.display = "none";
       fetchUsers();

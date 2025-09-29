@@ -277,13 +277,18 @@ function initProductEvents() {
         });
     });
     
-    // Aquí puedes agregar el filtro de marcas si lo necesitas
+    // Inicializar filtros solo para la sección de cascos
     initBrandFilter();
 }
 
-// Función para inicializar los filtros
+// Función para inicializar los filtros (solo para la sección de cascos)
 function initBrandFilter() {
-    const brands = Array.from(new Set(products.map(p => p.brand))).filter(b => b);
+    // Obtener marcas solo de productos de cascos
+    const helmetProducts = products.filter(p => 
+        (p.category === "Cascos" || p.category === "cascos" || p.category === "CASCO") && 
+        p.status === "Activo"
+    );
+    const brands = Array.from(new Set(helmetProducts.map(p => p.brand))).filter(b => b);
     if (brands.length === 0) return;
     
     const filterContainer = document.createElement("div");
@@ -352,9 +357,9 @@ function initBrandFilter() {
     allSizeOption.textContent = "Todos los talles";
     sizeSelect.appendChild(allSizeOption);
 
-    // Obtener todos los talles únicos de los productos
+    // Obtener todos los talles únicos solo de los productos de cascos
     const allSizes = new Set();
-    products.forEach(product => {
+    helmetProducts.forEach(product => {
         if (product.sizes && Array.isArray(product.sizes)) {
             product.sizes.forEach(size => allSizes.add(size.trim()));
         }
@@ -438,10 +443,11 @@ function applyProductFilters() {
     const sizeFilter = document.getElementById("size-select")?.value || "Todos";
     const sortFilter = document.getElementById("price-sort")?.value || "default";
     
-    const productCards = document.querySelectorAll(".product-card");
+    // Solo obtener las tarjetas de la sección de cascos (destacados)
     const productsGrid = document.getElementById("destacados");
-    
     if (!productsGrid) return;
+    
+    const productCards = productsGrid.querySelectorAll(".product-card");
     
     // Filtrar productos
     let filteredProducts = Array.from(productCards).filter(card => {
@@ -515,7 +521,11 @@ function applyProductFilters() {
 
 // Función para recalcular las alturas del grid después de filtrar
 function recalculateGridHeights() {
-    const productCards = document.querySelectorAll(".product-card");
+    // Solo recalcular alturas para la sección de cascos
+    const productsGrid = document.getElementById("destacados");
+    if (!productsGrid) return;
+    
+    const productCards = productsGrid.querySelectorAll(".product-card");
     const visibleCards = Array.from(productCards).filter(card => 
         card.style.display !== "none" && card.offsetParent !== null
     );
@@ -555,7 +565,11 @@ function alignButtonsInCards(cards) {
 
 // Función para resetear las alturas del grid cuando no hay filtros
 function resetGridHeights() {
-    const productCards = document.querySelectorAll(".product-card");
+    // Solo resetear alturas para la sección de cascos
+    const productsGrid = document.getElementById("destacados");
+    if (!productsGrid) return;
+    
+    const productCards = productsGrid.querySelectorAll(".product-card");
     
     productCards.forEach(card => {
         // Resetear altura para que use la altura natural del CSS

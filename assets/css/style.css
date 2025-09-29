@@ -557,11 +557,11 @@ main {
 .price-container {
     position: relative;
     margin-bottom: 10px;
-    padding: 20px 30px;
+    padding: 25px 30px;
     background: linear-gradient(135deg, rgba(240, 173, 78, 0.1) 0%, rgba(224, 157, 62, 0.1) 100%);
     border-radius: 8px;
     border: 1px solid rgba(240, 173, 78, 0.2);
-    min-height: 140px;
+    min-height: 160px;
     width: 100%;
     box-sizing: border-box;
     overflow: visible;
@@ -1859,8 +1859,8 @@ footer.legal-footer a:hover {
     }
     
     .price-container {
-        padding: 15px 20px;
-        min-height: 120px;
+        padding: 20px 25px;
+        min-height: 140px;
     }
     
     .price-container .effective-price {
@@ -2260,8 +2260,8 @@ footer.legal-footer a:hover {
     }
     
     .price-container {
-        padding: 12px 15px;
-        min-height: 100px;
+        padding: 15px 18px;
+        min-height: 120px;
     }
     
     .price-container .effective-price {

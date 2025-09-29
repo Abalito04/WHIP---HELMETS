@@ -558,11 +558,11 @@ main {
 .price-container {
     position: relative;
     margin-bottom: 10px;
-    padding: 12px 15px;
+    padding: 15px 18px;
     background: linear-gradient(135deg, rgba(240, 173, 78, 0.1) 0%, rgba(224, 157, 62, 0.1) 100%);
     border-radius: 8px;
     border: 1px solid rgba(240, 173, 78, 0.2);
-    min-height: 90px;
+    min-height: 120px;
     width: 100%;
     box-sizing: border-box;
 }
@@ -570,13 +570,15 @@ main {
 .price-container .effective-price {
     color: #e74c3c;
     font-weight: 800;
-    font-size: 1.1em;
-    margin: 0 0 4px 0;
+    font-size: 1.5em;
+    margin: 0 0 6px 0;
     text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
-    letter-spacing: 0.2px;
-    line-height: 1.4;
+    letter-spacing: 0.3px;
+    line-height: 1.3;
     word-wrap: break-word;
     hyphens: auto;
+    display: block;
+    width: 100%;
 }
 
 .price-container .list-price {
@@ -1837,12 +1839,12 @@ footer.legal-footer a:hover {
     }
     
     .price-container {
-        padding: 10px 12px;
-        min-height: 80px;
+        padding: 12px 15px;
+        min-height: 100px;
     }
     
     .price-container .effective-price {
-        font-size: 1.0em;
+        font-size: 1.3em;
     }
     
     .price-container .list-price {
@@ -2228,12 +2230,12 @@ footer.legal-footer a:hover {
     }
     
     .price-container {
-        padding: 8px 10px;
-        min-height: 70px;
+        padding: 10px 12px;
+        min-height: 90px;
     }
     
     .price-container .effective-price {
-        font-size: 0.9em;
+        font-size: 1.1em;
     }
     
     .price-container .list-price {

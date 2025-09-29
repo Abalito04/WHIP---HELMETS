@@ -583,12 +583,16 @@ main {
 }
 
 .payment-method {
-    font-size: 0.7em;
-    font-weight: 600;
-    color: #e74c3c;
+    font-size: 0.8em;
+    font-weight: 800;
+    color: #fff;
+    background: #e74c3c;
     display: block;
-    margin-top: 2px;
-    letter-spacing: 0.2px;
+    margin-top: 4px;
+    letter-spacing: 0.3px;
+    padding: 4px 8px;
+    border-radius: 4px;
+    text-shadow: none;
 }
 
 .price-container .list-price {
@@ -1868,7 +1872,8 @@ footer.legal-footer a:hover {
     }
     
     .payment-method {
-        font-size: 0.65em;
+        font-size: 0.75em;
+        padding: 3px 6px;
     }
     
     .price-container .list-price {
@@ -2269,7 +2274,8 @@ footer.legal-footer a:hover {
     }
     
     .payment-method {
-        font-size: 0.6em;
+        font-size: 0.7em;
+        padding: 2px 5px;
     }
     
     .price-container .list-price {

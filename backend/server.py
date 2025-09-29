@@ -952,8 +952,8 @@ def update_profile():
     try:
         data = request.get_json()
         
-        # Validar campos requeridos
-        required_fields = ['nombre', 'apellido', 'dni', 'telefono', 'email']
+        # Validar campos requeridos (solo los editables)
+        required_fields = ['telefono', 'email']
         for field in required_fields:
             if not data.get(field):
                 return jsonify({"error": f"Campo {field} es requerido"}), 400
@@ -963,9 +963,7 @@ def update_profile():
         if not re.match(email_pattern, data['email']):
             return jsonify({"error": "Formato de email inválido"}), 400
         
-        # Validar DNI (solo números)
-        if not data['dni'].isdigit():
-            return jsonify({"error": "DNI debe contener solo números"}), 400
+        # DNI no se valida aquí ya que no es editable
         
         # Validar código postal (opcional, pero si se proporciona debe ser numérico)
         if data.get('codigo_postal') and not data['codigo_postal'].isdigit():

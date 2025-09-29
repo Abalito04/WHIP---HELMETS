@@ -41,65 +41,6 @@ function initChatbot() {
         initialTime.textContent = getCurrentTime();
     }
 
-    // Función para obtener productos de la base de datos
-    async function getProducts() {
-        try {
-            const response = await fetch('/api/products');
-            if (response.ok) {
-                return await response.json();
-            }
-            return [];
-        } catch (error) {
-            console.error('Error al obtener productos:', error);
-            return [];
-        }
-    }
-
-    // Función para buscar productos por marca
-    async function searchProductsByBrand(brand) {
-        try {
-            const products = await getProducts();
-            return products.filter(product => 
-                product.brand && product.brand.toLowerCase().includes(brand.toLowerCase())
-            );
-        } catch (error) {
-            console.error('Error al buscar productos por marca:', error);
-            return [];
-        }
-    }
-
-    // Función para obtener productos recomendados
-    async function getRecommendedProducts(limit = 3) {
-        try {
-            const products = await getProducts();
-            // Filtrar productos con stock y ordenar por precio
-            return products
-                .filter(product => product.stock > 0)
-                .sort((a, b) => a.price - b.price)
-                .slice(0, limit);
-        } catch (error) {
-            console.error('Error al obtener productos recomendados:', error);
-            return [];
-        }
-    }
-
-    // Función para crear tarjeta de producto en el chat
-    function createProductCard(product) {
-        const productCard = document.createElement('div');
-        productCard.className = 'chatbot-product-card';
-        productCard.innerHTML = `
-            <div class="product-card-image">
-                <img src="${product.image_url || 'assets/images/logo.png'}" alt="${product.name}" onerror="this.src='assets/images/logo.png'">
-            </div>
-            <div class="product-card-info">
-                <h4>${product.name}</h4>
-                <p class="product-brand">${product.brand}</p>
-                <p class="product-price">$${product.price.toLocaleString()}</p>
-                <p class="product-stock">Stock: ${product.stock}</p>
-            </div>
-        `;
-        return productCard;
-    }
 
     // Base de conocimiento del chatbot
     const chatbotResponses = {
@@ -121,24 +62,18 @@ function initChatbot() {
         },
         'marcas': {
             response: '🏆 Trabajamos con las mejores marcas del mercado: Fox, Bell, Alpinestars, Troy Lee Design, Fly Racing y muchas más. Cada marca tiene sus características especiales y niveles de protección. Para recomendaciones personalizadas según tu tipo de uso, te invitamos a contactarnos por WhatsApp al +54 295 454-4001 o por Instagram @whip.helmets. ¡Estaremos encantados de ayudarte a encontrar el casco perfecto!',
-            keywords: ['marca', 'marcas', 'fox', 'bell', 'alpinestars', 'troy lee', 'fly racing', 'modelo', 'modelos'],
-            showProducts: true,
-            productType: 'brand'
+            keywords: ['marca', 'marcas', 'fox', 'bell', 'alpinestars', 'troy lee', 'fly racing', 'modelo', 'modelos']
         },
         'productos': {
-            response: '🛒 ¡Perfecto! Te muestro algunos de nuestros productos destacados disponibles:',
-            keywords: ['producto', 'productos', 'cascos', 'disponibles', 'stock', 'catalogo', 'catálogo'],
-            showProducts: true,
-            productType: 'recommended'
+            response: '🛒 ¡Perfecto! Tenemos una amplia variedad de cascos disponibles. Puedes ver todos nuestros productos en la página principal o contactarnos por WhatsApp al +54 295 454-4001 para más información específica sobre el modelo que te interese.',
+            keywords: ['producto', 'productos', 'cascos', 'disponibles', 'stock', 'catalogo', 'catálogo']
         },
         'precios': {
-            response: '💰 Nuestros precios varían según la marca, modelo y condición del casco. Te muestro algunos productos con sus precios actuales:',
-            keywords: ['precio', 'precios', 'costo', 'cuesta', 'cuanto', 'cuánto', 'barato', 'económico'],
-            showProducts: true,
-            productType: 'recommended'
+            response: '💰 Nuestros precios varían según la marca, modelo y condición del casco. Puedes ver todos nuestros productos con precios actualizados en la página principal o contactarnos por WhatsApp al +54 295 454-4001 para información específica.',
+            keywords: ['precio', 'precios', 'costo', 'cuesta', 'cuanto', 'cuánto', 'barato', 'económico']
         },
         'pagos': {
-            response: '💳 Trabajamos con: Transferencia Bancaria, Depósito, Tarjeta de débito/crédito mediante MercadoPago. Todos nuestros métodos de pago son seguros y confiables. ¿Necesitas más información sobre algún método específico?',
+            response: '💳 Trabajamos con: Transferencia Bancaria, Depósito, Tarjeta de débito/crédito mediante MercadoPago. Todos nuestros métodos de pago son seguros y confiables. ¿Necesitas más información sobre algún método específico? Comunícate con nosotros por WhatsApp al +54 295 454-4001 o por Instagram @whip.helmets.',
             keywords: ['pago', 'pagos', 'medios de pago', 'transferencia', 'depósito', 'tarjeta', 'débito', 'crédito', 'mercadopago', 'mercado pago', 'como pagar', 'cómo pagar', 'forma de pago']
         }
     };
@@ -188,30 +123,20 @@ function initChatbot() {
     }
 
     // Función para procesar el mensaje del usuario
-    async function processUserMessage(message) {
+    function processUserMessage(message) {
         const lowerMessage = message.toLowerCase();
         
         // Buscar coincidencias por palabras clave
         for (const [key, data] of Object.entries(chatbotResponses)) {
             for (const keyword of data.keywords) {
                 if (lowerMessage.includes(keyword)) {
-                    return {
-                        response: data.response,
-                        showProducts: data.showProducts || false,
-                        productType: data.productType || null,
-                        keyword: keyword
-                    };
+                    return data.response;
                 }
             }
         }
         
         // Si no encuentra coincidencias, devolver respuesta aleatoria
-        return {
-            response: defaultResponses[Math.floor(Math.random() * defaultResponses.length)],
-            showProducts: false,
-            productType: null,
-            keyword: null
-        };
+        return defaultResponses[Math.floor(Math.random() * defaultResponses.length)];
     }
 
     // Función para simular escritura del bot
@@ -232,7 +157,7 @@ function initChatbot() {
     }
 
     // Función para enviar mensaje
-    async function sendMessage() {
+    function sendMessage() {
         const message = chatbotInput.value.trim();
         if (!message) return;
         
@@ -246,8 +171,8 @@ function initChatbot() {
         chatbotSend.disabled = true;
         
         // Simular delay del bot
-        setTimeout(async () => {
-            const botData = await processUserMessage(message);
+        setTimeout(() => {
+            const botResponse = processUserMessage(message);
             
             // Crear mensaje del bot
             const botMessageDiv = document.createElement('div');
@@ -265,40 +190,10 @@ function initChatbot() {
             chatbotMessages.appendChild(botMessageDiv);
             
             // Efecto de escritura
-            typeMessage(botData.response, (text) => {
+            typeMessage(botResponse, (text) => {
                 contentDiv.textContent = text;
                 chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
             });
-            
-            // Mostrar productos si es necesario
-            if (botData.showProducts) {
-                setTimeout(async () => {
-                    let products = [];
-                    
-                    if (botData.productType === 'brand' && botData.keyword) {
-                        // Buscar productos por marca
-                        products = await searchProductsByBrand(botData.keyword);
-                    } else if (botData.productType === 'recommended') {
-                        // Mostrar productos recomendados
-                        products = await getRecommendedProducts(3);
-                    }
-                    
-                    if (products.length > 0) {
-                        // Crear contenedor de productos
-                        const productsContainer = document.createElement('div');
-                        productsContainer.className = 'chatbot-products-container';
-                        
-                        products.forEach(product => {
-                            const productCard = createProductCard(product);
-                            productsContainer.appendChild(productCard);
-                        });
-                        
-                        // Agregar al mensaje del bot
-                        botMessageDiv.appendChild(productsContainer);
-                        chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
-                    }
-                }, botData.response.length * 30 + 500); // Esperar a que termine la escritura
-            }
             
             // Habilitar botón de envío
             chatbotSend.disabled = false;

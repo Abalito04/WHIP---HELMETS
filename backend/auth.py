@@ -74,15 +74,32 @@ class AuthManager:
         try:
             with get_conn() as conn:
                 cursor = conn.cursor()
-                # Verificar si el usuario ya existe
+                # Verificar si el usuario ya existe (username, email, DNI, teléfono)
                 cursor.execute(
-                    "SELECT id FROM users WHERE username = %s OR email = %s",
-                    (username, email)
+                    "SELECT id FROM users WHERE username = %s OR email = %s OR dni = %s OR telefono = %s",
+                    (username, email, dni, telefono)
                 )
                 existing_user = cursor.fetchone()
                 
                 if existing_user:
-                    return {"success": False, "error": "El usuario o email ya existe"}
+                    # Verificar cuál campo específico está duplicado
+                    cursor.execute(
+                        "SELECT username, email, dni, telefono FROM users WHERE username = %s OR email = %s OR dni = %s OR telefono = %s",
+                        (username, email, dni, telefono)
+                    )
+                    duplicate_data = cursor.fetchone()
+                    
+                    if duplicate_data:
+                        if duplicate_data[0] == username:
+                            return {"success": False, "error": "El nombre de usuario ya está en uso"}
+                        elif duplicate_data[1] == email:
+                            return {"success": False, "error": "El email ya está registrado"}
+                        elif duplicate_data[2] == dni:
+                            return {"success": False, "error": "El DNI ya está registrado"}
+                        elif duplicate_data[3] == telefono:
+                            return {"success": False, "error": "El teléfono ya está registrado"}
+                    
+                    return {"success": False, "error": "Los datos proporcionados ya están en uso"}
                 
                 # Crear usuario
                 password_hash = self.hash_password(password)
@@ -397,6 +414,24 @@ class AuthManager:
                 if not user_exists:
                     return {"success": False, "error": "Usuario no encontrado"}
                 
+                # Verificar unicidad de campos críticos (excluyendo el usuario actual)
+                if any(field in data for field in ['username', 'email', 'dni', 'telefono']):
+                    cursor.execute(
+                        "SELECT id, username, email, dni, telefono FROM users WHERE (username = %s OR email = %s OR dni = %s OR telefono = %s) AND id != %s",
+                        (data.get('username'), data.get('email'), data.get('dni'), data.get('telefono'), user_id)
+                    )
+                    duplicate_user = cursor.fetchone()
+                    
+                    if duplicate_user:
+                        if duplicate_user[1] == data.get('username'):
+                            return {"success": False, "error": "El nombre de usuario ya está en uso"}
+                        elif duplicate_user[2] == data.get('email'):
+                            return {"success": False, "error": "El email ya está registrado"}
+                        elif duplicate_user[3] == data.get('dni'):
+                            return {"success": False, "error": "El DNI ya está registrado"}
+                        elif duplicate_user[4] == data.get('telefono'):
+                            return {"success": False, "error": "El teléfono ya está registrado"}
+                
                 # Actualizar campos permitidos
                 allowed_fields = ['username', 'email', 'nombre', 'apellido', 'dni', 'telefono', 'direccion', 'codigo_postal', 'role']
                 update_fields = []
@@ -424,15 +459,32 @@ class AuthManager:
             with get_conn() as conn:
                 cursor = conn.cursor()
                 
-                # Verificar si el usuario ya existe
+                # Verificar si el usuario ya existe (username, email, DNI, teléfono)
                 cursor.execute(
-                    "SELECT id FROM users WHERE username = %s OR email = %s",
-                    (data.get('username'), data.get('email'))
+                    "SELECT id FROM users WHERE username = %s OR email = %s OR dni = %s OR telefono = %s",
+                    (data.get('username'), data.get('email'), data.get('dni'), data.get('telefono'))
                 )
                 existing_user = cursor.fetchone()
                 
                 if existing_user:
-                    return {"success": False, "error": "El usuario o email ya existe"}
+                    # Verificar cuál campo específico está duplicado
+                    cursor.execute(
+                        "SELECT username, email, dni, telefono FROM users WHERE username = %s OR email = %s OR dni = %s OR telefono = %s",
+                        (data.get('username'), data.get('email'), data.get('dni'), data.get('telefono'))
+                    )
+                    duplicate_data = cursor.fetchone()
+                    
+                    if duplicate_data:
+                        if duplicate_data[0] == data.get('username'):
+                            return {"success": False, "error": "El nombre de usuario ya está en uso"}
+                        elif duplicate_data[1] == data.get('email'):
+                            return {"success": False, "error": "El email ya está registrado"}
+                        elif duplicate_data[2] == data.get('dni'):
+                            return {"success": False, "error": "El DNI ya está registrado"}
+                        elif duplicate_data[3] == data.get('telefono'):
+                            return {"success": False, "error": "El teléfono ya está registrado"}
+                    
+                    return {"success": False, "error": "Los datos proporcionados ya están en uso"}
                 
                 # Crear usuario
                 password_hash = self.hash_password(data.get('password', 'temp123'))

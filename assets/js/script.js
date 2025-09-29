@@ -579,10 +579,10 @@ document.addEventListener("DOMContentLoaded", () => {
       <div class="user-menu">
         <p style="color: #333; margin: 5px 0; font-weight: bold;">👤 ${currentUser.username}</p>
         <p style="color: #666; margin: 5px 0; font-size: 0.9rem;">Rol: ${currentUser.role === 'admin' ? 'Administrador' : 'Usuario'}</p>
-        <a href="profile.html" style="background: #337ab7; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; margin: 5px 5px 5px 0; font-size: 0.9rem; text-decoration: none; display: inline-block;">Mi Perfil</a>
-        ${currentUser.role !== 'admin' ? '<a href="orders.html" style="background: #f0ad4e; color: #333; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; margin: 5px 5px 5px 0; font-size: 0.9rem; text-decoration: none; display: inline-block;">Mis Pedidos</a>' : ''}
-        ${currentUser.role === 'admin' ? '<button onclick="goToAdmin()" style="background: #5bc0de; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; margin: 5px 5px 5px 0; font-size: 0.9rem;">Panel Admin</button>' : ''}
-        <button onclick="logout()" style="background: #d9534f; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; margin: 5px 5px 5px 0; font-size: 0.9rem;">Cerrar Sesión</button>
+        <a href="profile.html" style="background: #28a745; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; margin: 5px 5px 5px 0; font-size: 0.9rem; text-decoration: none; display: inline-block; font-weight: 600; transition: all 0.3s ease; min-width: 80px; text-align: center;">Mi Perfil</a>
+        ${currentUser.role !== 'admin' ? '<a href="orders.html" style="background: #f0ad4e; color: #333; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; margin: 5px 5px 5px 0; font-size: 0.9rem; text-decoration: none; display: inline-block; font-weight: 600; transition: all 0.3s ease; min-width: 80px; text-align: center;">Mis Pedidos</a>' : ''}
+        ${currentUser.role === 'admin' ? '<button onclick="goToAdmin()" style="background: #5bc0de; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; margin: 5px 5px 5px 0; font-size: 0.9rem; font-weight: 600; transition: all 0.3s ease; min-width: 80px; text-align: center;">Panel Admin</button>' : ''}
+        <button onclick="logout()" style="background: #d9534f; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; margin: 5px 5px 5px 0; font-size: 0.9rem; font-weight: 600; transition: all 0.3s ease; min-width: 80px; text-align: center;">Cerrar Sesión</button>
       </div>
     `;
     

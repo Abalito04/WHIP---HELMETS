@@ -607,7 +607,7 @@ function applyFilters() {
       const matchesBrand = productBrand.includes(searchTerm);
       const matchesCategory = productCategory.includes(searchTerm);
       
-      console.log(`🔍 Búsqueda "${searchTerm}" en:`, {
+      console.log(`Búsqueda "${searchTerm}" en:`, {
         name: productName,
         brand: productBrand,
         category: productCategory,
@@ -617,7 +617,7 @@ function applyFilters() {
       });
       
       if (!matchesName && !matchesBrand && !matchesCategory) {
-        console.log(`❌ Filtrado por búsqueda: no coincide con "${searchTerm}"`);
+        console.log(`Filtrado por búsqueda: no coincide con "${searchTerm}"`);
         return false;
       }
     }
@@ -625,9 +625,9 @@ function applyFilters() {
     // Filtro de categoría
     if (categoryFilter !== "all") {
       const productCategory = product.category ? product.category.toLowerCase() : '';
-      console.log(`🔍 Comparando categoría: "${productCategory}" === "${categoryFilter}"`, productCategory === categoryFilter);
+      console.log(`Comparando categoría: "${productCategory}" === "${categoryFilter}"`, productCategory === categoryFilter);
       if (productCategory !== categoryFilter) {
-        console.log(`❌ Filtrado por categoría: "${product.category}" !== "${categoryFilter}"`);
+        console.log(`Filtrado por categoría: "${product.category}" !== "${categoryFilter}"`);
         return false;
       }
     }
@@ -635,14 +635,14 @@ function applyFilters() {
     // Filtro de marca
     if (brandFilter !== "all") {
       const productBrand = product.brand ? product.brand.toLowerCase() : '';
-      console.log(`🔍 Comparando marca:`, {
+      console.log(`Comparando marca:`, {
         productBrand: `"${productBrand}"`,
         brandFilter: `"${brandFilter}"`,
         originalBrand: `"${product.brand}"`,
         match: productBrand === brandFilter
       });
       if (productBrand !== brandFilter) {
-        console.log(`❌ Filtrado por marca: "${product.brand}" !== "${brandFilter}"`);
+        console.log(`Filtrado por marca: "${product.brand}" !== "${brandFilter}"`);
         return false;
       }
     }
@@ -650,9 +650,9 @@ function applyFilters() {
     // Filtrar por estado - con debug
     if (statusFilter !== "all") {
       const productStatus = product.status || 'Activo'; // Default a 'Activo' si no hay estado
-      console.log(`🔍 Comparando estado: "${productStatus}" === "${statusFilter}"`, productStatus === statusFilter);
+      console.log(`Comparando estado: "${productStatus}" === "${statusFilter}"`, productStatus === statusFilter);
       if (productStatus !== statusFilter) {
-        console.log(`❌ Filtrado por estado: "${productStatus}" !== "${statusFilter}"`);
+        console.log(`Filtrado por estado: "${productStatus}" !== "${statusFilter}"`);
         return false;
       }
     }
@@ -660,9 +660,9 @@ function applyFilters() {
     // Filtrar por condición
     if (conditionFilter !== "all") {
       const productCondition = product.condition || 'Nuevo'; // Default a 'Nuevo' si no hay condición
-      console.log(`🔍 Comparando condición: "${productCondition}" === "${conditionFilter}"`, productCondition === conditionFilter);
+      console.log(`Comparando condición: "${productCondition}" === "${conditionFilter}"`, productCondition === conditionFilter);
       if (productCondition !== conditionFilter) {
-        console.log(`❌ Filtrado por condición: "${productCondition}" !== "${conditionFilter}"`);
+        console.log(`Filtrado por condición: "${productCondition}" !== "${conditionFilter}"`);
         return false;
       }
     }
@@ -670,22 +670,22 @@ function applyFilters() {
     // Filtrar por stock
     if (stockFilter !== "all") {
       const stock = product.stock || 0;
-      console.log(`🔍 Evaluando stock: ${stock} para filtro "${stockFilter}"`);
+      console.log(`Evaluando stock: ${stock} para filtro "${stockFilter}"`);
       
       if (stockFilter === "low" && stock > 5) {
-        console.log(`❌ Filtrado por stock bajo: ${stock} > 5`);
+        console.log(`Filtrado por stock bajo: ${stock} > 5`);
         return false;
       }
       if (stockFilter === "medium" && (stock <= 5 || stock > 15)) {
-        console.log(`❌ Filtrado por stock medio: ${stock} no está entre 6-15`);
+        console.log(`Filtrado por stock medio: ${stock} no está entre 6-15`);
         return false;
       }
       if (stockFilter === "high" && stock <= 15) {
-        console.log(`❌ Filtrado por stock alto: ${stock} <= 15`);
+        console.log(`Filtrado por stock alto: ${stock} <= 15`);
         return false;
       }
       if (stockFilter === "out" && stock > 0) {
-        console.log(`❌ Filtrado por sin stock: ${stock} > 0`);
+        console.log(`Filtrado por sin stock: ${stock} > 0`);
         return false;
       }
     }
@@ -693,14 +693,14 @@ function applyFilters() {
     // Filtrar por precio
     if (priceFilter && priceFilter > 0) {
       const productPrice = product.price || 0;
-      console.log(`🔍 Evaluando precio: ${productPrice} <= ${priceFilter}`);
+      console.log(`Evaluando precio: ${productPrice} <= ${priceFilter}`);
       if (productPrice > priceFilter) {
-        console.log(`❌ Filtrado por precio: ${productPrice} > ${priceFilter}`);
+        console.log(`Filtrado por precio: ${productPrice} > ${priceFilter}`);
         return false;
       }
     }
     
-    console.log(`✅ Producto "${product.name}" pasa todos los filtros`);
+    console.log(`Producto "${product.name}" pasa todos los filtros`);
     return true;
   });
 
@@ -1087,13 +1087,13 @@ function setupEventListeners() {
 
           if (result.success) {
             selectedImages.push(result.file_path);
-            document.getElementById(`status-${i}`).innerHTML = "✅ Subida";
+            document.getElementById(`status-${i}`).innerHTML = "Subida";
             uploadedCount++;
           } else {
-            document.getElementById(`status-${i}`).innerHTML = `❌ Error: ${result.error}`;
+            document.getElementById(`status-${i}`).innerHTML = `Error: ${result.error}`;
           }
         } catch (error) {
-          document.getElementById(`status-${i}`).innerHTML = `❌ Error: ${error.message}`;
+          document.getElementById(`status-${i}`).innerHTML = `Error: ${error.message}`;
         }
       }
 

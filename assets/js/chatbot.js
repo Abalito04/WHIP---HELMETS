@@ -11,19 +11,19 @@ document.addEventListener("DOMContentLoaded", function() {
 });
 
 function initChatbot() {
-    console.log('🚀 Iniciando chatbot...');
+    console.log('Iniciando chatbot...');
     
     // Verificar si los elementos existen
     const container = document.getElementById('chatbot-container');
     const toggle = document.getElementById('chatbot-toggle');
     
     if (!container || !toggle) {
-        console.log('❌ Elementos del chatbot no encontrados en el DOM');
+        console.log('Elementos del chatbot no encontrados en el DOM');
         console.log('Container:', !!container, 'Toggle:', !!toggle);
         return;
     }
     
-    console.log('✅ Elementos del chatbot encontrados');
+    console.log('Elementos del chatbot encontrados');
     
     // Variables del chatbot
     const chatbotToggle = document.getElementById('chatbot-toggle');
@@ -45,45 +45,45 @@ function initChatbot() {
     // Base de conocimiento del chatbot
     const chatbotResponses = {
         'nuevo-usado': {
-            response: '¡Excelente pregunta! 🏍️ En WHIP-HELMETS manejamos tanto cascos nuevos como usados. Todos nuestros cascos, sin importar si son nuevos o usados, están completamente homologados y en perfecto estado para tu seguridad. Los cascos usados pasan por una revisión exhaustiva antes de ser puestos a la venta.',
+            response: '¡Excelente pregunta! En WHIP-HELMETS manejamos tanto cascos nuevos como usados. Todos nuestros cascos, sin importar si son nuevos o usados, están completamente homologados y en perfecto estado para tu seguridad. Los cascos usados pasan por una revisión exhaustiva antes de ser puestos a la venta.',
             keywords: ['nuevo', 'usado', 'nuevos', 'usados', 'estado', 'condición', 'homologado']
         },
         'tallas': {
-            response: '📏 Tenemos una amplia variedad de tallas disponibles para que encuentres el casco perfecto. Las tallas van desde XS hasta XXL, y cada casco tiene su tabla de tallas específica. Te recomendamos medir tu cabeza o probarte el casco antes de comprar para asegurar el ajuste perfecto.',
+            response: 'Tenemos una amplia variedad de tallas disponibles para que encuentres el casco perfecto. Las tallas van desde XS hasta XXL, y cada casco tiene su tabla de tallas específica. Te recomendamos medir tu cabeza o probarte el casco antes de comprar para asegurar el ajuste perfecto.',
             keywords: ['talla', 'tallas', 'medida', 'xs', 's', 'm', 'l', 'xl', 'xxl', 'tamaño']
         },
         'horarios': {
-            response: '🕒 Nuestros horarios de atención son: Lunes a Sábado de 08:00 a 20:00 hs. Los domingos permanecemos cerrados. También puedes contactarnos por WhatsApp al +54 295 454-4001 o por Instagram @whip.helmets en cualquier momento. ¡Estamos aquí para ayudarte!',
+            response: 'Nuestros horarios de atención son: Lunes a Sábado de 08:00 a 20:00 hs. Los domingos permanecemos cerrados. También puedes contactarnos por WhatsApp al +54 295 454-4001 o por Instagram @whip.helmets en cualquier momento. ¡Estamos aquí para ayudarte!',
             keywords: ['horario', 'horarios', 'atención', 'abierto', 'cerrado', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado', 'domingo']
         },
         'envios': {
-            response: '🚚 ¡Sí! Realizamos envíos a domicilio en toda la República Argentina, enviamos por Andreani, Via Cargo, Correo Argentino, Interpack, etc. Los pedidos se despachan dentro de las 24-48 horas hábiles. Si necesitas más información de los envíos podés comunicarte con nosotros por nuestros canales de atención al cliente!',
+            response: '¡Sí! Realizamos envíos a domicilio en toda la República Argentina, enviamos por Andreani, Via Cargo, Correo Argentino, Interpack, etc. Los pedidos se despachan dentro de las 24-48 horas hábiles. Si necesitas más información de los envíos podés comunicarte con nosotros por nuestros canales de atención al cliente!',
             keywords: ['envío', 'envíos', 'domicilio', 'delivery', 'andreani', 'via cargo', 'correo argentino', 'interpack', 'despacho', 'argentina']
         },
         'marcas': {
-            response: '🏆 Trabajamos con las mejores marcas del mercado: Fox, Bell, Alpinestars, Troy Lee Design, Fly Racing y muchas más. Cada marca tiene sus características especiales y niveles de protección. Para recomendaciones personalizadas según tu tipo de uso, te invitamos a contactarnos por WhatsApp al +54 295 454-4001 o por Instagram @whip.helmets. ¡Estaremos encantados de ayudarte a encontrar el casco perfecto!',
+            response: 'Trabajamos con las mejores marcas del mercado: Fox, Bell, Alpinestars, Troy Lee Design, Fly Racing y muchas más. Cada marca tiene sus características especiales y niveles de protección. Para recomendaciones personalizadas según tu tipo de uso, te invitamos a contactarnos por WhatsApp al +54 295 454-4001 o por Instagram @whip.helmets. ¡Estaremos encantados de ayudarte a encontrar el casco perfecto!',
             keywords: ['marca', 'marcas', 'fox', 'bell', 'alpinestars', 'troy lee', 'fly racing', 'modelo', 'modelos']
         },
         'productos': {
-            response: '🛒 ¡Perfecto! Tenemos una amplia variedad de cascos disponibles. Puedes ver todos nuestros productos en la página principal o contactarnos por WhatsApp al +54 295 454-4001 para más información específica sobre el modelo que te interese.',
+            response: '¡Perfecto! Tenemos una amplia variedad de cascos disponibles. Puedes ver todos nuestros productos en la página principal o contactarnos por WhatsApp al +54 295 454-4001 para más información específica sobre el modelo que te interese.',
             keywords: ['producto', 'productos', 'cascos', 'disponibles', 'stock', 'catalogo', 'catálogo']
         },
         'precios': {
-            response: '💰 Nuestros precios varían según la marca, modelo y condición del casco. Puedes ver todos nuestros productos con precios actualizados en la página principal o contactarnos por WhatsApp al +54 295 454-4001 para información específica.',
+            response: 'Nuestros precios varían según la marca, modelo y condición del casco. Puedes ver todos nuestros productos con precios actualizados en la página principal o contactarnos por WhatsApp al +54 295 454-4001 para información específica.',
             keywords: ['precio', 'precios', 'costo', 'cuesta', 'cuanto', 'cuánto', 'barato', 'económico']
         },
         'pagos': {
-            response: '💳 Trabajamos con: Transferencia Bancaria, Depósito, Tarjeta de débito/crédito mediante MercadoPago. Todos nuestros métodos de pago son seguros y confiables. ¿Necesitas más información sobre algún método específico? Comunícate con nosotros por WhatsApp al +54 295 454-4001 o por Instagram @whip.helmets.',
+            response: 'Trabajamos con: Transferencia Bancaria, Depósito, Tarjeta de débito/crédito mediante MercadoPago. Todos nuestros métodos de pago son seguros y confiables. ¿Necesitas más información sobre algún método específico? Comunícate con nosotros por WhatsApp al +54 295 454-4001 o por Instagram @whip.helmets.',
             keywords: ['pago', 'pagos', 'medios de pago', 'transferencia', 'depósito', 'tarjeta', 'débito', 'crédito', 'mercadopago', 'mercado pago', 'como pagar', 'cómo pagar', 'forma de pago']
         }
     };
 
     // Respuestas por defecto
     const defaultResponses = [
-        '¡Hola! 👋 Soy el asistente de WHIP-HELMETS. Puedo ayudarte con información sobre nuestros productos, horarios, envíos y más. ¿En qué puedo ayudarte?',
-        '¡Perfecto! 🤔 Si no encuentras la respuesta que buscas, puedes usar los botones de sugerencias o escribir tu pregunta directamente. También puedes contactarnos por WhatsApp al +54 295 454-4001.',
-        '¡Excelente pregunta! 💡 Te recomiendo revisar los botones de sugerencias que aparecen abajo, o puedes contactarnos directamente por WhatsApp para una atención más personalizada.',
-        '¡Gracias por tu consulta! 🏍️ Si necesitas más información específica, no dudes en contactarnos por WhatsApp al +54 295 454-4001 o por Instagram @whip.helmets.'
+        '¡Hola! Soy el asistente de WHIP-HELMETS. Puedo ayudarte con información sobre nuestros productos, horarios, envíos y más. ¿En qué puedo ayudarte?',
+        '¡Perfecto! Si no encuentras la respuesta que buscas, puedes usar los botones de sugerencias o escribir tu pregunta directamente. También puedes contactarnos por WhatsApp al +54 295 454-4001.',
+        '¡Excelente pregunta! Te recomiendo revisar los botones de sugerencias que aparecen abajo, o puedes contactarnos directamente por WhatsApp para una atención más personalizada.',
+        '¡Gracias por tu consulta! Si necesitas más información específica, no dudes en contactarnos por WhatsApp al +54 295 454-4001 o por Instagram @whip.helmets.'
     ];
 
     // Función para obtener la hora actual
@@ -244,7 +244,7 @@ function initChatbot() {
     // Event Listeners
     if (chatbotToggle) {
         chatbotToggle.addEventListener('click', () => {
-            console.log('🖱️ Botón del chatbot clickeado');
+            console.log('Botón del chatbot clickeado');
             chatbotWindow.classList.toggle('active');
             if (chatbotWindow.classList.contains('active')) {
                 chatbotInput.focus();
@@ -291,5 +291,5 @@ function initChatbot() {
         chatbotBadge.style.display = 'flex';
     }
     
-    console.log('✅ Chatbot inicializado correctamente');
+    console.log('Chatbot inicializado correctamente');
 }

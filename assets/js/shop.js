@@ -150,7 +150,6 @@ function createProductCard(product) {
         <div class="price-container">
             <p class="price effective-price">${formattedEffectivePrice} con Efectivo/Transferencia</p>
             <p class="price list-price">${formattedListPrice} Precio Lista</p>
-            <p class="price installments">6 cuotas sin interés de ${new Intl.NumberFormat('es-ES').format(Math.round(listPrice / 6))}</p>
             ${discountPercentage > 0 ? `<p class="discount-badge">-${discountPercentage}% OFF</p>` : ''}
         </div>
     `;

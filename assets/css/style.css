@@ -582,13 +582,6 @@ main {
     line-height: 1.2;
 }
 
-.price-container .installments {
-    color: #28a745;
-    font-size: 0.85em;
-    margin: 0;
-    font-weight: 600;
-    line-height: 1.2;
-}
 
 .discount-badge {
     position: absolute;
@@ -1850,9 +1843,6 @@ footer.legal-footer a:hover {
         font-size: 0.85em;
     }
     
-    .price-container .installments {
-        font-size: 0.8em;
-    }
     
     .discount-badge {
         font-size: 0.8em;
@@ -2243,9 +2233,6 @@ footer.legal-footer a:hover {
         font-size: 0.8em;
     }
     
-    .price-container .installments {
-        font-size: 0.75em;
-    }
     
     .discount-badge {
         font-size: 0.7em;

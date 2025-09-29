@@ -145,14 +145,15 @@ function createProductCard(product) {
     const effectivePrice = listPrice - discountAmount;
         const formattedEffectivePrice = '$' + new Intl.NumberFormat('es-ES').format(Math.round(effectivePrice));
     
-    // Mostrar siempre dos precios: efectivo (llamativo) y lista (pequeño)
+    // Mostrar precios al estilo Pachamama Bike Shop
     const priceDisplay = `
-            <div class="price-container">
-                <p class="price effective-price">${formattedEffectivePrice}</p>
-            <p class="price list-price">${formattedListPrice}</p>
-            ${discountPercentage > 0 ? `<p class="discount-badge">-${discountPercentage}%</p>` : ''}
-            </div>
-        `;
+        <div class="price-container">
+            <p class="price effective-price">${formattedEffectivePrice} con Efectivo/Transferencia</p>
+            <p class="price list-price">${formattedListPrice} Precio Lista</p>
+            <p class="price installments">6 cuotas sin interés de ${new Intl.NumberFormat('es-ES').format(Math.round(listPrice / 6))}</p>
+            ${discountPercentage > 0 ? `<p class="discount-badge">-${discountPercentage}% OFF</p>` : ''}
+        </div>
+    `;
     
     // Determinar estado del stock
     const stock = product.stock || 0;

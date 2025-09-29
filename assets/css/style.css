@@ -567,19 +567,27 @@ main {
 .price-container .effective-price {
     color: #e74c3c;
     font-weight: 800;
-    font-size: 1.7em;
-    margin: 0 0 2px 0;
+    font-size: 1.4em;
+    margin: 0 0 4px 0;
     text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
-    letter-spacing: 0.5px;
+    letter-spacing: 0.3px;
+    line-height: 1.2;
 }
 
 .price-container .list-price {
-    color: #999;
-    font-size: 1.0em;
-    text-decoration: line-through;
-    margin: 0;
-    opacity: 0.8;
+    color: #666;
+    font-size: 0.9em;
+    margin: 0 0 4px 0;
     font-weight: 500;
+    line-height: 1.2;
+}
+
+.price-container .installments {
+    color: #28a745;
+    font-size: 0.85em;
+    margin: 0;
+    font-weight: 600;
+    line-height: 1.2;
 }
 
 .discount-badge {
@@ -1835,11 +1843,15 @@ footer.legal-footer a:hover {
     }
     
     .price-container .effective-price {
-        font-size: 1.5em;
+        font-size: 1.3em;
     }
     
     .price-container .list-price {
-        font-size: 0.9em;
+        font-size: 0.85em;
+    }
+    
+    .price-container .installments {
+        font-size: 0.8em;
     }
     
     .discount-badge {
@@ -2224,11 +2236,15 @@ footer.legal-footer a:hover {
     }
     
     .price-container .effective-price {
-        font-size: 1.4em;
+        font-size: 1.2em;
     }
     
     .price-container .list-price {
         font-size: 0.8em;
+    }
+    
+    .price-container .installments {
+        font-size: 0.75em;
     }
     
     .discount-badge {

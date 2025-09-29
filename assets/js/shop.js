@@ -17,7 +17,7 @@ let cart = JSON.parse(localStorage.getItem("cart_v1")) || [];
 
 // Elementos DOM
 const productsGrid = document.getElementById("destacados");
-// const accessoriesGrid = document.getElementById("accesorios"); // COMENTADO - Sección de accesorios deshabilitada
+const accessoriesGrid = document.getElementById("accesorios");
 const cartCountEl = document.querySelector(".cart");
 const miniCartCount = document.getElementById("mini-cart-count");
 
@@ -29,7 +29,7 @@ async function loadProducts() {
     
     try {
         showLoading(productsGrid, "Cargando cascos...");
-        // showLoading(accessoriesGrid, "Cargando accesorios..."); // COMENTADO - Sección de accesorios deshabilitada
+        showLoading(accessoriesGrid, "Cargando accesorios...");
         
         const response = await fetch(`${API_BASE}/api/products`);
         console.log('Respuesta de la API:', response.status);
@@ -43,7 +43,7 @@ async function loadProducts() {
     } catch (error) {
         console.error("Error:", error);
         showError(productsGrid, "Error al cargar los productos. Por favor, recarga la página.");
-        // showError(accessoriesGrid, "Error al cargar los accesorios. Por favor, recarga la página."); // COMENTADO
+        showError(accessoriesGrid, "Error al cargar los accesorios. Por favor, recarga la página.");
     }
 }
 
@@ -66,7 +66,7 @@ function renderProducts() {
     
     // Limpiar contenedores
     productsGrid.innerHTML = "";
-    // accessoriesGrid.innerHTML = ""; // COMENTADO - Sección de accesorios deshabilitada
+    accessoriesGrid.innerHTML = "";
     
     // Separar productos por categoría
     const helmets = products.filter(p => 
@@ -87,8 +87,7 @@ function renderProducts() {
         });
     }
     
-    // Renderizar accesorios - COMENTADO TEMPORALMENTE
-    /*
+    // Renderizar accesorios
     if (accessories.length === 0) {
         accessoriesGrid.innerHTML = '<div class="no-products">No hay accesorios disponibles en este momento.</div>';
     } else {
@@ -97,7 +96,6 @@ function renderProducts() {
             accessoriesGrid.appendChild(productCard);
         });
     }
-    */
     
     // Actualizar contador del carrito
     updateCartCount();
@@ -850,14 +848,14 @@ function closeGallery() {
 function navigateGallery(direction) {
     if (direction === 'prev') {
         if (selectedImageIndex > 0) {
-            selectedImageIndex--;
+        selectedImageIndex--;
         } else {
             // Si estamos en la primera imagen, ir a la última
             selectedImageIndex = currentGalleryImages.length - 1;
         }
     } else if (direction === 'next') {
         if (selectedImageIndex < currentGalleryImages.length - 1) {
-            selectedImageIndex++;
+        selectedImageIndex++;
         } else {
             // Si estamos en la última imagen, ir a la primera
             selectedImageIndex = 0;

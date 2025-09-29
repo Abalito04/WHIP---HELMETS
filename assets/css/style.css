@@ -666,13 +666,11 @@ main {
     color: #f0ad4e;
 }
 
-/* Sección específica de accesorios - COMENTADA TEMPORALMENTE */
-/*
+/* Sección específica de accesorios */
 #accesorios .product-card {
     max-width: 300px;
     margin: 0 auto;
 }
-*/
 
 #cascos .product-image {
     width: 100%;          /* Ocupa todo el ancho del contenedor */
@@ -1601,7 +1599,7 @@ footer.legal-footer a:hover {
     }
     
     .navigation-buttons {
-        gap: 1em;
+        gap: 0.8em;
         padding: 1em;
         flex-direction: row;
         align-items: center;
@@ -1609,8 +1607,8 @@ footer.legal-footer a:hover {
     }
     
     .nav-button {
-        padding: 1em 1.5em;
-        min-width: 140px;
+        padding: 0.9em 1.2em;
+        min-width: 120px;
         justify-content: center;
     }
     
@@ -1951,12 +1949,12 @@ footer.legal-footer a:hover {
     
     .navigation-buttons {
         padding: 0.8em;
-        gap: 0.8em;
+        gap: 0.6em;
     }
     
     .nav-button {
-        padding: 0.8em 1.2em;
-        min-width: 120px;
+        padding: 0.7em 1em;
+        min-width: 100px;
     }
     
     .nav-text {
@@ -2103,13 +2101,13 @@ footer.legal-footer a:hover {
     
     .navigation-buttons {
         flex-direction: row;
-        gap: 1em;
+        gap: 0.5em;
         padding: 0.8em;
     }
     
     .nav-button {
-        padding: 0.8em 1.5em;
-        min-width: 120px;
+        padding: 0.7em 1em;
+        min-width: 90px;
     }
     
     .nav-text {

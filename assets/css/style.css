@@ -322,7 +322,7 @@ main {
     display: flex;
     flex-direction: column;
     height: 100%;
-    min-height: 450px;
+    min-height: 420px;
 }
 
 /* Contenedor principal del producto */
@@ -554,11 +554,11 @@ main {
 .price-container {
     position: relative;
     margin-bottom: 10px;
-    padding: 25px 30px;
+    padding: 20px 25px;
     background: linear-gradient(135deg, rgba(240, 173, 78, 0.1) 0%, rgba(224, 157, 62, 0.1) 100%);
     border-radius: 8px;
     border: 1px solid rgba(240, 173, 78, 0.2);
-    min-height: 160px;
+    min-height: 140px;
     width: 100%;
     box-sizing: border-box;
     overflow: visible;
@@ -580,14 +580,14 @@ main {
 }
 
 .payment-method {
-    font-size: 0.8em;
+    font-size: 0.75em;
     font-weight: 800;
     color: #fff;
     background: #e74c3c;
     display: block;
-    margin-top: 4px;
-    letter-spacing: 0.3px;
-    padding: 4px 8px;
+    margin-top: 3px;
+    letter-spacing: 0.2px;
+    padding: 3px 6px;
     border-radius: 4px;
     text-shadow: none;
 }
@@ -1819,7 +1819,7 @@ footer.legal-footer a:hover {
     
     .product-card {
         margin-bottom: 0;
-        min-height: 450px;
+        min-height: 420px;
         border-radius: 12px;
     }
     
@@ -1857,8 +1857,8 @@ footer.legal-footer a:hover {
     }
     
     .price-container {
-        padding: 20px 25px;
-        min-height: 140px;
+        padding: 18px 22px;
+        min-height: 125px;
     }
     
     .price-container .effective-price {
@@ -1866,8 +1866,8 @@ footer.legal-footer a:hover {
     }
     
     .payment-method {
-        font-size: 0.75em;
-        padding: 3px 6px;
+        font-size: 0.7em;
+        padding: 2px 5px;
     }
     
     .price-container .list-price {
@@ -2221,7 +2221,7 @@ footer.legal-footer a:hover {
     
     .product-card {
         margin-bottom: 0.8em;
-        min-height: 450px;
+        min-height: 420px;
     }
     
     .product-images-container {
@@ -2256,8 +2256,8 @@ footer.legal-footer a:hover {
     }
     
     .price-container {
-        padding: 15px 18px;
-        min-height: 120px;
+        padding: 12px 15px;
+        min-height: 110px;
     }
     
     .price-container .effective-price {
@@ -2265,8 +2265,8 @@ footer.legal-footer a:hover {
     }
     
     .payment-method {
-        font-size: 0.7em;
-        padding: 2px 5px;
+        font-size: 0.65em;
+        padding: 2px 4px;
     }
     
     .price-container .list-price {
@@ -2409,7 +2409,7 @@ footer.legal-footer a:hover {
     }
     
     .product-card {
-        min-height: 450px;
+        min-height: 420px;
     }
     
     .product-image {

@@ -430,8 +430,8 @@ function renderProducts() {
       </td>
       <td>
         <div class="action-buttons">
-          <button class="action-btn save-btn" data-id="${product.id}" title="Guardar cambios">💾</button>
-          <button class="action-btn delete-btn" data-id="${product.id}" title="Eliminar producto">🗑</button>
+          <button class="action-btn save-btn" data-id="${product.id}" title="Guardar cambios">Guardar</button>
+          <button class="action-btn delete-btn" data-id="${product.id}" title="Eliminar producto">Eliminar</button>
         </div>
       </td>
     `;
@@ -2052,8 +2052,8 @@ function renderUsers() {
       <td><span class="user-role ${user.role}">${user.role}</span></td>
       <td>${formatDate(user.created_at)}</td>
       <td class="user-actions">
-        <button class="btn btn-primary" onclick="editUser(${user.id})">✏️ Editar</button>
-        <button class="btn btn-danger" onclick="confirmDeleteUser(${user.id}, '${user.username}')">🗑️ Eliminar</button>
+        <button class="btn btn-primary" onclick="editUser(${user.id})">Editar</button>
+        <button class="btn btn-danger" onclick="confirmDeleteUser(${user.id}, '${user.username}')">Eliminar</button>
       </td>
     </tr>
   `).join('');

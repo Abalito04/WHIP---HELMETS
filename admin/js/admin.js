@@ -1148,6 +1148,7 @@ function setupEventListeners() {
       name: document.getElementById("new-name").value,
       brand: brand,
       price: parseFloat(document.getElementById("new-price").value),
+      precio_efectivo: document.getElementById("new-precio-efectivo").value ? parseFloat(document.getElementById("new-precio-efectivo").value) : null,
       porcentaje_descuento: document.getElementById("new-porcentaje-descuento").value ? parseFloat(document.getElementById("new-porcentaje-descuento").value) : null,
       category: document.getElementById("new-category").value,
       condition: condition,
@@ -1199,6 +1200,11 @@ function setupEventListeners() {
         } else if (input.dataset.field === "porcentaje_descuento") {
           // Convertir cadena vacía a null para evitar errores en PostgreSQL
           updates["porcentaje_descuento"] = input.value === "" ? null : parseFloat(input.value);
+        } else if (input.dataset.field === "precio_efectivo") {
+          // Solo enviar precio_efectivo si tiene valor
+          if (input.value && input.value.trim() !== "") {
+            updates["precio_efectivo"] = parseFloat(input.value);
+          }
         } else {
           updates[input.dataset.field] = input.value;
         }

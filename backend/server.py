@@ -433,8 +433,8 @@ def update_product(pid: int):
                     print(f"WARNING: Columna precio_efectivo no existe, saltando actualización")
             except Exception as e:
                 print(f"WARNING: Error verificando columna precio_efectivo: {e}")
-                # Si no podemos verificar, intentar de todas formas
-                set_field("precio_efectivo", precio_efectivo)
+                # Si no podemos verificar, no intentar actualizar
+                print(f"WARNING: No se puede verificar la columna precio_efectivo, saltando actualización")
 
         if "porcentaje_descuento" in data:
             porcentaje_descuento = data.get("porcentaje_descuento")

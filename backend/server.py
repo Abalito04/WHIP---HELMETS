@@ -113,7 +113,7 @@ def row_to_dict(row):
     else:
         # Si no tiene _asdict, crear diccionario manualmente
         d = {}
-        columns = ['id', 'name', 'brand', 'price', 'precio_efectivo', 'porcentaje_descuento', 'category', 'condition', 'sizes', 'stock', 'image', 'images', 'status']
+        columns = ['id', 'name', 'brand', 'price', 'porcentaje_descuento', 'category', 'condition', 'sizes', 'stock', 'image', 'images', 'status']
         for i, col in enumerate(columns):
             if i < len(row):
                 d[col] = row[i]
@@ -157,6 +157,14 @@ def row_to_dict(row):
         d["porcentaje_descuento"] = None
         d["precio_efectivo"] = d["price"]
     
+    # Si no existe precio_efectivo en la base de datos, calcularlo
+    if "precio_efectivo" not in d:
+        if d.get("porcentaje_descuento") and d["porcentaje_descuento"] > 0:
+            descuento = d["price"] * (d["porcentaje_descuento"] / 100)
+            d["precio_efectivo"] = round(d["price"] - descuento, 2)
+        else:
+            d["precio_efectivo"] = d["price"]
+    
     # stock a entero
     try:
         d["stock"] = int(d["stock"])
@@ -198,7 +206,7 @@ def list_products():
         min_price = request.args.get("min_price", "").strip()
         max_price = request.args.get("max_price", "").strip()
 
-        query = "SELECT id, name, brand, price, COALESCE(precio_efectivo, price) as precio_efectivo, COALESCE(porcentaje_descuento, NULL) as porcentaje_descuento, category, condition, sizes, stock, image, images, status, created_at, updated_at FROM productos WHERE 1=1"
+        query = "SELECT id, name, brand, price, COALESCE(porcentaje_descuento, NULL) as porcentaje_descuento, category, condition, sizes, stock, image, images, status, created_at, updated_at FROM productos WHERE 1=1"
         params = []
 
         if q:
@@ -252,7 +260,7 @@ def list_products():
 def get_product(pid: int):
     conn = get_conn()
     try:
-        row = execute_query(conn, "SELECT id, name, brand, price, COALESCE(precio_efectivo, price) as precio_efectivo, COALESCE(porcentaje_descuento, NULL) as porcentaje_descuento, category, condition, sizes, stock, image, images, status, created_at, updated_at FROM productos WHERE id = %s", (pid,)).fetchone()
+        row = execute_query(conn, "SELECT id, name, brand, price, COALESCE(porcentaje_descuento, NULL) as porcentaje_descuento, category, condition, sizes, stock, image, images, status, created_at, updated_at FROM productos WHERE id = %s", (pid,)).fetchone()
         if not row:
             return jsonify({"error": "Producto no encontrado"}), 404
         return jsonify(row_to_dict(row)), 200
@@ -329,20 +337,42 @@ def create_product():
 
     conn = get_conn()
     try:
-        cur = execute_query(conn,
-            """
-            INSERT INTO productos (name, brand, price, precio_efectivo, porcentaje_descuento, category, condition, sizes, stock, image, images, status)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-            RETURNING id
-            """,
-            (name, brand, price, precio_efectivo, porcentaje_descuento, category, condition, sizes_csv, stock, image, images_json, status),
-        )
+        # Verificar si la columna precio_efectivo existe
+        try:
+            cursor_check = conn.cursor()
+            cursor_check.execute("""
+                SELECT column_name 
+                FROM information_schema.columns 
+                WHERE table_name = 'productos' AND column_name = 'precio_efectivo'
+            """)
+            precio_efectivo_exists = cursor_check.fetchone() is not None
+        except Exception:
+            precio_efectivo_exists = False
+        
+        if precio_efectivo_exists:
+            cur = execute_query(conn,
+                """
+                INSERT INTO productos (name, brand, price, precio_efectivo, porcentaje_descuento, category, condition, sizes, stock, image, images, status)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                RETURNING id
+                """,
+                (name, brand, price, precio_efectivo, porcentaje_descuento, category, condition, sizes_csv, stock, image, images_json, status),
+            )
+        else:
+            cur = execute_query(conn,
+                """
+                INSERT INTO productos (name, brand, price, porcentaje_descuento, category, condition, sizes, stock, image, images, status)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                RETURNING id
+                """,
+                (name, brand, price, porcentaje_descuento, category, condition, sizes_csv, stock, image, images_json, status),
+            )
         
         # PostgreSQL: obtener el ID del último insert
         new_id = cur.fetchone()[0]
         conn.commit()  # Confirmar la transacción
 
-        row = execute_query(conn, "SELECT id, name, brand, price, COALESCE(precio_efectivo, price) as precio_efectivo, COALESCE(porcentaje_descuento, NULL) as porcentaje_descuento, category, condition, sizes, stock, image, images, status, created_at, updated_at FROM productos WHERE id = %s", (new_id,)).fetchone()
+        row = execute_query(conn, "SELECT id, name, brand, price, COALESCE(porcentaje_descuento, NULL) as porcentaje_descuento, category, condition, sizes, stock, image, images, status, created_at, updated_at FROM productos WHERE id = %s", (new_id,)).fetchone()
         return jsonify(row_to_dict(row)), 201
     finally:
         conn.close()
@@ -388,7 +418,23 @@ def update_product(pid: int):
                         return jsonify({"error": "El precio efectivo debe ser mayor o igual a 0"}), 400
                 except Exception:
                     return jsonify({"error": "El campo 'precio_efectivo' debe ser numérico"}), 400
-            set_field("precio_efectivo", precio_efectivo)
+            # Verificar si la columna existe antes de intentar actualizarla
+            try:
+                cursor_check = conn.cursor()
+                cursor_check.execute("""
+                    SELECT column_name 
+                    FROM information_schema.columns 
+                    WHERE table_name = 'productos' AND column_name = 'precio_efectivo'
+                """)
+                column_exists = cursor_check.fetchone() is not None
+                if column_exists:
+                    set_field("precio_efectivo", precio_efectivo)
+                else:
+                    print(f"WARNING: Columna precio_efectivo no existe, saltando actualización")
+            except Exception as e:
+                print(f"WARNING: Error verificando columna precio_efectivo: {e}")
+                # Si no podemos verificar, intentar de todas formas
+                set_field("precio_efectivo", precio_efectivo)
 
         if "porcentaje_descuento" in data:
             porcentaje_descuento = data.get("porcentaje_descuento")
@@ -489,10 +535,10 @@ def update_product(pid: int):
                 column_exists = cursor_check.fetchone() is not None
                 
                 if column_exists:
-                    query = "SELECT id, name, brand, price, COALESCE(precio_efectivo, price) as precio_efectivo, COALESCE(porcentaje_descuento, NULL) as porcentaje_descuento, category, condition, sizes, stock, image, images, status, created_at, updated_at FROM productos WHERE id = %s"
+                    query = "SELECT id, name, brand, price, COALESCE(porcentaje_descuento, NULL) as porcentaje_descuento, category, condition, sizes, stock, image, images, status, created_at, updated_at FROM productos WHERE id = %s"
                 else:
                     print("WARNING: Usando query sin porcentaje_descuento")
-                    query = "SELECT id, name, brand, price, COALESCE(precio_efectivo, price) as precio_efectivo, NULL as porcentaje_descuento, category, condition, sizes, stock, image, images, status, created_at, updated_at FROM productos WHERE id = %s"
+                    query = "SELECT id, name, brand, price, NULL as porcentaje_descuento, category, condition, sizes, stock, image, images, status, created_at, updated_at FROM productos WHERE id = %s"
                 
                 row = execute_query(conn, query, (pid,)).fetchone()
                 print(f"DEBUG: Row obtenida: {row}")

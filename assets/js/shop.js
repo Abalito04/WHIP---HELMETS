@@ -412,15 +412,32 @@ function initBrandFilter() {
     priceDescOption.textContent = "Precio: Mayor a Menor";
     sortSelect.appendChild(priceDescOption);
 
-    // Agregar elementos al contenedor
-    filterContainer.appendChild(brandLabel);
-    filterContainer.appendChild(brandSelect);
-    filterContainer.appendChild(conditionLabel);
-    filterContainer.appendChild(conditionSelect);
-    filterContainer.appendChild(sizeLabel);
-    filterContainer.appendChild(sizeSelect);
-    filterContainer.appendChild(sortLabel);
-    filterContainer.appendChild(sortSelect);
+    // Crear wrappers para cada par de filtros
+    const brandWrapper = document.createElement("div");
+    brandWrapper.className = "filter-group";
+    brandWrapper.appendChild(brandLabel);
+    brandWrapper.appendChild(brandSelect);
+    
+    const conditionWrapper = document.createElement("div");
+    conditionWrapper.className = "filter-group";
+    conditionWrapper.appendChild(conditionLabel);
+    conditionWrapper.appendChild(conditionSelect);
+    
+    const sizeWrapper = document.createElement("div");
+    sizeWrapper.className = "filter-group";
+    sizeWrapper.appendChild(sizeLabel);
+    sizeWrapper.appendChild(sizeSelect);
+    
+    const sortWrapper = document.createElement("div");
+    sortWrapper.className = "filter-group";
+    sortWrapper.appendChild(sortLabel);
+    sortWrapper.appendChild(sortSelect);
+    
+    // Agregar wrappers al contenedor
+    filterContainer.appendChild(brandWrapper);
+    filterContainer.appendChild(conditionWrapper);
+    filterContainer.appendChild(sizeWrapper);
+    filterContainer.appendChild(sortWrapper);
     
     // Insertar el filtro antes de la sección de productos
     const productosSection = document.getElementById("destacados");

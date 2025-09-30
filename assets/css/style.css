@@ -1972,6 +1972,19 @@ footer.legal-footer a:hover {
         padding: 3px 6px;
     }
     
+    .condition-badge {
+        font-size: 0.95em;
+        padding: 5px 13px;
+    }
+    
+    .price-container .list-price {
+        font-size: 1.0em;
+    }
+    
+    .price.list-price-outside {
+        font-size: 1.0em;
+    }
+    
     .product-card button {
         padding: 10px 15px;
         font-size: 1.0em;
@@ -2391,6 +2404,26 @@ footer.legal-footer a:hover {
         padding: 3px 6px;
         top: -6px;
         right: 8px;
+    }
+    
+    .condition-badge {
+        font-size: 1.0em;
+        padding: 6px 14px;
+        border-radius: 20px;
+    }
+    
+    .price-container .list-price {
+        font-size: 1.1em;
+        text-align: center;
+        margin: 4px 0;
+    }
+    
+    .price.list-price-outside {
+        font-size: 1.1em;
+        margin: 6px 8px 4px 8px;
+        padding: 0 8px;
+        text-align: center;
+        font-weight: 600;
     }
     
     .mini-cart {

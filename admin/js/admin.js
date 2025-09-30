@@ -411,7 +411,7 @@ function renderProducts() {
       <td><input type="text" value="${product.brand}" data-field="brand" data-id="${product.id}"></td>
       <td><input type="number" value="${product.price}" data-field="price" data-id="${product.id}"></td>
       <td><input type="number" value="${product.precio_efectivo || ''}" data-field="precio_efectivo" data-id="${product.id}" min="0" step="0.01" placeholder="Ej: 250000"></td>
-      <td><input type="number" value="${product.porcentaje_descuento || ''}" data-field="porcentaje_descuento" data-id="${product.id}" min="0" max="100" step="0.1" placeholder="Ej: 10.5" readonly></td>
+      <td><input type="number" value="${product.porcentaje_descuento || ''}" data-field="porcentaje_descuento" data-id="${product.id}" min="0" max="100" step="0.1" placeholder="Ej: 10.5"></td>
       <td><input type="text" value="${product.category}" data-field="category" data-id="${product.id}"></td>
       <td>
         <select data-field="condition" data-id="${product.id}">
@@ -858,6 +858,28 @@ function setupEventListeners() {
         porcentajeInput.value = porcentaje.toFixed(1);
       }
     });
+    
+    porcentajeInput.addEventListener("input", () => {
+      const porcentaje = parseFloat(porcentajeInput.value);
+      const precioNormal = parseFloat(precioNormalInput.value);
+      
+      if (porcentaje >= 0 && precioNormal > 0) {
+        const descuento = precioNormal * (porcentaje / 100);
+        const precioEfectivo = precioNormal - descuento;
+        precioEfectivoInput.value = precioEfectivo.toFixed(2);
+      }
+    });
+    
+    precioNormalInput.addEventListener("input", () => {
+      const precioNormal = parseFloat(precioNormalInput.value);
+      const porcentaje = parseFloat(porcentajeInput.value);
+      
+      if (precioNormal > 0 && porcentaje > 0) {
+        const descuento = precioNormal * (porcentaje / 100);
+        const precioEfectivo = precioNormal - descuento;
+        precioEfectivoInput.value = precioEfectivo.toFixed(2);
+      }
+    });
   }
   
   // Ver estadísticas de productos
@@ -1178,6 +1200,34 @@ function setupEventListeners() {
         if (precioNormal > 0) {
           const porcentaje = ((precioNormal - precioEfectivo) / precioNormal) * 100;
           porcentajeInput.value = porcentaje.toFixed(1);
+        }
+      }
+    } else if (e.target.dataset.field === "porcentaje_descuento") {
+      const id = e.target.dataset.id;
+      const porcentaje = parseFloat(e.target.value);
+      const precioNormalInput = document.querySelector(`[data-field="price"][data-id="${id}"]`);
+      const precioEfectivoInput = document.querySelector(`[data-field="precio_efectivo"][data-id="${id}"]`);
+      
+      if (precioNormalInput && precioEfectivoInput && porcentaje >= 0) {
+        const precioNormal = parseFloat(precioNormalInput.value);
+        if (precioNormal > 0) {
+          const descuento = precioNormal * (porcentaje / 100);
+          const precioEfectivo = precioNormal - descuento;
+          precioEfectivoInput.value = precioEfectivo.toFixed(2);
+        }
+      }
+    } else if (e.target.dataset.field === "price") {
+      const id = e.target.dataset.id;
+      const precioNormal = parseFloat(e.target.value);
+      const porcentajeInput = document.querySelector(`[data-field="porcentaje_descuento"][data-id="${id}"]`);
+      const precioEfectivoInput = document.querySelector(`[data-field="precio_efectivo"][data-id="${id}"]`);
+      
+      if (porcentajeInput && precioEfectivoInput && precioNormal > 0) {
+        const porcentaje = parseFloat(porcentajeInput.value);
+        if (porcentaje > 0) {
+          const descuento = precioNormal * (porcentaje / 100);
+          const precioEfectivo = precioNormal - descuento;
+          precioEfectivoInput.value = precioEfectivo.toFixed(2);
         }
       }
     }

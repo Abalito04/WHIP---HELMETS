@@ -1828,7 +1828,7 @@ footer.legal-footer a:hover {
     }
     
     .product-info {
-        padding: 10px;
+        padding: 8px;
     }
     
     .product-info h3 {
@@ -1852,8 +1852,8 @@ footer.legal-footer a:hover {
     }
     
     .product-actions {
-        padding: 10px;
-        min-height: 60px;
+        padding: 6px 8px;
+        min-height: 50px;
     }
     
     .price-container {
@@ -1887,9 +1887,9 @@ footer.legal-footer a:hover {
     }
     
     .product-card button {
-        padding: 10px 14px;
-        font-size: 1.0em;
-        border-radius: 8px;
+        padding: 6px 10px;
+        font-size: 0.85em;
+        border-radius: 6px;
     }
     
     .btn-primary, .btn-secondary {
@@ -2233,9 +2233,9 @@ footer.legal-footer a:hover {
     }
     
     .product-info h3 {
-        font-size: 1.0em;
-        height: 2.0em; /* Limitar a 2 líneas máximo */
-        line-height: 1.0em;
+        font-size: 0.95em;
+        height: 1.8em; /* Limitar a 2 líneas máximo */
+        line-height: 0.9em;
         overflow: hidden;
         display: -webkit-box;
         -webkit-line-clamp: 2;
@@ -2244,10 +2244,10 @@ footer.legal-footer a:hover {
     }
     
     .product-price {
-        font-size: 1.4em;
+        font-size: 1.3em;
         font-weight: 800;
         text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
-        letter-spacing: 0.3px;
+        letter-spacing: 0.2px;
     }
     
     .cart-modal {
@@ -2256,12 +2256,14 @@ footer.legal-footer a:hover {
     }
     
     .price-container {
-        padding: 12px 15px;
-        min-height: 110px;
+        padding: 10px 12px;
+        min-height: 100px;
+        margin: 0 5px;
     }
     
     .price-container .effective-price {
-        font-size: 1.4em;
+        font-size: 1.3em;
+        line-height: 1.2;
     }
     
     .payment-method {
@@ -2275,8 +2277,9 @@ footer.legal-footer a:hover {
     
     .price.list-price-outside {
         font-size: 0.8em;
-        margin: 5px 0 3px 0;
+        margin: 5px 8px 3px 8px;
         padding: 0 6px;
+        text-align: center;
     }
     
     

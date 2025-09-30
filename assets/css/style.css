@@ -2594,7 +2594,7 @@ footer.legal-footer a:hover {
     position: fixed;
     bottom: 20px;
     right: 20px;
-    z-index: 1000;
+    z-index: 9999;
     font-family: 'Bangers', cursive;
     /* Debug: asegurar que sea visible */
     display: block !important;
@@ -2860,11 +2860,15 @@ footer.legal-footer a:hover {
     .chatbot-container {
         bottom: 20px;
         right: 20px;
+        z-index: 9999;
+        display: block !important;
+        visibility: visible !important;
     }
     
     #mini-cart {
         bottom: 20px;
-        right: 20px;
+        right: 90px;
+        z-index: 9998;
     }
     
     #mini-cart-dropdown {
@@ -2938,6 +2942,9 @@ footer.legal-footer a:hover {
         font-size: 1.2rem;
         touch-action: manipulation;
         -webkit-tap-highlight-color: transparent;
+        bottom: 20px;
+        right: 80px;
+        z-index: 9998;
     }
     
     .chatbot-suggestions {
@@ -2950,6 +2957,22 @@ footer.legal-footer a:hover {
         font-size: 10px;
         padding: 4px 8px;
         border-radius: 12px;
+    }
+    
+    .chatbot-container {
+        bottom: 20px;
+        right: 20px;
+        z-index: 9999;
+        display: block !important;
+        visibility: visible !important;
+    }
+    
+    .chatbot-toggle {
+        width: 50px;
+        height: 50px;
+        display: flex !important;
+        visibility: visible !important;
+        opacity: 1 !important;
     }
 }
 

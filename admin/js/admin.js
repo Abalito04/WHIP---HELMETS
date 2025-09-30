@@ -410,7 +410,8 @@ function renderProducts() {
       <td><input type="text" value="${product.name}" data-field="name" data-id="${product.id}"></td>
       <td><input type="text" value="${product.brand}" data-field="brand" data-id="${product.id}"></td>
       <td><input type="number" value="${product.price}" data-field="price" data-id="${product.id}"></td>
-      <td><input type="number" value="${product.porcentaje_descuento || ''}" data-field="porcentaje_descuento" data-id="${product.id}" min="0" max="100" step="0.1" placeholder="Ej: 10.5"></td>
+      <td><input type="number" value="${product.precio_efectivo || ''}" data-field="precio_efectivo" data-id="${product.id}" min="0" step="0.01" placeholder="Ej: 250000"></td>
+      <td><input type="number" value="${product.porcentaje_descuento || ''}" data-field="porcentaje_descuento" data-id="${product.id}" min="0" max="100" step="0.1" placeholder="Ej: 10.5" readonly></td>
       <td><input type="text" value="${product.category}" data-field="category" data-id="${product.id}"></td>
       <td>
         <select data-field="condition" data-id="${product.id}">
@@ -841,6 +842,23 @@ function setupEventListeners() {
       }
     });
   }
+
+  // Calcular porcentaje de descuento automáticamente en formulario de nuevo producto
+  const precioEfectivoInput = document.getElementById("new-precio-efectivo");
+  const precioNormalInput = document.getElementById("new-price");
+  const porcentajeInput = document.getElementById("new-porcentaje-descuento");
+  
+  if (precioEfectivoInput && precioNormalInput && porcentajeInput) {
+    precioEfectivoInput.addEventListener("input", () => {
+      const precioEfectivo = parseFloat(precioEfectivoInput.value);
+      const precioNormal = parseFloat(precioNormalInput.value);
+      
+      if (precioEfectivo > 0 && precioNormal > 0) {
+        const porcentaje = ((precioNormal - precioEfectivo) / precioNormal) * 100;
+        porcentajeInput.value = porcentaje.toFixed(1);
+      }
+    });
+  }
   
   // Ver estadísticas de productos
   if (imageStatsBtn) {
@@ -1145,6 +1163,24 @@ function setupEventListeners() {
   });
 
 
+
+  // Calcular porcentaje de descuento automáticamente
+  productsBody.addEventListener("input", (e) => {
+    if (e.target.dataset.field === "precio_efectivo") {
+      const id = e.target.dataset.id;
+      const precioEfectivo = parseFloat(e.target.value);
+      const precioNormalInput = document.querySelector(`[data-field="price"][data-id="${id}"]`);
+      const porcentajeInput = document.querySelector(`[data-field="porcentaje_descuento"][data-id="${id}"]`);
+      
+      if (precioNormalInput && porcentajeInput && precioEfectivo > 0) {
+        const precioNormal = parseFloat(precioNormalInput.value);
+        if (precioNormal > 0) {
+          const porcentaje = ((precioNormal - precioEfectivo) / precioNormal) * 100;
+          porcentajeInput.value = porcentaje.toFixed(1);
+        }
+      }
+    }
+  });
 
   // Guardar cambios individuales
   productsBody.addEventListener("click", (e) => {

@@ -40,6 +40,34 @@ def migrate_add_images_column():
                 WHERE images IS NULL OR images = ''
             """)
             
+            # Verificar si la columna 'precio_efectivo' ya existe
+            cursor.execute("""
+                SELECT column_name 
+                FROM information_schema.columns 
+                WHERE table_name = 'productos' AND column_name = 'precio_efectivo'
+            """)
+            
+            if cursor.fetchone():
+                print("La columna 'precio_efectivo' ya existe en la tabla productos")
+            else:
+                # Agregar la columna 'precio_efectivo'
+                cursor.execute("""
+                    ALTER TABLE productos 
+                    ADD COLUMN precio_efectivo DECIMAL(10,2)
+                """)
+                print("Columna 'precio_efectivo' agregada a la tabla productos")
+                
+                # Calcular precio_efectivo para productos existentes
+                cursor.execute("""
+                    UPDATE productos 
+                    SET precio_efectivo = CASE 
+                        WHEN porcentaje_descuento IS NOT NULL AND porcentaje_descuento > 0 
+                        THEN price - (price * porcentaje_descuento / 100)
+                        ELSE price 
+                    END
+                """)
+                print("Precios efectivos calculados para productos existentes")
+            
             conn.commit()
             print("Migración completada exitosamente")
             

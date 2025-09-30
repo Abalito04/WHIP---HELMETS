@@ -57,7 +57,7 @@ function initChatbot() {
             keywords: ['horario', 'horarios', 'atención', 'abierto', 'cerrado', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado', 'domingo']
         },
         'envios': {
-            response: '¡Sí! Realizamos envíos a domicilio en toda la República Argentina, enviamos por Andreani, Via Cargo, Correo Argentino, Interpack, etc. Los pedidos se despachan dentro de las 24-48 horas hábiles. Si necesitas más información de los envíos podés comunicarte con nosotros por nuestros canales de atención al cliente!',
+            response: '¡Sí! Realizamos envíos a domicilio en toda la República Argentina, enviamos por Andreani, Via Cargo, Correo Argentino, Interpack, etc. Una vez realizado el pago y confirmado por nosotros, nos comunicaremos con usted para coordinar el medio y pago del envio. Los mismos se despachan dentro de las 24-48 horas hábiles. Si necesitas más información de los envíos podés comunicarte con nosotros por nuestros canales de atención al cliente!',
             keywords: ['envío', 'envíos', 'domicilio', 'delivery', 'andreani', 'via cargo', 'correo argentino', 'interpack', 'despacho', 'argentina']
         },
         'marcas': {

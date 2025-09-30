@@ -2082,6 +2082,12 @@ footer.legal-footer a:hover {
         max-height: 80vh;
     }
     
+    #mini-cart-dropdown {
+        right: 2.5%;
+        left: 2.5%;
+        width: auto;
+    }
+    
     .mini-cart-header {
         padding: 0.8em;
     }
@@ -2858,12 +2864,14 @@ footer.legal-footer a:hover {
     
     #mini-cart {
         bottom: 20px;
-        right: 90px;
+        right: 20px;
     }
     
     #mini-cart-dropdown {
         bottom: 90px;
-        right: 90px;
+        right: 20px;
+        left: 20px;
+        width: auto;
     }
     
     /* Sección de contacto responsive */

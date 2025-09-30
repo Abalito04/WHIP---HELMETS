@@ -1912,7 +1912,7 @@ footer.legal-footer a:hover {
     }
     
     .product-info h3 {
-        font-size: 1.3em;
+        font-size: 1.4em;
         margin-bottom: 6px;
         height: 2.0em; /* Limitar a 2 líneas máximo */
         line-height: 1.0em;
@@ -2313,9 +2313,9 @@ footer.legal-footer a:hover {
     }
     
     .product-info h3 {
-        font-size: 0.95em;
-        height: 1.8em; /* Limitar a 2 líneas máximo */
-        line-height: 0.9em;
+        font-size: 1.1em;
+        height: 2.0em; /* Limitar a 2 líneas máximo */
+        line-height: 1.0em;
         overflow: hidden;
         display: -webkit-box;
         -webkit-line-clamp: 2;

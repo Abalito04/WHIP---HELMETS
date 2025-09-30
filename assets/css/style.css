@@ -1912,7 +1912,7 @@ footer.legal-footer a:hover {
     }
     
     .product-info h3 {
-        font-size: 1.5em;
+        font-size: 1.6em;
         margin-bottom: 6px;
         height: 2.0em; /* Limitar a 2 líneas máximo */
         line-height: 1.0em;
@@ -1922,6 +1922,8 @@ footer.legal-footer a:hover {
         -webkit-box-orient: vertical;
         text-overflow: ellipsis;
         font-weight: 700;
+        color: #333;
+        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
     }
     
     .product-card .price {
@@ -2316,7 +2318,7 @@ footer.legal-footer a:hover {
     }
     
     .product-info h3 {
-        font-size: 1.3em;
+        font-size: 1.5em;
         height: 2.0em; /* Limitar a 2 líneas máximo */
         line-height: 1.0em;
         overflow: hidden;
@@ -2325,6 +2327,8 @@ footer.legal-footer a:hover {
         -webkit-box-orient: vertical;
         text-overflow: ellipsis;
         font-weight: 700;
+        color: #333;
+        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
     }
     
     .product-price {

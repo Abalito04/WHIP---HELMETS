@@ -1912,7 +1912,7 @@ footer.legal-footer a:hover {
     }
     
     .product-info h3 {
-        font-size: 1.4em;
+        font-size: 1.5em;
         margin-bottom: 6px;
         height: 2.0em; /* Limitar a 2 líneas máximo */
         line-height: 1.0em;
@@ -1921,6 +1921,7 @@ footer.legal-footer a:hover {
         -webkit-line-clamp: 2;
         -webkit-box-orient: vertical;
         text-overflow: ellipsis;
+        font-weight: 700;
     }
     
     .product-card .price {
@@ -1967,9 +1968,11 @@ footer.legal-footer a:hover {
     }
     
     .product-card button {
-        padding: 6px 10px;
-        font-size: 0.85em;
-        border-radius: 6px;
+        padding: 10px 15px;
+        font-size: 1.0em;
+        border-radius: 8px;
+        font-weight: 700;
+        min-height: 52px;
     }
     
     .btn-primary, .btn-secondary {
@@ -2313,7 +2316,7 @@ footer.legal-footer a:hover {
     }
     
     .product-info h3 {
-        font-size: 1.1em;
+        font-size: 1.3em;
         height: 2.0em; /* Limitar a 2 líneas máximo */
         line-height: 1.0em;
         overflow: hidden;
@@ -2321,6 +2324,7 @@ footer.legal-footer a:hover {
         -webkit-line-clamp: 2;
         -webkit-box-orient: vertical;
         text-overflow: ellipsis;
+        font-weight: 700;
     }
     
     .product-price {

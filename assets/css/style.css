@@ -365,6 +365,11 @@ main {
     max-width: 1200px;
     backdrop-filter: blur(10px);
     border: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 15px;
 }
 
 #product-filters span {
@@ -392,7 +397,8 @@ main {
     display: inline-flex;
     align-items: center;
     gap: 4px;
-    margin-right: 8px;
+    margin-right: 12px;
+    vertical-align: top;
 }
 
 .filter-group span {
@@ -454,6 +460,7 @@ main {
         gap: 4px;
         margin-right: 8px;
         margin-bottom: 0;
+        vertical-align: top;
     }
     
     .filter-group span {
@@ -501,6 +508,7 @@ main {
         gap: 3px;
         margin-right: 6px;
         margin-bottom: 0;
+        vertical-align: top;
     }
     
     .filter-group span {

@@ -292,7 +292,7 @@ function initBrandFilter() {
     
     const filterContainer = document.createElement("div");
     filterContainer.id = "product-filters";
-    filterContainer.style.cssText = "text-align:center;margin:20px 0;display:flex;justify-content:center;align-items:center;gap:15px;flex-wrap:wrap;";
+    filterContainer.style.cssText = "text-align:center;margin:20px auto;display:flex;justify-content:center;align-items:center;gap:15px;flex-wrap:wrap;max-width:1200px;";
 
     // Filtro de marcas
     const brandLabel = document.createElement("span");

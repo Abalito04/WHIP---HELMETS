@@ -1396,6 +1396,43 @@ def create_payment_preference():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route("/api/payment/create-transfer-order", methods=["POST"])
+def create_transfer_order():
+    """Crear pedido para pago por transferencia/depósito"""
+    if not PAYMENT_AVAILABLE:
+        return jsonify({"error": "Sistema de pagos no disponible"}), 503
+    
+    # Verificar autenticación
+    auth_header = request.headers.get('Authorization')
+    if not auth_header or not auth_header.startswith('Bearer '):
+        return jsonify({"error": "Token de autenticación requerido"}), 401
+    
+    token = auth_header.split(' ')[1]
+    user = auth_manager.validate_session(token)
+    if not user:
+        return jsonify({"error": "Sesión inválida"}), 401
+    
+    try:
+        data = request.get_json()
+        items = data.get('items', [])
+        customer_info = data.get('customer_info', {})
+        total_amount = data.get('total_amount', 0)
+        
+        if not items:
+            return jsonify({"error": "No hay items en el carrito"}), 400
+        
+        if total_amount <= 0:
+            return jsonify({"error": "Monto total inválido"}), 400
+        
+        # Agregar información del usuario
+        customer_info['user_id'] = user['user_id']
+        customer_info['user_email'] = user.get('email', '')
+        
+        return payment_handler.create_transfer_order(items, customer_info, total_amount)
+        
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 @app.route("/api/payment/webhook", methods=["POST"])
 def payment_webhook():
     """Webhook para recibir notificaciones de MercadoPago"""

@@ -274,6 +274,35 @@
                 font-size: 1em;
                 border-radius: 6px;
             }
+            
+            .payment-info {
+                padding: 15px;
+                margin: 15px 0;
+            }
+            
+            .payment-info h4 {
+                font-size: 1.1em;
+            }
+            
+            .bank-info {
+                padding: 12px;
+            }
+            
+            .bank-info p {
+                font-size: 0.95em;
+            }
+            
+            .transfer-total {
+                font-size: 1.2em;
+            }
+            
+            .transfer-instructions {
+                padding: 12px;
+            }
+            
+            .transfer-instructions li {
+                font-size: 0.9em;
+            }
         }
         
         /* Móviles muy pequeños */
@@ -370,6 +399,35 @@
                 width: 100%;
                 max-width: 200px;
             }
+            
+            .payment-info {
+                padding: 12px;
+                margin: 12px 0;
+            }
+            
+            .payment-info h4 {
+                font-size: 1em;
+            }
+            
+            .bank-info {
+                padding: 10px;
+            }
+            
+            .bank-info p {
+                font-size: 0.9em;
+            }
+            
+            .transfer-total {
+                font-size: 1.1em;
+            }
+            
+            .transfer-instructions {
+                padding: 10px;
+            }
+            
+            .transfer-instructions li {
+                font-size: 0.85em;
+            }
         }
         
         .cart-item-details {
@@ -441,6 +499,60 @@
             display: none;
         }
         
+        .payment-info {
+            background: #f8f9fa;
+            border: 2px solid #f0ad4e;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .payment-info h4 {
+            color: #f0ad4e;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+            text-align: center;
+        }
+        
+        .bank-info {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+        
+        .bank-info p {
+            margin: 8px 0;
+            font-size: 1em;
+        }
+        
+        .transfer-total {
+            color: #f0ad4e;
+            font-size: 1.3em;
+            font-weight: bold;
+        }
+        
+        .transfer-instructions {
+            background: #e9ecef;
+            padding: 15px;
+            border-radius: 8px;
+        }
+        
+        .transfer-instructions p {
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+        
+        .transfer-instructions ol {
+            margin: 0;
+            padding-left: 20px;
+        }
+        
+        .transfer-instructions li {
+            margin: 5px 0;
+            line-height: 1.4;
+        }
+        
 
     </style>
 </head>
@@ -500,8 +612,37 @@
                         <input type="text" id="customer-zip" name="zip">
                     </div>
                     
+                    <div class="form-group">
+                        <label for="payment-method">Método de Pago *</label>
+                        <select id="payment-method" name="payment_method" required>
+                            <option value="">Seleccione un método de pago</option>
+                            <option value="transfer">Transferencia/Depósito (Precio Efectivo)</option>
+                            <option value="mercadopago">MercadoPago (Precio de Lista)</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Información de pago por transferencia -->
+                    <div id="transfer-info" class="payment-info" style="display: none;">
+                        <h4>Información para Transferencia/Depósito</h4>
+                        <div class="bank-info">
+                            <p><strong>Banco:</strong> <span id="bank-name">Banco Santander</span></p>
+                            <p><strong>Titular:</strong> <span id="account-holder">WHIP-HELMETS S.A.</span></p>
+                            <p><strong>CBU:</strong> <span id="cbu">0070123456789012345678</span></p>
+                            <p><strong>Alias:</strong> <span id="alias">WHIP.HELMETS</span></p>
+                            <p><strong>Total a pagar:</strong> <span id="transfer-total" class="transfer-total">$0</span></p>
+                        </div>
+                        <div class="transfer-instructions">
+                            <p><strong>Instrucciones:</strong></p>
+                            <ol>
+                                <li>Realiza la transferencia por el monto exacto indicado</li>
+                                <li>Envía el comprobante por WhatsApp al +54 295 454-4001</li>
+                                <li>Nos comunicaremos contigo para coordinar el envío</li>
+                            </ol>
+                        </div>
+                    </div>
+                    
                     <button type="submit" class="checkout-btn" id="checkout-btn">
-                        Pagar con MercadoPago
+                        <span id="btn-text">Seleccione un método de pago</span>
                     </button>
                 </form>
                 
@@ -548,88 +689,182 @@ const API_BASE = (() => {
             return true;
         }
         
-                 // Cargar resumen del carrito
-         function loadCartSummary() {
-             const cartSummary = document.getElementById('cart-summary');
-             const cartTotal = document.getElementById('cart-total');
-             
-             if (cart.length === 0) {
-                 cartSummary.innerHTML = '<p style="color: #333;">No hay productos en el carrito</p>';
-                 cartTotal.textContent = '$0';
-                 return;
-             }
-             
-             let total = 0;
-             let html = '';
-             
-             cart.forEach(item => {
-                 // Corregir estructura del carrito - usar productName en lugar de name
-                 const itemName = item.productName || item.name || 'Producto sin nombre';
-                 const itemPrice = parseFloat(item.price) || 0;
-                 const itemQuantity = parseInt(item.quantity) || 1;
-                 const itemSize = item.size || 'Sin talle';
-                 
-                 // Obtener imagen del producto
-                 let itemImage = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIGZpbGw9IiNFRUVFRUUiLz48cGF0aCBkPSJNMTUgMzBINjBWNDBIMzVWMzBIMjVWMTVIMjBWMzBIMTVaIiBmaWxsPSIjOTk5Ii8+PC9zdmc+';
-                 
-                 // Si no hay imagen en el carrito, intentar obtenerla de los productos
-                 if (!item.image && item.productId) {
-                     // Buscar el producto en la lista de productos
-                     const products = window.products || [];
-                     const product = products.find(p => p.id == item.productId);
-                     if (product && product.image) {
-                         itemImage = product.image;
-                     }
-                 } else if (item.image) {
-                     itemImage = item.image;
-                 }
-                 
-                 const itemTotal = itemPrice * itemQuantity;
-                 total += itemTotal;
-                 
-                 html += `
-                     <div class="cart-item">
-                         <img src="${itemImage}" alt="${itemName}" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIGZpbGw9IiNFRUVFRUUiLz48cGF0aCBkPSJNMTUgMzBINjBWNDBIMzVWMzBIMjVWMTVIMjBWMzBIMTVaIiBmaWxsPSIjOTk5Ii8+PC9zdmc+'">
-                         <div class="cart-item-details">
-                             <div class="cart-item-name">${itemName}</div>
-                             <div class="cart-item-size">Talle: ${itemSize}</div>
-                         </div>
-                         <div class="cart-item-price">
-                             $${itemPrice.toLocaleString()} x ${itemQuantity}
-                         </div>
-                     </div>
-                 `;
-             });
-             
-             cartSummary.innerHTML = html;
-             cartTotal.textContent = `$${total.toLocaleString()}`;
-         }
+        // Cargar resumen del carrito
+        function loadCartSummary() {
+            const cartSummary = document.getElementById('cart-summary');
+            const cartTotal = document.getElementById('cart-total');
+            
+            if (cart.length === 0) {
+                cartSummary.innerHTML = '<p style="color: #333;">No hay productos en el carrito</p>';
+                cartTotal.textContent = '$0';
+                return;
+            }
+            
+            let total = 0;
+            let transferTotal = 0;
+            let html = '';
+            
+            cart.forEach(item => {
+                // Corregir estructura del carrito - usar productName en lugar de name
+                const itemName = item.productName || item.name || 'Producto sin nombre';
+                const itemPrice = parseFloat(item.price) || 0;
+                const itemQuantity = parseInt(item.quantity) || 1;
+                const itemSize = item.size || 'Sin talle';
+                
+                // Obtener precio efectivo si está disponible
+                let itemTransferPrice = itemPrice;
+                if (item.productId && window.products) {
+                    const product = window.products.find(p => p.id == item.productId);
+                    if (product && product.precio_efectivo) {
+                        itemTransferPrice = parseFloat(product.precio_efectivo);
+                    }
+                }
+                
+                // Obtener imagen del producto
+                let itemImage = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIGZpbGw9IiNFRUVFRUUiLz48cGF0aCBkPSJNMTUgMzBINjBWNDBIMzVWMzBIMjVWMTVIMjBWMzBIMTVaIiBmaWxsPSIjOTk5Ii8+PC9zdmc+';
+                
+                // Si no hay imagen en el carrito, intentar obtenerla de los productos
+                if (!item.image && item.productId) {
+                    // Buscar el producto en la lista de productos
+                    const products = window.products || [];
+                    const product = products.find(p => p.id == item.productId);
+                    if (product && product.image) {
+                        itemImage = product.image;
+                    }
+                } else if (item.image) {
+                    itemImage = item.image;
+                }
+                
+                const itemTotal = itemPrice * itemQuantity;
+                const itemTransferTotal = itemTransferPrice * itemQuantity;
+                total += itemTotal;
+                transferTotal += itemTransferTotal;
+                
+                html += `
+                    <div class="cart-item">
+                        <img src="${itemImage}" alt="${itemName}" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIGZpbGw9IiNFRUVFRUUiLz48cGF0aCBkPSJNMTUgMzBINjBWNDBIMzVWMzBIMjVWMTVIMjBWMzBIMTVaIiBmaWxsPSIjOTk5Ii8+PC9zdmc+'">
+                        <div class="cart-item-details">
+                            <div class="cart-item-name">${itemName}</div>
+                            <div class="cart-item-size">Talle: ${itemSize}</div>
+                        </div>
+                        <div class="cart-item-price">
+                            <div>Lista: $${itemPrice.toLocaleString()} x ${itemQuantity}</div>
+                            <div style="color: #f0ad4e; font-weight: bold;">Efectivo: $${itemTransferPrice.toLocaleString()} x ${itemQuantity}</div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            cartSummary.innerHTML = html;
+            cartTotal.textContent = `$${total.toLocaleString()}`;
+            
+            // Guardar totales para uso posterior
+            window.cartTotal = total;
+            window.transferTotal = transferTotal;
+        }
         
                  // Procesar checkout
          async function processCheckout(customerInfo) {
              try {
-                 // Preparar items para la API
-                 const items = cart.map(item => ({
-                     name: item.productName || item.name || 'Producto sin nombre',
-                     price: parseFloat(item.price) || 0,
-                     quantity: parseInt(item.quantity) || 1,
-                     size: item.size || 'Sin talle',
-                     product_id: item.productId
-                 }));
-                
-                                 // Crear preferencia de pago
+                 const paymentMethod = document.getElementById('payment-method').value;
                  const token = localStorage.getItem('authToken');
-                 const response = await fetch(`${API_BASE}/api/payment/create-preference`, {
-                     method: 'POST',
-                     headers: {
-                         'Content-Type': 'application/json',
-                         'Authorization': `Bearer ${token}`
-                     },
-                     body: JSON.stringify({
-                         items: items,
-                         customer_info: customerInfo
-                     })
-                 });
+                 
+                 if (paymentMethod === 'transfer') {
+                     // Procesar transferencia/depósito
+                     await processTransferPayment(customerInfo, token);
+                 } else if (paymentMethod === 'mercadopago') {
+                     // Procesar MercadoPago
+                     await processMercadoPagoPayment(customerInfo, token);
+                 } else {
+                     throw new Error('Método de pago no válido');
+                 }
+                
+            } catch (error) {
+                console.error('Error:', error);
+                showError('Error al procesar el pago: ' + error.message);
+            }
+        }
+        
+        // Procesar pago por transferencia
+        async function processTransferPayment(customerInfo, token) {
+            try {
+                // Preparar items para la API
+                const items = cart.map(item => {
+                    let itemPrice = parseFloat(item.price) || 0;
+                    
+                    // Usar precio efectivo si está disponible
+                    if (item.productId && window.products) {
+                        const product = window.products.find(p => p.id == item.productId);
+                        if (product && product.precio_efectivo) {
+                            itemPrice = parseFloat(product.precio_efectivo);
+                        }
+                    }
+                    
+                    return {
+                        name: item.productName || item.name || 'Producto sin nombre',
+                        price: itemPrice,
+                        quantity: parseInt(item.quantity) || 1,
+                        size: item.size || 'Sin talle',
+                        product_id: item.productId
+                    };
+                });
+                
+                const response = await fetch(`${API_BASE}/api/payment/create-transfer-order`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        items: items,
+                        customer_info: customerInfo,
+                        total_amount: window.transferTotal
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showSuccess('¡Pedido creado exitosamente! Te hemos enviado un email con los datos de transferencia. Envía el comprobante por WhatsApp al +54 295 454-4001');
+                    // Limpiar carrito
+                    localStorage.removeItem("cart_v1");
+                    // Redirigir a página de éxito
+                    setTimeout(() => {
+                        window.location.href = 'payment/success.html';
+                    }, 3000);
+                } else {
+                    throw new Error(result.error || 'Error al crear el pedido');
+                }
+                
+            } catch (error) {
+                console.error('Error:', error);
+                throw error;
+            }
+        }
+        
+        // Procesar pago con MercadoPago
+        async function processMercadoPagoPayment(customerInfo, token) {
+            try {
+                // Preparar items para la API (precio de lista)
+                const items = cart.map(item => ({
+                    name: item.productName || item.name || 'Producto sin nombre',
+                    price: parseFloat(item.price) || 0,
+                    quantity: parseInt(item.quantity) || 1,
+                    size: item.size || 'Sin talle',
+                    product_id: item.productId
+                }));
+                
+                const response = await fetch(`${API_BASE}/api/payment/create-preference`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        items: items,
+                        customer_info: customerInfo
+                    })
+                });
                 
                 const result = await response.json();
                 
@@ -642,7 +877,7 @@ const API_BASE = (() => {
                 
             } catch (error) {
                 console.error('Error:', error);
-                showError('Error al procesar el pago: ' + error.message);
+                throw error;
             }
         }
         
@@ -751,7 +986,34 @@ const API_BASE = (() => {
              }
          }
          
-                 // Cargar resumen al cargar la página
+                 // Manejar cambio de método de pago
+        function handlePaymentMethodChange() {
+            const paymentMethod = document.getElementById('payment-method').value;
+            const transferInfo = document.getElementById('transfer-info');
+            const btnText = document.getElementById('btn-text');
+            const checkoutBtn = document.getElementById('checkout-btn');
+            
+            if (paymentMethod === 'transfer') {
+                transferInfo.style.display = 'block';
+                btnText.textContent = 'Confirmar Transferencia';
+                checkoutBtn.disabled = false;
+                
+                // Actualizar total de transferencia
+                if (window.transferTotal) {
+                    document.getElementById('transfer-total').textContent = `$${window.transferTotal.toLocaleString()}`;
+                }
+            } else if (paymentMethod === 'mercadopago') {
+                transferInfo.style.display = 'none';
+                btnText.textContent = 'Pagar con MercadoPago';
+                checkoutBtn.disabled = false;
+            } else {
+                transferInfo.style.display = 'none';
+                btnText.textContent = 'Seleccione un método de pago';
+                checkoutBtn.disabled = true;
+            }
+        }
+        
+        // Cargar resumen al cargar la página
         document.addEventListener('DOMContentLoaded', () => {
             // Verificar autenticación al cargar la página
             if (!checkAuthentication()) {
@@ -759,6 +1021,9 @@ const API_BASE = (() => {
             }
             loadUserData(); // Cargar datos del usuario
             loadProducts();
+            
+            // Agregar event listener para cambio de método de pago
+            document.getElementById('payment-method').addEventListener('change', handlePaymentMethodChange);
         });
     </script>
 </body>

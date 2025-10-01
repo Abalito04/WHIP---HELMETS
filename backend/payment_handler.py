@@ -236,6 +236,76 @@ class PaymentHandler:
             print(f"Error al obtener pedido: {e}")
             return None
     
+    def create_transfer_order(self, items, customer_info, total_amount):
+        """
+        Crear pedido para pago por transferencia/depósito
+        """
+        try:
+            # Guardar pedido en la base de datos
+            order_id = self.save_transfer_order(items, customer_info, total_amount)
+            
+            return jsonify({
+                "success": True,
+                "order_id": order_id,
+                "total_amount": total_amount,
+                "message": "Pedido creado exitosamente. Revisa tu email para los datos de transferencia."
+            }), 200
+                
+        except Exception as e:
+            print(f"Error al crear pedido de transferencia: {e}")
+            return jsonify({"error": f"Error al crear pedido: {str(e)}"}), 500
+    
+    def save_transfer_order(self, items, customer_info, total_amount):
+        """Guardar pedido de transferencia en la base de datos"""
+        try:
+            with get_conn() as conn:
+                cursor = conn.cursor()
+                
+                # Crear número de pedido único
+                order_number = f"TRF-{datetime.now().strftime('%Y%m%d%H%M%S')}"
+                
+                # Insertar pedido
+                cursor.execute(
+                    """
+                    INSERT INTO orders (order_number, customer_name, customer_email, customer_phone, 
+                                      customer_address, customer_city, customer_zip, total_amount, 
+                                      payment_method, status)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    RETURNING id
+                    """,
+                    (
+                        order_number,
+                        customer_info.get('name', ''),
+                        customer_info.get('email', ''),
+                        customer_info.get('phone', ''),
+                        customer_info.get('address', ''),
+                        customer_info.get('city', ''),
+                        customer_info.get('zip', ''),
+                        total_amount,
+                        'transfer',
+                        'pending_transfer'
+                    )
+                )
+                
+                order_id = cursor.fetchone()[0]
+                
+                # Insertar items del pedido
+                for item in items:
+                    cursor.execute(
+                        """
+                        INSERT INTO order_items (order_id, product_id, quantity, price)
+                        VALUES (%s, %s, %s, %s)
+                        """,
+                        (order_id, item['product_id'], item['quantity'], item['price'])
+                    )
+                
+                conn.commit()
+                return order_id
+                
+        except Exception as e:
+            print(f"Error al guardar pedido de transferencia: {e}")
+            raise e
+
     def get_user_orders(self, user_email):
         """Obtener pedidos del usuario"""
         try:

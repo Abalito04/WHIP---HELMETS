@@ -95,73 +95,73 @@ def init_db():
             cursor.execute("SELECT 1")
             print("✅ Conexión a PostgreSQL exitosa")
         
-    # Inicializar PostgreSQL
-    from database import init_postgresql
-    init_postgresql()
-    print("✅ PostgreSQL inicializado correctamente")
-    
-    # Ejecutar migración de transferencias si es necesario
-    try:
-        from database import get_conn
-        with get_conn() as conn:
-            cursor = conn.cursor()
-            
-            # Verificar si la columna payment_method existe
-            cursor.execute("""
-                SELECT column_name
-                FROM information_schema.columns
-                WHERE table_name = 'orders' AND column_name = 'payment_method'
-            """)
-            
-            if not cursor.fetchone():
-                print("🔄 Ejecutando migración de transferencias...")
-                
-                # Agregar columna payment_method
-                cursor.execute("""
-                    ALTER TABLE orders
-                    ADD COLUMN payment_method VARCHAR(50) DEFAULT 'mercadopago'
-                """)
-                
-                # Agregar columnas de dirección
-                cursor.execute("""
-                    ALTER TABLE orders
-                    ADD COLUMN customer_address TEXT
-                """)
-                
-                cursor.execute("""
-                    ALTER TABLE orders
-                    ADD COLUMN customer_city VARCHAR(100)
-                """)
-                
-                cursor.execute("""
-                    ALTER TABLE orders
-                    ADD COLUMN customer_zip VARCHAR(10)
-                """)
-                
-                cursor.execute("""
-                    ALTER TABLE orders
-                    ADD COLUMN user_id INTEGER
-                """)
-                
-                # Actualizar valores por defecto
-                cursor.execute("""
-                    UPDATE orders 
-                    SET payment_method = 'mercadopago' 
-                    WHERE payment_method IS NULL
-                """)
-                
-                conn.commit()
-                print("✅ Migración de transferencias completada")
-            else:
-                print("✅ Migración de transferencias ya aplicada")
-                
-    except Exception as e:
-        print(f"⚠️  Error en migración de transferencias: {e}")
-        # No fallar el inicio del servidor por esto
+        # Inicializar PostgreSQL
+        from database import init_postgresql
+        init_postgresql()
+        print("✅ PostgreSQL inicializado correctamente")
         
-except Exception as e:
-    print(f"❌ Error al inicializar PostgreSQL: {e}")
-    raise e
+        # Ejecutar migración de transferencias si es necesario
+        try:
+            from database import get_conn
+            with get_conn() as conn:
+                cursor = conn.cursor()
+                
+                # Verificar si la columna payment_method existe
+                cursor.execute("""
+                    SELECT column_name
+                    FROM information_schema.columns
+                    WHERE table_name = 'orders' AND column_name = 'payment_method'
+                """)
+                
+                if not cursor.fetchone():
+                    print("🔄 Ejecutando migración de transferencias...")
+                    
+                    # Agregar columna payment_method
+                    cursor.execute("""
+                        ALTER TABLE orders
+                        ADD COLUMN payment_method VARCHAR(50) DEFAULT 'mercadopago'
+                    """)
+                    
+                    # Agregar columnas de dirección
+                    cursor.execute("""
+                        ALTER TABLE orders
+                        ADD COLUMN customer_address TEXT
+                    """)
+                    
+                    cursor.execute("""
+                        ALTER TABLE orders
+                        ADD COLUMN customer_city VARCHAR(100)
+                    """)
+                    
+                    cursor.execute("""
+                        ALTER TABLE orders
+                        ADD COLUMN customer_zip VARCHAR(10)
+                    """)
+                    
+                    cursor.execute("""
+                        ALTER TABLE orders
+                        ADD COLUMN user_id INTEGER
+                    """)
+                    
+                    # Actualizar valores por defecto
+                    cursor.execute("""
+                        UPDATE orders 
+                        SET payment_method = 'mercadopago' 
+                        WHERE payment_method IS NULL
+                    """)
+                    
+                    conn.commit()
+                    print("✅ Migración de transferencias completada")
+                else:
+                    print("✅ Migración de transferencias ya aplicada")
+                    
+        except Exception as e:
+            print(f"⚠️  Error en migración de transferencias: {e}")
+            # No fallar el inicio del servidor por esto
+            
+    except Exception as e:
+        print(f"❌ Error al inicializar PostgreSQL: {e}")
+        raise e
 
             
 def row_to_dict(row):

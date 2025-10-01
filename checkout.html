@@ -742,16 +742,25 @@ const API_BASE = (() => {
             cart.forEach(item => {
                 // Corregir estructura del carrito - usar productName en lugar de name
                 const itemName = item.productName || item.name || 'Producto sin nombre';
-                const itemPrice = parseFloat(item.price) || 0;
                 const itemQuantity = parseInt(item.quantity) || 1;
                 const itemSize = item.size || 'Sin talle';
                 
-                // Obtener precio efectivo si está disponible
-                let itemTransferPrice = itemPrice;
+                // Obtener precios correctos desde la base de datos
+                let itemListPrice = parseFloat(item.price) || 0; // Precio de lista (MercadoPago)
+                let itemTransferPrice = itemListPrice; // Precio efectivo (Transferencia)
+                
                 if (item.productId && window.products) {
                     const product = window.products.find(p => p.id == item.productId);
-                    if (product && product.precio_efectivo) {
-                        itemTransferPrice = parseFloat(product.precio_efectivo);
+                    if (product) {
+                        // Usar precio de lista desde la base de datos
+                        itemListPrice = parseFloat(product.price) || itemListPrice;
+                        
+                        // Usar precio efectivo si está disponible, sino usar precio de lista
+                        if (product.precio_efectivo) {
+                            itemTransferPrice = parseFloat(product.precio_efectivo);
+                        } else {
+                            itemTransferPrice = itemListPrice;
+                        }
                     }
                 }
                 
@@ -770,10 +779,10 @@ const API_BASE = (() => {
                     itemImage = item.image;
                 }
                 
-                const itemTotal = itemPrice * itemQuantity;
+                const itemListTotal = itemListPrice * itemQuantity;
                 const itemTransferTotal = itemTransferPrice * itemQuantity;
-                total += itemTotal;
-                transferTotal += itemTransferTotal;
+                total += itemListTotal; // Total de lista (MercadoPago)
+                transferTotal += itemTransferTotal; // Total efectivo (Transferencia)
                 
                 html += `
                     <div class="cart-item">
@@ -783,7 +792,7 @@ const API_BASE = (() => {
                             <div class="cart-item-size">Talle: ${itemSize}</div>
                         </div>
                         <div class="cart-item-price">
-                            <div>Lista: $${itemPrice.toLocaleString()} x ${itemQuantity}</div>
+                            <div>Lista: $${itemListPrice.toLocaleString()} x ${itemQuantity}</div>
                             <div style="color: #f0ad4e; font-weight: bold;">Efectivo: $${itemTransferPrice.toLocaleString()} x ${itemQuantity}</div>
                         </div>
                     </div>
@@ -793,8 +802,15 @@ const API_BASE = (() => {
             cartSummary.innerHTML = html;
             
             // Guardar totales para uso posterior
-            window.cartTotal = total;
-            window.transferTotal = transferTotal;
+            window.cartTotal = total; // Precio de lista (MercadoPago)
+            window.transferTotal = transferTotal; // Precio efectivo (Transferencia)
+            
+            // Debug: mostrar totales en consola
+            console.log('Precios calculados:', {
+                cartTotal: total,
+                transferTotal: transferTotal,
+                diferencia: total - transferTotal
+            });
             
             // Actualizar el total mostrado según el método de pago seleccionado
             updateTotalDisplay();
@@ -1030,20 +1046,30 @@ const API_BASE = (() => {
             const priceMethodInfo = document.getElementById('price-method-info');
             const priceMethodText = document.getElementById('price-method-text');
             
+            // Debug: mostrar información en consola
+            console.log('updateTotalDisplay:', {
+                paymentMethod: paymentMethod,
+                cartTotal: window.cartTotal,
+                transferTotal: window.transferTotal
+            });
+            
             if (paymentMethod === 'transfer' && window.transferTotal) {
                 cartTotal.textContent = `$${window.transferTotal.toLocaleString()}`;
                 priceMethodText.textContent = '💰 Precio Efectivo/Transferencia (con descuento aplicado)';
                 priceMethodInfo.style.display = 'block';
+                console.log('Mostrando precio efectivo:', window.transferTotal);
             } else if (paymentMethod === 'mercadopago' && window.cartTotal) {
                 cartTotal.textContent = `$${window.cartTotal.toLocaleString()}`;
                 priceMethodText.textContent = '💳 Precio de Lista (MercadoPago)';
                 priceMethodInfo.style.display = 'block';
+                console.log('Mostrando precio de lista:', window.cartTotal);
             } else {
                 // Sin método seleccionado, mostrar precio de lista por defecto
                 if (window.cartTotal) {
                     cartTotal.textContent = `$${window.cartTotal.toLocaleString()}`;
                 }
                 priceMethodInfo.style.display = 'none';
+                console.log('Sin método seleccionado, mostrando precio de lista por defecto:', window.cartTotal);
             }
         }
         

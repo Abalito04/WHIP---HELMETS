@@ -84,13 +84,14 @@ class PaymentHandler:
             
             if preference["status"] == 201:
                 # Guardar pedido en la base de datos
-                order_id = self.save_order(items, customer_info, total_amount, preference["response"]["id"])
+                order_id, order_number = self.save_order(items, customer_info, total_amount, preference["response"]["id"])
                 
                 return jsonify({
                     "success": True,
                     "preference_id": preference["response"]["id"],
                     "init_point": preference["response"]["init_point"],
                     "order_id": order_id,
+                    "order_number": order_number,
                     "total_amount": total_amount
                 }), 200
             else:
@@ -168,7 +169,7 @@ class PaymentHandler:
                     )
                 
                 conn.commit()
-                return order_id
+                return order_id, order_number
                 
         except Exception as e:
             print(f"Error al guardar pedido: {e}")
@@ -275,11 +276,12 @@ class PaymentHandler:
         """
         try:
             # Guardar pedido en la base de datos
-            order_id = self.save_transfer_order(items, customer_info, total_amount)
+            order_id, order_number = self.save_transfer_order(items, customer_info, total_amount)
             
             return jsonify({
                 "success": True,
                 "order_id": order_id,
+                "order_number": order_number,
                 "total_amount": total_amount,
                 "message": "Pedido creado exitosamente. Revisa tu email para los datos de transferencia."
             }), 200
@@ -367,7 +369,7 @@ class PaymentHandler:
                 
                 conn.commit()
                 print(f"DEBUG - Pedido guardado exitosamente con ID: {order_id}")
-                return order_id
+                return order_id, order_number
                 
         except Exception as e:
             print(f"Error al guardar pedido de transferencia: {e}")

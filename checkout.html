@@ -964,6 +964,7 @@ const API_BASE = (() => {
                 
                 const result = await response.json();
                 console.log('Resultado de la API:', result);
+                console.log('Order number recibido:', result.order_number);
                 
                 if (result.success) {
                     showSuccess('¡Pedido creado exitosamente! Realiza la transferencia a la cuenta de Jose Ignacio Abalo (MercadoPago) y envía el comprobante por WhatsApp al +54 295 454-4001');
@@ -972,6 +973,7 @@ const API_BASE = (() => {
                     // Redirigir a página de éxito con número de pedido
                     setTimeout(() => {
                         const orderNumber = result.order_number || 'N/A';
+                        console.log('Redirigiendo con order_number:', orderNumber);
                         window.location.href = `payment/success.html?order_number=${encodeURIComponent(orderNumber)}`;
                     }, 3000);
                 } else {

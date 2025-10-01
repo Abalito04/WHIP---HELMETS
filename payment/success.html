@@ -85,6 +85,9 @@
         // Obtener parámetros de la URL
         const urlParams = new URLSearchParams(window.location.search);
         const orderNumber = urlParams.get('order_number') || 'N/A';
+        console.log('URL completa:', window.location.href);
+        console.log('Parámetros de URL:', window.location.search);
+        console.log('Order number extraído:', orderNumber);
         document.getElementById('order-number').textContent = orderNumber;
         
         // Limpiar carrito después del pago exitoso

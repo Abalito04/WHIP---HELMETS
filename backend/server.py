@@ -159,9 +159,9 @@ def init_db():
         print(f"⚠️  Error en migración de transferencias: {e}")
         # No fallar el inicio del servidor por esto
         
-    except Exception as e:
-        print(f"❌ Error al inicializar PostgreSQL: {e}")
-        raise e
+except Exception as e:
+    print(f"❌ Error al inicializar PostgreSQL: {e}")
+    raise e
 
             
 def row_to_dict(row):

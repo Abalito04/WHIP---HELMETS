@@ -60,6 +60,38 @@
             line-height: normal !important;
         }
         
+        /* Marca WHIP-HELMETS */
+        .brand-footer {
+            margin-top: 40px;
+            padding-top: 30px;
+            border-top: 2px solid #f0ad4e;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+        }
+        
+        .brand-logo .logo-img {
+            height: 60px;
+            width: auto;
+            filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.3));
+        }
+        
+        .brand-text h3 {
+            color: #f0ad4e;
+            margin: 0;
+            font-size: 24px;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .brand-text p {
+            color: #666;
+            margin: 5px 0 0 0;
+            font-size: 14px;
+            font-style: italic;
+        }
+        
         /* Ocultar botones al imprimir */
         @media print {
             .payment-result .btn-primary,
@@ -78,6 +110,17 @@
         <div>
             <a href="../index.html" class="btn-primary">Volver a la Tienda</a>
             <a href="#" class="btn-secondary" onclick="window.print()">Imprimir Comprobante</a>
+        </div>
+        
+        <!-- Marca WHIP-HELMETS -->
+        <div class="brand-footer">
+            <div class="brand-logo">
+                <img src="../assets/images/logo.png" alt="WHIP-HELMETS" class="logo-img">
+            </div>
+            <div class="brand-text">
+                <h3>WHIP-HELMETS</h3>
+                <p>Cascos de motocross y enduro</p>
+            </div>
         </div>
     </div>
 

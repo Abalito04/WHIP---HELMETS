@@ -1476,8 +1476,17 @@ def create_transfer_order():
         customer_info = data.get('customer_info', {})
         total_amount = data.get('total_amount', 0)
         
+        print(f"DEBUG - Datos recibidos: {data}")
+        print(f"DEBUG - Items: {items}")
+        print(f"DEBUG - Total amount: {total_amount}")
+        
         if not items:
             return jsonify({"error": "No hay items en el carrito"}), 400
+        
+        # Si el total_amount es 0, calcularlo desde los items
+        if total_amount <= 0:
+            total_amount = sum(item.get('price', 0) * item.get('quantity', 1) for item in items)
+            print(f"DEBUG - Total recalculado: {total_amount}")
         
         if total_amount <= 0:
             return jsonify({"error": "Monto total inválido"}), 400
@@ -1501,6 +1510,8 @@ def create_transfer_order_direct(items, customer_info, total_amount):
     try:
         from database import get_conn
         from datetime import datetime
+        
+        print(f"DEBUG - create_transfer_order_direct: items={items}, customer_info={customer_info}, total_amount={total_amount}")
         
         with get_conn() as conn:
             cursor = conn.cursor()

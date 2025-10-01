@@ -776,6 +776,13 @@ const API_BASE = (() => {
                         } else {
                             itemTransferPrice = itemListPrice;
                         }
+                        
+                        console.log(`Producto ${itemName}:`, {
+                            productId: item.productId,
+                            listPrice: itemListPrice,
+                            transferPrice: itemTransferPrice,
+                            hasPrecioEfectivo: !!product.precio_efectivo
+                        });
                     }
                 }
                 
@@ -902,10 +909,17 @@ const API_BASE = (() => {
                 
                 console.log('Items preparados para transferencia:', items);
                 
+                // Calcular total si no está disponible
+                let transferTotal = window.transferTotal;
+                if (!transferTotal || transferTotal <= 0) {
+                    transferTotal = items.reduce((total, item) => total + (item.price * item.quantity), 0);
+                    console.log('Total recalculado en frontend:', transferTotal);
+                }
+                
                 const requestData = {
                     items: items,
                     customer_info: customerInfo,
-                    total_amount: window.transferTotal
+                    total_amount: transferTotal
                 };
                 
                 console.log('Enviando request a API:', requestData);

@@ -139,13 +139,25 @@ class PaymentHandler:
                 
                 # Insertar items del pedido
                 for item in items:
-                    # Obtener precio del producto
+                    # Obtener precio y stock del producto
                     cursor.execute(
-                        "SELECT price FROM productos WHERE id = %s",
+                        "SELECT price, stock FROM productos WHERE id = %s",
                         (item['product_id'],)
                     )
                     product = cursor.fetchone()
                     product_price = float(product['price']) if product else 0
+                    current_stock = int(product['stock']) if product else 0
+                    
+                    # Verificar stock disponible
+                    if current_stock < item['quantity']:
+                        raise Exception(f"Stock insuficiente para el producto {item['product_id']}. Disponible: {current_stock}, Solicitado: {item['quantity']}")
+                    
+                    # Descontar stock
+                    new_stock = current_stock - item['quantity']
+                    cursor.execute(
+                        "UPDATE productos SET stock = %s WHERE id = %s",
+                        (new_stock, item['product_id'])
+                    )
                     
                     cursor.execute(
                         """
@@ -325,6 +337,26 @@ class PaymentHandler:
                 # Insertar items del pedido
                 for item in items:
                     print(f"DEBUG - Insertando item: {item}")
+                    
+                    # Obtener stock actual del producto
+                    cursor.execute(
+                        "SELECT stock FROM productos WHERE id = %s",
+                        (item['product_id'],)
+                    )
+                    product = cursor.fetchone()
+                    current_stock = int(product['stock']) if product else 0
+                    
+                    # Verificar stock disponible
+                    if current_stock < item['quantity']:
+                        raise Exception(f"Stock insuficiente para el producto {item['product_id']}. Disponible: {current_stock}, Solicitado: {item['quantity']}")
+                    
+                    # Descontar stock
+                    new_stock = current_stock - item['quantity']
+                    cursor.execute(
+                        "UPDATE productos SET stock = %s WHERE id = %s",
+                        (new_stock, item['product_id'])
+                    )
+                    
                     cursor.execute(
                         """
                         INSERT INTO order_items (order_id, product_id, quantity, price)

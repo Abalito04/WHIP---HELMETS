@@ -1510,6 +1510,26 @@ def create_transfer_order_direct(items, customer_info, total_amount):
             # Insertar items del pedido
             for item in items:
                 print(f"DEBUG - Insertando item: {item}")
+                
+                # Obtener stock actual del producto
+                cursor.execute(
+                    "SELECT stock FROM productos WHERE id = %s",
+                    (item['product_id'],)
+                )
+                product = cursor.fetchone()
+                current_stock = int(product['stock']) if product else 0
+                
+                # Verificar stock disponible
+                if current_stock < item['quantity']:
+                    raise Exception(f"Stock insuficiente para el producto {item['product_id']}. Disponible: {current_stock}, Solicitado: {item['quantity']}")
+                
+                # Descontar stock
+                new_stock = current_stock - item['quantity']
+                cursor.execute(
+                    "UPDATE productos SET stock = %s WHERE id = %s",
+                    (new_stock, item['product_id'])
+                )
+                
                 cursor.execute(
                     """
                     INSERT INTO order_items (order_id, product_id, quantity, price)
@@ -1851,6 +1871,34 @@ def update_order_status(order_id):
             
     except Exception as e:
         print(f"Error en update_order_status: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/api/admin/orders/<int:order_id>", methods=["DELETE"])
+@require_admin
+def delete_order(order_id):
+    """Eliminar un pedido (solo admin)"""
+    try:
+        conn = get_conn()
+        try:
+            cursor = conn.cursor()
+            
+            # Verificar que el pedido existe
+            cursor.execute("SELECT id FROM orders WHERE id = %s", (order_id,))
+            if not cursor.fetchone():
+                return jsonify({"error": "Pedido no encontrado"}), 404
+            
+            # Eliminar items del pedido primero (por la foreign key)
+            cursor.execute("DELETE FROM order_items WHERE order_id = %s", (order_id,))
+            
+            # Eliminar el pedido
+            cursor.execute("DELETE FROM orders WHERE id = %s", (order_id,))
+            conn.commit()
+            
+            return jsonify({"success": True, "message": "Pedido eliminado exitosamente"}), 200
+        finally:
+            conn.close()
+    except Exception as e:
+        print(f"Error en delete_order: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
 # ---------------------- GESTIÓN DE USUARIOS (ADMIN) ----------------------

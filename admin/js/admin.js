@@ -2586,6 +2586,9 @@ function renderOrders() {
                 <button class="btn btn-sm btn-primary" onclick="viewOrderDetails(${order.id})">
                     Ver Detalles
                 </button>
+                <button class="btn btn-sm btn-danger" onclick="deleteOrder(${order.id})" style="margin-left: 5px;">
+                    Eliminar
+                </button>
             </td>
         `;
         ordersBody.appendChild(row);
@@ -2801,6 +2804,43 @@ function getStatusText(status) {
         'cancelled': 'Cancelado'
     };
     return statusMap[status] || status;
+}
+
+// Función para eliminar un pedido
+async function deleteOrder(orderId) {
+    if (!confirm('¿Estás seguro de que quieres eliminar este pedido? Esta acción no se puede deshacer.')) {
+        return;
+    }
+    
+    try {
+        const token = localStorage.getItem('authToken');
+        if (!token) {
+            showNotification('Error: No hay token de autenticación', 'error');
+            return;
+        }
+
+        const response = await fetch(`${API_BASE}/api/admin/orders/${orderId}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error(`Error HTTP: ${response.status} ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        if (data.success) {
+            showNotification('Pedido eliminado exitosamente', 'success');
+            fetchOrders(); // Recargar lista de pedidos
+        } else {
+            throw new Error(data.error || 'Error al eliminar pedido');
+        }
+    } catch (error) {
+        console.error('Error al eliminar pedido:', error);
+        showNotification(`Error al eliminar pedido: ${error.message}`, 'error');
+    }
 }
 
 // Función auxiliar para formatear fecha

@@ -43,13 +43,21 @@
         .btn-secondary {
             background: #6c757d;
             color: #fff;
-            padding: 15px 30px;
+            padding: 12px 25px;
             border: none;
             border-radius: 5px;
-            font-size: 16px;
+            font-size: 14px;
             text-decoration: none;
             display: inline-block;
             margin: 10px;
+        }
+        
+        /* Ocultar botones al imprimir */
+        @media print {
+            .btn-primary,
+            .btn-secondary {
+                display: none !important;
+            }
         }
     </style>
 </head>

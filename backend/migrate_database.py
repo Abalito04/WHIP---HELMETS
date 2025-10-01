@@ -41,9 +41,9 @@ def create_orders_table():
                         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                     )
                 """)
-                print("✅ Tabla orders creada exitosamente")
+                print("Tabla orders creada exitosamente")
             else:
-                print("✅ Tabla orders ya existe")
+                print("Tabla orders ya existe")
                 
             # Verificar si las columnas necesarias existen
             cursor.execute("""
@@ -75,10 +75,10 @@ def create_orders_table():
                 cursor.execute("ALTER TABLE orders ADD COLUMN user_id INTEGER")
             
             conn.commit()
-            print("✅ Columnas de orders verificadas")
+            print("Columnas de orders verificadas")
             
     except Exception as e:
-        print(f"❌ Error creando tabla orders: {e}")
+        print(f"Error creando tabla orders: {e}")
         raise
 
 def create_order_items_table():
@@ -106,28 +106,29 @@ def create_order_items_table():
                         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                     )
                 """)
-                print("✅ Tabla order_items creada exitosamente")
+                print("Tabla order_items creada exitosamente")
             else:
-                print("✅ Tabla order_items ya existe")
+                print("Tabla order_items ya existe")
                 
             conn.commit()
             
     except Exception as e:
-        print(f"❌ Error creando tabla order_items: {e}")
+        print(f"Error creando tabla order_items: {e}")
         raise
+
 
 def main():
     """Ejecutar migración completa"""
     try:
-        print("🔄 Iniciando migración de base de datos...")
+        print("Iniciando migración de base de datos...")
         
         create_orders_table()
         create_order_items_table()
         
-        print("✅ Migración completada exitosamente")
+        print("Migración completada exitosamente")
         
     except Exception as e:
-        print(f"❌ Error en migración: {e}")
+        print(f"Error en migración: {e}")
         sys.exit(1)
 
 if __name__ == "__main__":

@@ -969,9 +969,10 @@ const API_BASE = (() => {
                     showSuccess('¡Pedido creado exitosamente! Realiza la transferencia a la cuenta de Jose Ignacio Abalo (MercadoPago) y envía el comprobante por WhatsApp al +54 295 454-4001');
                     // Limpiar carrito
                     localStorage.removeItem("cart_v1");
-                    // Redirigir a página de éxito
+                    // Redirigir a página de éxito con número de pedido
                     setTimeout(() => {
-                        window.location.href = 'payment/success.html';
+                        const orderNumber = result.order_number || 'N/A';
+                        window.location.href = `payment/success.html?order_number=${encodeURIComponent(orderNumber)}`;
                     }, 3000);
                 } else {
                     throw new Error(result.error || 'Error al crear el pedido');

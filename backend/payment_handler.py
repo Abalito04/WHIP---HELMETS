@@ -109,11 +109,13 @@ class PaymentHandler:
                 # Crear número de pedido único
                 order_number = f"ORD-{datetime.now().strftime('%Y%m%d%H%M%S')}"
                 
-                # Insertar pedido
+                # Insertar pedido con todas las columnas necesarias
                 cursor.execute(
                     """
-                    INSERT INTO orders (order_number, customer_name, customer_email, customer_phone, total_amount, payment_id, status)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s)
+                    INSERT INTO orders (order_number, customer_name, customer_email, customer_phone, 
+                                      customer_address, customer_city, customer_zip, total_amount, 
+                                      payment_method, payment_id, status, user_id)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                     RETURNING id
                     """,
                     (
@@ -121,9 +123,14 @@ class PaymentHandler:
                         customer_info.get('name', ''),
                         customer_info.get('email', ''),
                         customer_info.get('phone', ''),
+                        customer_info.get('address', ''),
+                        customer_info.get('city', ''),
+                        customer_info.get('zip', ''),
                         total_amount,
+                        'mercadopago',  # Método de pago
                         payment_id,
-                        'pending'
+                        'pending',
+                        customer_info.get('user_id')  # ID del usuario si está disponible
                     )
                 )
                 
@@ -271,11 +278,14 @@ class PaymentHandler:
     def save_transfer_order(self, items, customer_info, total_amount):
         """Guardar pedido de transferencia en la base de datos"""
         try:
+            print(f"DEBUG - save_transfer_order: items={items}, customer_info={customer_info}, total_amount={total_amount}")
+            
             with get_conn() as conn:
                 cursor = conn.cursor()
                 
                 # Crear número de pedido único
                 order_number = f"TRF-{datetime.now().strftime('%Y%m%d%H%M%S')}"
+                print(f"DEBUG - order_number: {order_number}")
                 
                 # Insertar pedido
                 cursor.execute(
@@ -300,10 +310,19 @@ class PaymentHandler:
                     )
                 )
                 
-                order_id = cursor.fetchone()[0]
+                result = cursor.fetchone()
+                print(f"DEBUG - cursor.fetchone() result: {result}")
+                
+                if result:
+                    order_id = result[0]
+                    print(f"DEBUG - order_id obtenido: {order_id}")
+                else:
+                    print("ERROR - No se pudo obtener el order_id")
+                    raise Exception("No se pudo obtener el ID del pedido")
                 
                 # Insertar items del pedido
                 for item in items:
+                    print(f"DEBUG - Insertando item: {item}")
                     cursor.execute(
                         """
                         INSERT INTO order_items (order_id, product_id, quantity, price)
@@ -313,10 +332,13 @@ class PaymentHandler:
                     )
                 
                 conn.commit()
+                print(f"DEBUG - Pedido guardado exitosamente con ID: {order_id}")
                 return order_id
                 
         except Exception as e:
             print(f"Error al guardar pedido de transferencia: {e}")
+            import traceback
+            traceback.print_exc()
             raise e
 
     def get_user_orders(self, user_email):

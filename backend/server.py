@@ -100,63 +100,18 @@ def init_db():
         init_postgresql()
         print("✅ PostgreSQL inicializado correctamente")
         
-        # Ejecutar migración de transferencias si es necesario
+        # Ejecutar migración completa de base de datos
         try:
-            from database import get_conn
-            with get_conn() as conn:
-                cursor = conn.cursor()
-                
-                # Verificar si la columna payment_method existe
-                cursor.execute("""
-                    SELECT column_name
-                    FROM information_schema.columns
-                    WHERE table_name = 'orders' AND column_name = 'payment_method'
-                """)
-                
-                if not cursor.fetchone():
-                    print("🔄 Ejecutando migración de transferencias...")
-                    
-                    # Agregar columna payment_method
-                    cursor.execute("""
-                        ALTER TABLE orders
-                        ADD COLUMN payment_method VARCHAR(50) DEFAULT 'mercadopago'
-                    """)
-                    
-                    # Agregar columnas de dirección
-                    cursor.execute("""
-                        ALTER TABLE orders
-                        ADD COLUMN customer_address TEXT
-                    """)
-                    
-                    cursor.execute("""
-                        ALTER TABLE orders
-                        ADD COLUMN customer_city VARCHAR(100)
-                    """)
-                    
-                    cursor.execute("""
-                        ALTER TABLE orders
-                        ADD COLUMN customer_zip VARCHAR(10)
-                    """)
-                    
-                    cursor.execute("""
-                        ALTER TABLE orders
-                        ADD COLUMN user_id INTEGER
-                    """)
-                    
-                    # Actualizar valores por defecto
-                    cursor.execute("""
-                        UPDATE orders 
-                        SET payment_method = 'mercadopago' 
-                        WHERE payment_method IS NULL
-                    """)
-                    
-                    conn.commit()
-                    print("✅ Migración de transferencias completada")
-                else:
-                    print("✅ Migración de transferencias ya aplicada")
+            print("🔄 Ejecutando migración de base de datos...")
+            from migrate_database import create_orders_table, create_order_items_table
+            
+            create_orders_table()
+            create_order_items_table()
+            
+            print("✅ Migración de base de datos completada")
                     
         except Exception as e:
-            print(f"⚠️  Error en migración de transferencias: {e}")
+            print(f"⚠️  Error en migración de base de datos: {e}")
             # No fallar el inicio del servidor por esto
             
     except Exception as e:
@@ -1431,14 +1386,7 @@ def create_payment_preference():
         customer_info['user_id'] = user['user_id']
         customer_info['user_email'] = user.get('email', '')
         
-        # Crear pedido en la base de datos
-        total_amount = sum(item['price'] * item['quantity'] for item in items)
-        order_result = payment_handler.create_order(items, customer_info, total_amount)
-        
-        if not order_result['success']:
-            return jsonify(order_result), 500
-        
-        # Crear preferencia de pago
+        # Crear preferencia de pago (esto también crea el pedido en la BD)
         preference_result = payment_handler.create_payment_preference(items, customer_info)
         
         if preference_result['success']:
@@ -1447,7 +1395,8 @@ def create_payment_preference():
                 "preference_id": preference_result['preference_id'],
                 "init_point": preference_result['init_point'],
                 "sandbox_init_point": preference_result['sandbox_init_point'],
-                "order_number": order_result['order_number']
+                "order_id": preference_result['order_id'],
+                "total_amount": preference_result['total_amount']
             }), 200
         else:
             return jsonify(preference_result), 500
@@ -1518,8 +1467,23 @@ def create_transfer_order_direct(items, customer_info, total_amount):
             
             # Crear número de pedido único
             order_number = f"TRF-{datetime.now().strftime('%Y%m%d%H%M%S')}"
+            print(f"DEBUG - order_number: {order_number}")
             
             # Insertar pedido
+            insert_params = (
+                order_number,
+                customer_info.get('name', ''),
+                customer_info.get('email', ''),
+                customer_info.get('phone', ''),
+                customer_info.get('address', ''),
+                customer_info.get('city', ''),
+                customer_info.get('zip', ''),
+                total_amount,
+                'transfer',
+                'pending_transfer'
+            )
+            print(f"DEBUG - Parámetros de inserción: {insert_params}")
+            
             cursor.execute(
                 """
                 INSERT INTO orders (order_number, customer_name, customer_email, customer_phone, 
@@ -1528,24 +1492,22 @@ def create_transfer_order_direct(items, customer_info, total_amount):
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 RETURNING id
                 """,
-                (
-                    order_number,
-                    customer_info.get('name', ''),
-                    customer_info.get('email', ''),
-                    customer_info.get('phone', ''),
-                    customer_info.get('address', ''),
-                    customer_info.get('city', ''),
-                    customer_info.get('zip', ''),
-                    total_amount,
-                    'transfer',
-                    'pending_transfer'
-                )
+                insert_params
             )
             
-            order_id = cursor.fetchone()[0]
+            result = cursor.fetchone()
+            print(f"DEBUG - cursor.fetchone() result: {result}")
+            
+            if result:
+                order_id = result[0]
+                print(f"DEBUG - order_id obtenido: {order_id}")
+            else:
+                print("ERROR - No se pudo obtener el order_id")
+                raise Exception("No se pudo obtener el ID del pedido")
             
             # Insertar items del pedido
             for item in items:
+                print(f"DEBUG - Insertando item: {item}")
                 cursor.execute(
                     """
                     INSERT INTO order_items (order_id, product_id, quantity, price)
@@ -1555,16 +1517,20 @@ def create_transfer_order_direct(items, customer_info, total_amount):
                 )
             
             conn.commit()
+            print(f"DEBUG - Pedido guardado exitosamente con ID: {order_id}")
             
             return jsonify({
                 "success": True,
                 "order_id": order_id,
+                "order_number": order_number,
                 "total_amount": total_amount,
-                "message": "Pedido creado exitosamente. Revisa tu email para los datos de transferencia."
+                "message": "¡Pedido creado exitosamente! Realiza la transferencia a la cuenta de Jose Ignacio Abalo (MercadoPago) y envía el comprobante por WhatsApp al +54 295 454-4001"
             }), 200
             
     except Exception as e:
         print(f"Error al crear pedido de transferencia: {e}")
+        import traceback
+        traceback.print_exc()
         return jsonify({"error": f"Error al crear pedido: {str(e)}"}), 500
 
 @app.route("/api/payment/webhook", methods=["POST"])
@@ -1624,9 +1590,6 @@ def get_order(order_number):
 @app.route("/api/orders", methods=["GET"])
 def get_user_orders():
     """Obtener todos los pedidos del usuario autenticado"""
-    if not PAYMENT_AVAILABLE:
-        return jsonify({"error": "Sistema de pagos no disponible"}), 503
-    
     # Verificar autenticación
     auth_header = request.headers.get('Authorization')
     if not auth_header or not auth_header.startswith('Bearer '):
@@ -1638,10 +1601,254 @@ def get_user_orders():
         return jsonify({"error": "Sesión inválida"}), 401
     
     try:
-        result = payment_handler.get_user_orders(user['user_id'])
-        return jsonify(result), 200 if result['success'] else 404
-        
+        conn = get_conn()
+        try:
+            cursor = conn.cursor()
+            
+            # Obtener pedidos del usuario por user_id o email
+            cursor.execute("""
+                SELECT o.id, o.order_number, o.customer_name, o.customer_email, 
+                       o.customer_phone, o.total_amount, o.payment_method, o.status,
+                       o.created_at, o.updated_at, o.customer_address, o.customer_city, o.customer_zip
+                FROM orders o
+                WHERE o.user_id = %s OR o.customer_email = %s
+                ORDER BY o.created_at DESC
+            """, (user['user_id'], user.get('email', '')))
+            
+            orders = cursor.fetchall()
+            
+            result = []
+            for order in orders:
+                # Obtener items de cada pedido
+                cursor.execute("""
+                    SELECT oi.product_id, oi.quantity, oi.price, p.name, p.brand
+                    FROM order_items oi
+                    LEFT JOIN productos p ON oi.product_id = p.id
+                    WHERE oi.order_id = %s
+                """, (order[0],))
+                
+                items = cursor.fetchall()
+                
+                result.append({
+                    'id': order[0],
+                    'order_number': order[1],
+                    'customer_name': order[2],
+                    'customer_email': order[3],
+                    'customer_phone': order[4],
+                    'total_amount': float(order[5]),
+                    'payment_method': order[6],
+                    'status': order[7],
+                    'created_at': order[8].isoformat() if order[8] else None,
+                    'updated_at': order[9].isoformat() if order[9] else None,
+                    'customer_address': order[10],
+                    'customer_city': order[11],
+                    'customer_zip': order[12],
+                    'items': [
+                        {
+                            'product_id': item[0],
+                            'quantity': item[1],
+                            'price': float(item[2]),
+                            'name': item[3] or 'Producto eliminado',
+                            'brand': item[4] or 'N/A'
+                        }
+                        for item in items
+                    ]
+                })
+            
+            return jsonify({"success": True, "orders": result}), 200
+            
+        finally:
+            conn.close()
+            
     except Exception as e:
+        print(f"Error en get_user_orders: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+
+# ---------------------- GESTIÓN DE PEDIDOS (ADMIN) ----------------------
+
+@app.route("/api/admin/orders", methods=["GET"])
+@require_admin
+def get_all_orders():
+    """Obtener todos los pedidos (solo admin)"""
+    try:
+        conn = get_conn()
+        try:
+            # Obtener pedidos con información básica
+            cursor = conn.cursor()
+            cursor.execute("""
+                SELECT o.id, o.order_number, o.customer_name, o.customer_email, 
+                       o.customer_phone, o.total_amount, o.payment_method, o.status,
+                       o.created_at, o.updated_at, o.customer_address, o.customer_city, o.customer_zip
+                FROM orders o
+                ORDER BY o.created_at DESC
+            """)
+            
+            orders = cursor.fetchall()
+            
+            result = []
+            for order in orders:
+                # Obtener items de cada pedido
+                cursor.execute("""
+                    SELECT oi.product_id, oi.quantity, oi.price, p.name, p.brand
+                    FROM order_items oi
+                    LEFT JOIN productos p ON oi.product_id = p.id
+                    WHERE oi.order_id = %s
+                """, (order[0],))
+                
+                items = cursor.fetchall()
+                
+                result.append({
+                    'id': order[0],
+                    'order_number': order[1],
+                    'customer_name': order[2],
+                    'customer_email': order[3],
+                    'customer_phone': order[4],
+                    'total_amount': float(order[5]),
+                    'payment_method': order[6],
+                    'status': order[7],
+                    'created_at': order[8].isoformat() if order[8] else None,
+                    'updated_at': order[9].isoformat() if order[9] else None,
+                    'customer_address': order[10],
+                    'customer_city': order[11],
+                    'customer_zip': order[12],
+                    'items': [
+                        {
+                            'product_id': item[0],
+                            'quantity': item[1],
+                            'price': float(item[2]),
+                            'name': item[3] or 'Producto eliminado',
+                            'brand': item[4] or 'N/A'
+                        }
+                        for item in items
+                    ]
+                })
+            
+            return jsonify({"success": True, "orders": result}), 200
+            
+        finally:
+            conn.close()
+            
+    except Exception as e:
+        print(f"Error en get_all_orders: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/api/admin/orders/<int:order_id>", methods=["GET"])
+@require_admin
+def get_order_details(order_id):
+    """Obtener detalles de un pedido específico (solo admin)"""
+    try:
+        conn = get_conn()
+        try:
+            cursor = conn.cursor()
+            
+            # Obtener información del pedido
+            cursor.execute("""
+                SELECT o.id, o.order_number, o.customer_name, o.customer_email, 
+                       o.customer_phone, o.customer_address, o.customer_city, o.customer_zip,
+                       o.total_amount, o.payment_method, o.status, o.payment_id,
+                       o.created_at, o.updated_at, o.user_id
+                FROM orders o
+                WHERE o.id = %s
+            """, (order_id,))
+            
+            order = cursor.fetchone()
+            if not order:
+                return jsonify({"error": "Pedido no encontrado"}), 404
+            
+            # Obtener items del pedido
+            cursor.execute("""
+                SELECT oi.product_id, oi.quantity, oi.price, p.name, p.brand, p.image
+                FROM order_items oi
+                LEFT JOIN productos p ON oi.product_id = p.id
+                WHERE oi.order_id = %s
+            """, (order_id,))
+            
+            items = cursor.fetchall()
+            
+            result = {
+                'id': order[0],
+                'order_number': order[1],
+                'customer_name': order[2],
+                'customer_email': order[3],
+                'customer_phone': order[4],
+                'customer_address': order[5],
+                'customer_city': order[6],
+                'customer_zip': order[7],
+                'total_amount': float(order[8]),
+                'payment_method': order[9],
+                'status': order[10],
+                'payment_id': order[11],
+                'created_at': order[12].isoformat() if order[12] else None,
+                'updated_at': order[13].isoformat() if order[13] else None,
+                'user_id': order[14],
+                'items': [
+                    {
+                        'product_id': item[0],
+                        'quantity': item[1],
+                        'price': float(item[2]),
+                        'name': item[3] or 'Producto eliminado',
+                        'brand': item[4] or 'N/A',
+                        'image': item[5] or ''
+                    }
+                    for item in items
+                ]
+            }
+            
+            return jsonify({"success": True, "order": result}), 200
+            
+        finally:
+            conn.close()
+            
+    except Exception as e:
+        print(f"Error en get_order_details: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/api/admin/orders/<int:order_id>/status", methods=["PUT"])
+@require_admin
+def update_order_status(order_id):
+    """Actualizar estado de un pedido (solo admin)"""
+    try:
+        data = request.get_json()
+        new_status = data.get('status')
+        
+        if not new_status:
+            return jsonify({"error": "Estado requerido"}), 400
+        
+        # Validar estados permitidos
+        valid_statuses = ['pending', 'pending_transfer', 'paid', 'shipped', 'delivered', 'cancelled']
+        if new_status not in valid_statuses:
+            return jsonify({"error": f"Estado inválido. Estados permitidos: {', '.join(valid_statuses)}"}), 400
+        
+        conn = get_conn()
+        try:
+            cursor = conn.cursor()
+            
+            # Verificar que el pedido existe
+            cursor.execute("SELECT id FROM orders WHERE id = %s", (order_id,))
+            if not cursor.fetchone():
+                return jsonify({"error": "Pedido no encontrado"}), 404
+            
+            # Actualizar estado
+            cursor.execute("""
+                UPDATE orders 
+                SET status = %s, updated_at = CURRENT_TIMESTAMP 
+                WHERE id = %s
+            """, (new_status, order_id))
+            
+            conn.commit()
+            
+            return jsonify({
+                "success": True, 
+                "message": f"Estado del pedido actualizado a: {new_status}"
+            }), 200
+            
+        finally:
+            conn.close()
+            
+    except Exception as e:
+        print(f"Error en update_order_status: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
 # ---------------------- GESTIÓN DE USUARIOS (ADMIN) ----------------------

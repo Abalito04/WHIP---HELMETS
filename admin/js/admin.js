@@ -2495,4 +2495,388 @@ function formatDate(dateString) {
   });
 // });
 
+// ==================== GESTIÓN DE PEDIDOS ====================
+
+let ordersData = [];
+let filteredOrders = [];
+let currentOrderPage = 1;
+const ordersPerPage = 10;
+let currentOrderId = null;
+
+// Elementos del DOM para pedidos
+const ordersBody = document.getElementById("orders-body");
+const ordersPagination = document.getElementById("orders-pagination");
+const orderDetailsModal = document.getElementById("order-details-modal");
+
+// Función para cargar pedidos
+async function fetchOrders() {
+    try {
+        const token = localStorage.getItem('authToken');
+        if (!token) {
+            showNotification('Error: No hay token de autenticación', 'error');
+            return;
+        }
+
+        const response = await fetch(`${API_BASE}/api/admin/orders`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error(`Error HTTP: ${response.status} ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        if (data.success) {
+            ordersData = data.orders;
+            filteredOrders = [...ordersData];
+            renderOrders();
+            showNotification(`Cargados ${ordersData.length} pedidos`, 'success');
+        } else {
+            throw new Error(data.error || 'Error al cargar pedidos');
+        }
+    } catch (error) {
+        console.error('Error al cargar pedidos:', error);
+        showNotification(`Error al cargar pedidos: ${error.message}`, 'error');
+    }
+}
+
+// Función para renderizar pedidos
+function renderOrders() {
+    if (!ordersBody) return;
+
+    const startIndex = (currentOrderPage - 1) * ordersPerPage;
+    const endIndex = startIndex + ordersPerPage;
+    const ordersToShow = filteredOrders.slice(startIndex, endIndex);
+
+    ordersBody.innerHTML = '';
+
+    if (ordersToShow.length === 0) {
+        ordersBody.innerHTML = `
+            <tr>
+                <td colspan="9" style="text-align: center; padding: 20px; color: #666;">
+                    No se encontraron pedidos
+                </td>
+            </tr>
+        `;
+        return;
+    }
+
+    ordersToShow.forEach(order => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>${order.id}</td>
+            <td>${order.order_number}</td>
+            <td>${order.customer_name}</td>
+            <td>${order.customer_email}</td>
+            <td>$${order.total_amount.toLocaleString()}</td>
+            <td>
+                <span class="payment-method payment-${order.payment_method}">
+                    ${order.payment_method === 'transfer' ? 'Transferencia' : 'MercadoPago'}
+                </span>
+            </td>
+            <td>
+                <span class="status-badge status-${order.status}">
+                    ${getStatusText(order.status)}
+                </span>
+            </td>
+            <td>${formatDate(order.created_at)}</td>
+            <td>
+                <button class="btn btn-sm btn-primary" onclick="viewOrderDetails(${order.id})">
+                    Ver Detalles
+                </button>
+            </td>
+        `;
+        ordersBody.appendChild(row);
+    });
+
+    renderOrdersPagination();
+}
+
+// Función para renderizar paginación de pedidos
+function renderOrdersPagination() {
+    if (!ordersPagination) return;
+
+    const totalPages = Math.ceil(filteredOrders.length / ordersPerPage);
+    
+    if (totalPages <= 1) {
+        ordersPagination.innerHTML = '';
+        return;
+    }
+
+    let paginationHTML = '<div class="pagination-controls">';
+    
+    // Botón anterior
+    if (currentOrderPage > 1) {
+        paginationHTML += `<button class="btn btn-sm" onclick="changeOrderPage(${currentOrderPage - 1})">« Anterior</button>`;
+    }
+    
+    // Números de página
+    for (let i = 1; i <= totalPages; i++) {
+        if (i === currentOrderPage) {
+            paginationHTML += `<button class="btn btn-sm btn-primary">${i}</button>`;
+        } else {
+            paginationHTML += `<button class="btn btn-sm" onclick="changeOrderPage(${i})">${i}</button>`;
+        }
+    }
+    
+    // Botón siguiente
+    if (currentOrderPage < totalPages) {
+        paginationHTML += `<button class="btn btn-sm" onclick="changeOrderPage(${currentOrderPage + 1})">Siguiente »</button>`;
+    }
+    
+    paginationHTML += '</div>';
+    ordersPagination.innerHTML = paginationHTML;
+}
+
+// Función para cambiar página de pedidos
+function changeOrderPage(page) {
+    currentOrderPage = page;
+    renderOrders();
+}
+
+// Función para ver detalles de un pedido
+async function viewOrderDetails(orderId) {
+    try {
+        const token = localStorage.getItem('authToken');
+        if (!token) {
+            showNotification('Error: No hay token de autenticación', 'error');
+            return;
+        }
+
+        const response = await fetch(`${API_BASE}/api/admin/orders/${orderId}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error(`Error HTTP: ${response.status} ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        if (data.success) {
+            currentOrderId = orderId;
+            displayOrderDetails(data.order);
+            orderDetailsModal.style.display = 'block';
+        } else {
+            throw new Error(data.error || 'Error al cargar detalles del pedido');
+        }
+    } catch (error) {
+        console.error('Error al cargar detalles del pedido:', error);
+        showNotification(`Error al cargar detalles: ${error.message}`, 'error');
+    }
+}
+
+// Función para mostrar detalles del pedido en el modal
+function displayOrderDetails(order) {
+    // Información básica
+    document.getElementById('order-number').textContent = `Pedido #${order.order_number}`;
+    document.getElementById('customer-name').textContent = order.customer_name;
+    document.getElementById('customer-email').textContent = order.customer_email;
+    document.getElementById('customer-phone').textContent = order.customer_phone || '-';
+    document.getElementById('customer-address').textContent = order.customer_address || '-';
+    document.getElementById('customer-city').textContent = order.customer_city || '-';
+    document.getElementById('customer-zip').textContent = order.customer_zip || '-';
+    
+    // Información del pedido
+    document.getElementById('order-date').textContent = formatDate(order.created_at);
+    document.getElementById('payment-method').textContent = order.payment_method === 'transfer' ? 'Transferencia' : 'MercadoPago';
+    document.getElementById('order-total').textContent = `$${order.total_amount.toLocaleString()}`;
+    document.getElementById('order-status').textContent = getStatusText(order.status);
+    
+    // Estado actual
+    const statusBadge = document.getElementById('order-status-badge');
+    statusBadge.textContent = getStatusText(order.status);
+    statusBadge.className = `status-badge status-${order.status}`;
+    
+    // Selector de estado
+    document.getElementById('new-order-status').value = order.status;
+    
+    // Items del pedido
+    const itemsList = document.getElementById('order-items-list');
+    itemsList.innerHTML = '';
+    
+    order.items.forEach(item => {
+        const itemDiv = document.createElement('div');
+        itemDiv.className = 'order-item';
+        itemDiv.innerHTML = `
+            <img src="${item.image || '/assets/images/placeholder.jpg'}" alt="${item.name}" class="order-item-image" onerror="this.src='/assets/images/placeholder.jpg'">
+            <div class="order-item-info">
+                <div class="order-item-name">${item.name}</div>
+                <div class="order-item-details">
+                    Marca: ${item.brand} | Cantidad: ${item.quantity} | Precio unitario: $${item.price.toLocaleString()}
+                </div>
+            </div>
+            <div class="order-item-price">
+                $${(item.price * item.quantity).toLocaleString()}
+            </div>
+        `;
+        itemsList.appendChild(itemDiv);
+    });
+}
+
+// Función para actualizar estado del pedido
+async function updateOrderStatus() {
+    if (!currentOrderId) return;
+    
+    const newStatus = document.getElementById('new-order-status').value;
+    
+    try {
+        const token = localStorage.getItem('authToken');
+        if (!token) {
+            showNotification('Error: No hay token de autenticación', 'error');
+            return;
+        }
+
+        const response = await fetch(`${API_BASE}/api/admin/orders/${currentOrderId}/status`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ status: newStatus })
+        });
+
+        if (!response.ok) {
+            throw new Error(`Error HTTP: ${response.status} ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        if (data.success) {
+            showNotification(data.message, 'success');
+            orderDetailsModal.style.display = 'none';
+            fetchOrders(); // Recargar lista de pedidos
+        } else {
+            throw new Error(data.error || 'Error al actualizar estado');
+        }
+    } catch (error) {
+        console.error('Error al actualizar estado del pedido:', error);
+        showNotification(`Error al actualizar estado: ${error.message}`, 'error');
+    }
+}
+
+// Función para aplicar filtros de pedidos
+function applyOrderFilters() {
+    const searchTerm = document.getElementById('order-search').value.toLowerCase();
+    const statusFilter = document.getElementById('order-status-filter').value;
+    const paymentFilter = document.getElementById('payment-method-filter').value;
+
+    filteredOrders = ordersData.filter(order => {
+        const matchesSearch = !searchTerm || 
+            order.order_number.toLowerCase().includes(searchTerm) ||
+            order.customer_name.toLowerCase().includes(searchTerm) ||
+            order.customer_email.toLowerCase().includes(searchTerm);
+        
+        const matchesStatus = statusFilter === 'all' || order.status === statusFilter;
+        const matchesPayment = paymentFilter === 'all' || order.payment_method === paymentFilter;
+        
+        return matchesSearch && matchesStatus && matchesPayment;
+    });
+
+    currentOrderPage = 1;
+    renderOrders();
+}
+
+// Función para resetear filtros de pedidos
+function resetOrderFilters() {
+    document.getElementById('order-search').value = '';
+    document.getElementById('order-status-filter').value = 'all';
+    document.getElementById('payment-method-filter').value = 'all';
+    
+    filteredOrders = [...ordersData];
+    currentOrderPage = 1;
+    renderOrders();
+}
+
+// Función auxiliar para obtener texto del estado
+function getStatusText(status) {
+    const statusMap = {
+        'pending': 'Pendiente',
+        'pending_transfer': 'Pendiente Transferencia',
+        'paid': 'Pagado',
+        'shipped': 'Enviado',
+        'delivered': 'Entregado',
+        'cancelled': 'Cancelado'
+    };
+    return statusMap[status] || status;
+}
+
+// Función auxiliar para formatear fecha
+function formatDate(dateString) {
+    if (!dateString) return '-';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('es-ES', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+}
+
+// Event listeners para pedidos
+document.addEventListener('DOMContentLoaded', function() {
+    // Botón para gestionar pedidos
+    const manageOrdersBtn = document.getElementById('manage-orders');
+    if (manageOrdersBtn) {
+        manageOrdersBtn.addEventListener('click', function() {
+            document.getElementById('products-panel').style.display = 'none';
+            document.getElementById('users-panel').style.display = 'none';
+            document.getElementById('orders-panel').style.display = 'block';
+            fetchOrders();
+        });
+    }
+
+    // Botón para volver a productos desde pedidos
+    const backToProductsFromOrdersBtn = document.getElementById('back-to-products-from-orders');
+    if (backToProductsFromOrdersBtn) {
+        backToProductsFromOrdersBtn.addEventListener('click', function() {
+            document.getElementById('orders-panel').style.display = 'none';
+            document.getElementById('products-panel').style.display = 'block';
+        });
+    }
+
+    // Botón para actualizar pedidos
+    const refreshOrdersBtn = document.getElementById('refresh-orders');
+    if (refreshOrdersBtn) {
+        refreshOrdersBtn.addEventListener('click', fetchOrders);
+    }
+
+    // Filtros de pedidos
+    const applyOrderFiltersBtn = document.getElementById('apply-order-filters');
+    if (applyOrderFiltersBtn) {
+        applyOrderFiltersBtn.addEventListener('click', applyOrderFilters);
+    }
+
+    const resetOrderFiltersBtn = document.getElementById('reset-order-filters');
+    if (resetOrderFiltersBtn) {
+        resetOrderFiltersBtn.addEventListener('click', resetOrderFilters);
+    }
+
+    // Actualizar estado del pedido
+    const updateOrderStatusBtn = document.getElementById('update-order-status');
+    if (updateOrderStatusBtn) {
+        updateOrderStatusBtn.addEventListener('click', updateOrderStatus);
+    }
+
+    // Cerrar modal de detalles de pedido
+    const orderDetailsModalClose = orderDetailsModal?.querySelector('.close');
+    if (orderDetailsModalClose) {
+        orderDetailsModalClose.addEventListener('click', function() {
+            orderDetailsModal.style.display = 'none';
+        });
+    }
+
+    // Cerrar modal al hacer clic fuera
+    if (orderDetailsModal) {
+        window.addEventListener('click', function(e) {
+            if (e.target === orderDetailsModal) {
+                orderDetailsModal.style.display = 'none';
+            }
+        });
+    }
+});
+
 document.addEventListener("DOMContentLoaded", init);

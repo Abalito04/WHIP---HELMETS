@@ -45,6 +45,7 @@
             <button class="btn btn-primary" id="save-all">Guardar Todos los Cambios</button>
             <button class="btn btn-secondary" id="export-data">Exportar Datos</button>
             <button class="btn btn-success" id="manage-users">Gestionar Usuarios</button>
+            <button class="btn btn-info" id="manage-orders">Gestionar Pedidos</button>
             <a href="/" class="btn btn-primary">Volver a la Tienda</a>
             <button class="btn btn-danger" id="logout">Cerrar Sesión</button>
         </div>
@@ -197,6 +198,73 @@
 
             <div class="pagination" id="users-pagination">
                 <!-- La paginación se generará aquí -->
+            </div>
+        </div>
+
+        <!-- Panel de Pedidos -->
+        <div id="orders-panel" class="admin-panel" style="display: none;">
+            <div class="orders-header">
+                <h2>Gestión de Pedidos</h2>
+                <div class="orders-actions">
+                    <button class="btn btn-primary" id="back-to-products-from-orders">Volver a Productos</button>
+                    <button class="btn btn-success" id="refresh-orders">Actualizar</button>
+                </div>
+            </div>
+            
+            <div class="orders-filters">
+                <div class="filter-row">
+                    <div class="filter-group">
+                        <label for="order-search">Buscar Pedido</label>
+                        <input type="text" id="order-search" placeholder="Número de pedido, cliente, email...">
+                    </div>
+                    <div class="filter-group">
+                        <label for="order-status-filter">Filtrar por Estado</label>
+                        <select id="order-status-filter">
+                            <option value="all">Todos los estados</option>
+                            <option value="pending">Pendiente</option>
+                            <option value="pending_transfer">Pendiente Transferencia</option>
+                            <option value="paid">Pagado</option>
+                            <option value="shipped">Enviado</option>
+                            <option value="delivered">Entregado</option>
+                            <option value="cancelled">Cancelado</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="payment-method-filter">Método de Pago</label>
+                        <select id="payment-method-filter">
+                            <option value="all">Todos los métodos</option>
+                            <option value="transfer">Transferencia</option>
+                            <option value="mercadopago">MercadoPago</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <button class="btn btn-primary" id="apply-order-filters">Aplicar Filtros</button>
+                        <button class="btn" id="reset-order-filters">Restablecer</button>
+                    </div>
+                </div>
+            </div>
+
+            <table class="orders-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Número</th>
+                        <th>Cliente</th>
+                        <th>Email</th>
+                        <th>Total</th>
+                        <th>Método</th>
+                        <th>Estado</th>
+                        <th>Fecha</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="orders-body">
+                    <!-- Los pedidos se cargarán aquí dinámicamente -->
+                </tbody>
+            </table>
+
+            <div class="pagination" id="orders-pagination">
+                <!-- La paginación se generará dinámicamente -->
             </div>
         </div>
     </div>
@@ -375,6 +443,66 @@
             <div class="modal-actions">
                 <button class="btn btn-danger" id="confirm-delete-user">Sí, Eliminar</button>
                 <button class="btn btn-secondary" id="cancel-delete-user">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para detalles de pedido -->
+    <div id="order-details-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Detalles del Pedido</h2>
+            <div id="order-details-content">
+                <div class="order-info">
+                    <div class="order-header">
+                        <h3 id="order-number">Pedido #TRF-20241215143022</h3>
+                        <div class="order-status">
+                            <span id="order-status-badge" class="status-badge">Pendiente Transferencia</span>
+                        </div>
+                    </div>
+                    
+                    <div class="order-details-grid">
+                        <div class="detail-section">
+                            <h4>Información del Cliente</h4>
+                            <p><strong>Nombre:</strong> <span id="customer-name">-</span></p>
+                            <p><strong>Email:</strong> <span id="customer-email">-</span></p>
+                            <p><strong>Teléfono:</strong> <span id="customer-phone">-</span></p>
+                            <p><strong>Dirección:</strong> <span id="customer-address">-</span></p>
+                            <p><strong>Ciudad:</strong> <span id="customer-city">-</span></p>
+                            <p><strong>Código Postal:</strong> <span id="customer-zip">-</span></p>
+                        </div>
+                        
+                        <div class="detail-section">
+                            <h4>Información del Pedido</h4>
+                            <p><strong>Fecha:</strong> <span id="order-date">-</span></p>
+                            <p><strong>Método de Pago:</strong> <span id="payment-method">-</span></p>
+                            <p><strong>Total:</strong> <span id="order-total">-</span></p>
+                            <p><strong>Estado:</strong> <span id="order-status">-</span></p>
+                        </div>
+                    </div>
+                    
+                    <div class="order-items">
+                        <h4>Productos</h4>
+                        <div id="order-items-list">
+                            <!-- Los items se cargarán aquí -->
+                        </div>
+                    </div>
+                    
+                    <div class="order-actions">
+                        <div class="status-update">
+                            <label for="new-order-status">Cambiar Estado:</label>
+                            <select id="new-order-status">
+                                <option value="pending">Pendiente</option>
+                                <option value="pending_transfer">Pendiente Transferencia</option>
+                                <option value="paid">Pagado</option>
+                                <option value="shipped">Enviado</option>
+                                <option value="delivered">Entregado</option>
+                                <option value="cancelled">Cancelado</option>
+                            </select>
+                            <button class="btn btn-primary" id="update-order-status">Actualizar Estado</button>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

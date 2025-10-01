@@ -46,8 +46,8 @@ class PaymentHandler:
                     if not product:
                         return jsonify({"error": f"Producto {item['product_id']} no encontrado"}), 404
                     
-                    product_name = product[0]
-                    product_price = float(product[1])
+                    product_name = product['name']
+                    product_price = float(product['price'])
                     quantity = int(item['quantity'])
                     item_total = product_price * quantity
                     total_amount += item_total
@@ -134,7 +134,8 @@ class PaymentHandler:
                     )
                 )
                 
-                order_id = cursor.fetchone()[0]
+                result = cursor.fetchone()
+                order_id = result['id']
                 
                 # Insertar items del pedido
                 for item in items:
@@ -144,7 +145,7 @@ class PaymentHandler:
                         (item['product_id'],)
                     )
                     product = cursor.fetchone()
-                    product_price = float(product[0]) if product else 0
+                    product_price = float(product['price']) if product else 0
                     
                     cursor.execute(
                         """
@@ -314,7 +315,8 @@ class PaymentHandler:
                 print(f"DEBUG - cursor.fetchone() result: {result}")
                 
                 if result:
-                    order_id = result[0]
+                    # PostgreSQL devuelve RealDictRow, acceder por nombre de columna
+                    order_id = result['id']
                     print(f"DEBUG - order_id obtenido: {order_id}")
                 else:
                     print("ERROR - No se pudo obtener el order_id")

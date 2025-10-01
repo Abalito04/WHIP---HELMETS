@@ -383,7 +383,8 @@ def create_product():
             )
         
         # PostgreSQL: obtener el ID del último insert
-        new_id = cur.fetchone()[0]
+        result = cur.fetchone()
+        new_id = result['id']
         conn.commit()  # Confirmar la transacción
 
         row = execute_query(conn, "SELECT id, name, brand, price, COALESCE(porcentaje_descuento, NULL) as porcentaje_descuento, category, condition, sizes, stock, image, images, status, created_at, updated_at FROM productos WHERE id = %s", (new_id,)).fetchone()
@@ -1499,7 +1500,8 @@ def create_transfer_order_direct(items, customer_info, total_amount):
             print(f"DEBUG - cursor.fetchone() result: {result}")
             
             if result:
-                order_id = result[0]
+                # PostgreSQL devuelve RealDictRow, acceder por nombre de columna
+                order_id = result['id']
                 print(f"DEBUG - order_id obtenido: {order_id}")
             else:
                 print("ERROR - No se pudo obtener el order_id")

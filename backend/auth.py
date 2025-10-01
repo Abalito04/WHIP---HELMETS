@@ -90,13 +90,13 @@ class AuthManager:
                     duplicate_data = cursor.fetchone()
                     
                     if duplicate_data:
-                        if duplicate_data[0] == username:
+                        if duplicate_data['username'] == username:
                             return {"success": False, "error": "El nombre de usuario ya está en uso"}
-                        elif duplicate_data[1] == email:
+                        elif duplicate_data['email'] == email:
                             return {"success": False, "error": "El email ya está registrado"}
-                        elif duplicate_data[2] == dni:
+                        elif duplicate_data['dni'] == dni:
                             return {"success": False, "error": "El DNI ya está registrado"}
-                        elif duplicate_data[3] == telefono:
+                        elif duplicate_data['telefono'] == telefono:
                             return {"success": False, "error": "El teléfono ya está registrado"}
                     
                     return {"success": False, "error": "Los datos proporcionados ya están en uso"}
@@ -423,13 +423,13 @@ class AuthManager:
                     duplicate_user = cursor.fetchone()
                     
                     if duplicate_user:
-                        if duplicate_user[1] == data.get('username'):
+                        if duplicate_user['username'] == data.get('username'):
                             return {"success": False, "error": "El nombre de usuario ya está en uso"}
-                        elif duplicate_user[2] == data.get('email'):
+                        elif duplicate_user['email'] == data.get('email'):
                             return {"success": False, "error": "El email ya está registrado"}
-                        elif duplicate_user[3] == data.get('dni'):
+                        elif duplicate_user['dni'] == data.get('dni'):
                             return {"success": False, "error": "El DNI ya está registrado"}
-                        elif duplicate_user[4] == data.get('telefono'):
+                        elif duplicate_user['telefono'] == data.get('telefono'):
                             return {"success": False, "error": "El teléfono ya está registrado"}
                 
                 # Actualizar campos permitidos
@@ -475,13 +475,13 @@ class AuthManager:
                     duplicate_data = cursor.fetchone()
                     
                     if duplicate_data:
-                        if duplicate_data[0] == data.get('username'):
+                        if duplicate_data['username'] == data.get('username'):
                             return {"success": False, "error": "El nombre de usuario ya está en uso"}
-                        elif duplicate_data[1] == data.get('email'):
+                        elif duplicate_data['email'] == data.get('email'):
                             return {"success": False, "error": "El email ya está registrado"}
-                        elif duplicate_data[2] == data.get('dni'):
+                        elif duplicate_data['dni'] == data.get('dni'):
                             return {"success": False, "error": "El DNI ya está registrado"}
-                        elif duplicate_data[3] == data.get('telefono'):
+                        elif duplicate_data['telefono'] == data.get('telefono'):
                             return {"success": False, "error": "El teléfono ya está registrado"}
                     
                     return {"success": False, "error": "Los datos proporcionados ya están en uso"}

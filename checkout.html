@@ -303,6 +303,15 @@
             .transfer-instructions li {
                 font-size: 0.9em;
             }
+            
+            .price-method-info {
+                padding: 6px;
+                margin-top: 8px;
+            }
+            
+            .price-method-info small {
+                font-size: 0.85em;
+            }
         }
         
         /* Móviles muy pequeños */
@@ -427,6 +436,15 @@
             
             .transfer-instructions li {
                 font-size: 0.85em;
+            }
+            
+            .price-method-info {
+                padding: 5px;
+                margin-top: 6px;
+            }
+            
+            .price-method-info small {
+                font-size: 0.8em;
             }
         }
         
@@ -553,6 +571,20 @@
             line-height: 1.4;
         }
         
+        .price-method-info {
+            text-align: center;
+            margin-top: 10px;
+            padding: 8px;
+            background: #e9ecef;
+            border-radius: 5px;
+            border-left: 4px solid #f0ad4e;
+        }
+        
+        .price-method-info small {
+            color: #666;
+            font-weight: 600;
+        }
+        
 
     </style>
 </head>
@@ -661,6 +693,9 @@
                 <div class="cart-total">
                     Total: <span id="cart-total">$0</span>
                 </div>
+                <div id="price-method-info" class="price-method-info" style="display: none;">
+                    <small id="price-method-text"></small>
+                </div>
             </div>
         </div>
     </main>
@@ -756,11 +791,13 @@ const API_BASE = (() => {
             });
             
             cartSummary.innerHTML = html;
-            cartTotal.textContent = `$${total.toLocaleString()}`;
             
             // Guardar totales para uso posterior
             window.cartTotal = total;
             window.transferTotal = transferTotal;
+            
+            // Actualizar el total mostrado según el método de pago seleccionado
+            updateTotalDisplay();
         }
         
                  // Procesar checkout
@@ -986,7 +1023,31 @@ const API_BASE = (() => {
              }
          }
          
-                 // Manejar cambio de método de pago
+                 // Actualizar el total mostrado según el método de pago
+        function updateTotalDisplay() {
+            const paymentMethod = document.getElementById('payment-method').value;
+            const cartTotal = document.getElementById('cart-total');
+            const priceMethodInfo = document.getElementById('price-method-info');
+            const priceMethodText = document.getElementById('price-method-text');
+            
+            if (paymentMethod === 'transfer' && window.transferTotal) {
+                cartTotal.textContent = `$${window.transferTotal.toLocaleString()}`;
+                priceMethodText.textContent = '💰 Precio Efectivo/Transferencia (con descuento aplicado)';
+                priceMethodInfo.style.display = 'block';
+            } else if (paymentMethod === 'mercadopago' && window.cartTotal) {
+                cartTotal.textContent = `$${window.cartTotal.toLocaleString()}`;
+                priceMethodText.textContent = '💳 Precio de Lista (MercadoPago)';
+                priceMethodInfo.style.display = 'block';
+            } else {
+                // Sin método seleccionado, mostrar precio de lista por defecto
+                if (window.cartTotal) {
+                    cartTotal.textContent = `$${window.cartTotal.toLocaleString()}`;
+                }
+                priceMethodInfo.style.display = 'none';
+            }
+        }
+        
+        // Manejar cambio de método de pago
         function handlePaymentMethodChange() {
             const paymentMethod = document.getElementById('payment-method').value;
             const transferInfo = document.getElementById('transfer-info');
@@ -1011,6 +1072,9 @@ const API_BASE = (() => {
                 btnText.textContent = 'Seleccione un método de pago';
                 checkoutBtn.disabled = true;
             }
+            
+            // Actualizar el total mostrado
+            updateTotalDisplay();
         }
         
         // Cargar resumen al cargar la página

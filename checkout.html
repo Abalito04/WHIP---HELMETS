@@ -290,6 +290,7 @@
             
             .bank-info p {
                 font-size: 0.95em;
+                color: #333;
             }
             
             .transfer-total {
@@ -424,6 +425,7 @@
             
             .bank-info p {
                 font-size: 0.9em;
+                color: #333;
             }
             
             .transfer-total {
@@ -542,6 +544,17 @@
         .bank-info p {
             margin: 8px 0;
             font-size: 1em;
+            color: #333;
+        }
+        
+        .bank-info strong {
+            color: #000;
+            font-weight: bold;
+        }
+        
+        .bank-info span {
+            color: #333;
+            font-weight: normal;
         }
         
         .transfer-total {
@@ -559,6 +572,7 @@
         .transfer-instructions p {
             margin-bottom: 10px;
             font-weight: bold;
+            color: #333;
         }
         
         .transfer-instructions ol {
@@ -569,6 +583,7 @@
         .transfer-instructions li {
             margin: 5px 0;
             line-height: 1.4;
+            color: #333;
         }
         
         .price-method-info {
@@ -657,10 +672,10 @@
                     <div id="transfer-info" class="payment-info" style="display: none;">
                         <h4>Información para Transferencia/Depósito</h4>
                         <div class="bank-info">
-                            <p><strong>Banco:</strong> <span id="bank-name">Banco Santander</span></p>
-                            <p><strong>Titular:</strong> <span id="account-holder">WHIP-HELMETS S.A.</span></p>
-                            <p><strong>CBU:</strong> <span id="cbu">0070123456789012345678</span></p>
-                            <p><strong>Alias:</strong> <span id="alias">WHIP.HELMETS</span></p>
+                            <p><strong>Banco:</strong> <span id="bank-name">MercadoPago</span></p>
+                            <p><strong>Titular:</strong> <span id="account-holder">Jose Ignacio Abalo</span></p>
+                            <p><strong>CBU:</strong> <span id="cbu">0000003100006660964168</span></p>
+                            <p><strong>Alias:</strong> <span id="alias">whip.helmets</span></p>
                             <p><strong>Total a pagar:</strong> <span id="transfer-total" class="transfer-total">$0</span></p>
                         </div>
                         <div class="transfer-instructions">
@@ -822,25 +837,48 @@ const API_BASE = (() => {
                  const paymentMethod = document.getElementById('payment-method').value;
                  const token = localStorage.getItem('authToken');
                  
+                 console.log('Procesando checkout:', {
+                     paymentMethod: paymentMethod,
+                     customerInfo: customerInfo,
+                     hasToken: !!token
+                 });
+                 
+                 if (!paymentMethod) {
+                     throw new Error('Debe seleccionar un método de pago');
+                 }
+                 
+                 if (!token) {
+                     throw new Error('Sesión expirada. Por favor, inicia sesión nuevamente');
+                 }
+                 
                  if (paymentMethod === 'transfer') {
                      // Procesar transferencia/depósito
+                     console.log('Procesando transferencia...');
                      await processTransferPayment(customerInfo, token);
                  } else if (paymentMethod === 'mercadopago') {
                      // Procesar MercadoPago
+                     console.log('Procesando MercadoPago...');
                      await processMercadoPagoPayment(customerInfo, token);
                  } else {
-                     throw new Error('Método de pago no válido');
+                     throw new Error('Método de pago no válido: ' + paymentMethod);
                  }
                 
             } catch (error) {
-                console.error('Error:', error);
+                console.error('Error en processCheckout:', error);
                 showError('Error al procesar el pago: ' + error.message);
+                hideLoading();
             }
         }
         
         // Procesar pago por transferencia
         async function processTransferPayment(customerInfo, token) {
             try {
+                console.log('Iniciando processTransferPayment:', {
+                    customerInfo: customerInfo,
+                    cartLength: cart.length,
+                    transferTotal: window.transferTotal
+                });
+                
                 // Preparar items para la API
                 const items = cart.map(item => {
                     let itemPrice = parseFloat(item.price) || 0;
@@ -862,23 +900,38 @@ const API_BASE = (() => {
                     };
                 });
                 
+                console.log('Items preparados para transferencia:', items);
+                
+                const requestData = {
+                    items: items,
+                    customer_info: customerInfo,
+                    total_amount: window.transferTotal
+                };
+                
+                console.log('Enviando request a API:', requestData);
+                
                 const response = await fetch(`${API_BASE}/api/payment/create-transfer-order`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                         'Authorization': `Bearer ${token}`
                     },
-                    body: JSON.stringify({
-                        items: items,
-                        customer_info: customerInfo,
-                        total_amount: window.transferTotal
-                    })
+                    body: JSON.stringify(requestData)
                 });
                 
+                console.log('Response status:', response.status);
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('Error response:', errorText);
+                    throw new Error(`Error del servidor: ${response.status} - ${errorText}`);
+                }
+                
                 const result = await response.json();
+                console.log('Resultado de la API:', result);
                 
                 if (result.success) {
-                    showSuccess('¡Pedido creado exitosamente! Te hemos enviado un email con los datos de transferencia. Envía el comprobante por WhatsApp al +54 295 454-4001');
+                    showSuccess('¡Pedido creado exitosamente! Realiza la transferencia a la cuenta de Jose Ignacio Abalo (MercadoPago) y envía el comprobante por WhatsApp al +54 295 454-4001');
                     // Limpiar carrito
                     localStorage.removeItem("cart_v1");
                     // Redirigir a página de éxito
@@ -890,7 +943,7 @@ const API_BASE = (() => {
                 }
                 
             } catch (error) {
-                console.error('Error:', error);
+                console.error('Error en processTransferPayment:', error);
                 throw error;
             }
         }

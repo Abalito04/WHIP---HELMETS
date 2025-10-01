@@ -1,20 +1,33 @@
 import os
 import json
-import mercadopago
 from datetime import datetime
 from flask import jsonify, request
-from config import MP_ACCESS_TOKEN, SUCCESS_URL, FAILURE_URL, PENDING_URL, WEBHOOK_URL
 from database import get_conn
+
+# Importar MercadoPago solo si está disponible
+try:
+    import mercadopago
+    from config import MP_ACCESS_TOKEN, SUCCESS_URL, FAILURE_URL, PENDING_URL, WEBHOOK_URL
+    MERCADOPAGO_AVAILABLE = True
+except ImportError:
+    print("⚠️  MercadoPago no disponible, solo transferencias funcionarán")
+    MERCADOPAGO_AVAILABLE = False
 
 class PaymentHandler:
     def __init__(self):
-        # Configurar MercadoPago
-        self.mp = mercadopago.SDK(MP_ACCESS_TOKEN)
+        # Configurar MercadoPago solo si está disponible
+        if MERCADOPAGO_AVAILABLE:
+            self.mp = mercadopago.SDK(MP_ACCESS_TOKEN)
+        else:
+            self.mp = None
         
     def create_payment_preference(self, items, customer_info):
         """
         Crear preferencia de pago en MercadoPago
         """
+        if not MERCADOPAGO_AVAILABLE:
+            return jsonify({"error": "MercadoPago no está configurado"}), 503
+            
         try:
             # Preparar items para MercadoPago
             mp_items = []

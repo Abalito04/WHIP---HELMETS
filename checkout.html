@@ -883,38 +883,59 @@ const API_BASE = (() => {
                 console.log('Iniciando processTransferPayment:', {
                     customerInfo: customerInfo,
                     cartLength: cart.length,
-                    transferTotal: window.transferTotal
+                    transferTotal: window.transferTotal,
+                    hasProducts: !!window.products,
+                    productsLength: window.products ? window.products.length : 0
                 });
                 
                 // Preparar items para la API
                 const items = cart.map(item => {
                     let itemPrice = parseFloat(item.price) || 0;
                     
+                    console.log('Item original:', item);
+                    
                     // Usar precio efectivo si está disponible
-                    if (item.productId && window.products) {
+                    if (item.productId && window.products && window.products.length > 0) {
                         const product = window.products.find(p => p.id == item.productId);
-                        if (product && product.precio_efectivo) {
-                            itemPrice = parseFloat(product.precio_efectivo);
+                        if (product) {
+                            console.log('Producto encontrado:', product);
+                            if (product.precio_efectivo) {
+                                itemPrice = parseFloat(product.precio_efectivo);
+                                console.log('Usando precio efectivo:', itemPrice);
+                            } else {
+                                console.log('No hay precio efectivo, usando precio de lista:', itemPrice);
+                            }
+                        } else {
+                            console.log('Producto no encontrado en window.products');
                         }
+                    } else {
+                        console.log('No hay productId o window.products no está disponible, usando precio del carrito:', itemPrice);
+                        // Si no hay productos disponibles, usar el precio del carrito
+                        // Esto es un fallback temporal
                     }
                     
-                    return {
+                    const finalItem = {
                         name: item.productName || item.name || 'Producto sin nombre',
                         price: itemPrice,
                         quantity: parseInt(item.quantity) || 1,
                         size: item.size || 'Sin talle',
                         product_id: item.productId
                     };
+                    
+                    console.log('Item final:', finalItem);
+                    return finalItem;
                 });
                 
                 console.log('Items preparados para transferencia:', items);
                 
-                // Calcular total si no está disponible
-                let transferTotal = window.transferTotal;
-                if (!transferTotal || transferTotal <= 0) {
-                    transferTotal = items.reduce((total, item) => total + (item.price * item.quantity), 0);
-                    console.log('Total recalculado en frontend:', transferTotal);
-                }
+                // Calcular total de transferencia (precio efectivo)
+                let transferTotal = 0;
+                items.forEach(item => {
+                    transferTotal += item.price * item.quantity;
+                });
+                
+                console.log('Total de transferencia calculado:', transferTotal);
+                console.log('window.transferTotal:', window.transferTotal);
                 
                 const requestData = {
                     items: items,

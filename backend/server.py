@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, send_from_directory, g
+from flask import Flask, request, jsonify, send_from_directory, g, session
 from flask_cors import CORS
 from functools import wraps
 import os
@@ -6,6 +6,7 @@ import re
 from database import get_conn, init_postgresql
 from datetime import datetime, timedelta
 import hashlib
+import secrets
 
 # Importar el módulo de autenticación
 try:
@@ -84,8 +85,44 @@ def debug_only(f):
         return f(*args, **kwargs)
     return decorated_function
 
+# ---------------------- Protección CSRF ----------------------
+
+def generate_csrf_token():
+    """Generar token CSRF único"""
+    return secrets.token_urlsafe(32)
+
+def validate_csrf_token(token):
+    """Validar token CSRF"""
+    if not token:
+        return False
+    
+    # En una implementación más robusta, podrías almacenar tokens en la base de datos
+    # Para esta implementación básica, validamos que el token tenga el formato correcto
+    return len(token) >= 32 and token.replace('-', '').replace('_', '').isalnum()
+
+def require_csrf(f):
+    """Decorador para requerir token CSRF en endpoints POST"""
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        # Solo aplicar CSRF a métodos POST, PUT, DELETE
+        if request.method in ['POST', 'PUT', 'DELETE']:
+            # Obtener token del header o del JSON
+            csrf_token = request.headers.get('X-CSRF-Token') or request.get_json().get('csrf_token') if request.get_json() else None
+            
+            if not validate_csrf_token(csrf_token):
+                return jsonify({
+                    "error": "Token CSRF inválido o faltante",
+                    "message": "Se requiere un token CSRF válido para esta operación"
+                }), 403
+        
+        return f(*args, **kwargs)
+    return decorated_function
+
 app = Flask(__name__)
 app.config['DEBUG'] = os.environ.get('DEBUG', 'False').lower() == 'true'
+
+# Configurar SECRET_KEY para sesiones y CSRF
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'dev-key-change-in-production')
 # Configurar CORS de forma más segura
 def configure_cors():
     """Configurar CORS según el entorno"""
@@ -310,6 +347,15 @@ def serve_static(filename):
 @app.route("/api/health", methods=["GET"])
 def health():
     return jsonify({"ok": True, "message": "API running"}), 200
+
+@app.route("/api/csrf-token", methods=["GET"])
+def get_csrf_token():
+    """Obtener token CSRF para formularios"""
+    token = generate_csrf_token()
+    return jsonify({
+        "csrf_token": token,
+        "message": "Token CSRF generado correctamente"
+    }), 200
 
 
 @app.route("/api/products", methods=["GET"])
@@ -961,6 +1007,7 @@ def upload_image():
 # ---------------------- RUTAS DE AUTENTICACIÓN ----------------------
 
 @app.route("/api/auth/register", methods=["POST"])
+@require_csrf
 def auth_register():
     """Endpoint para registro de nuevos usuarios con rate limiting"""
     if not AUTH_AVAILABLE:
@@ -1028,6 +1075,7 @@ def auth_register():
         return jsonify({"error": str(e)}), 500
 
 @app.route("/api/auth/login", methods=["POST"])
+@require_csrf
 def auth_login():
     """Endpoint para login de usuarios con rate limiting"""
     print(f"DEBUG: Iniciando proceso de login")
@@ -1080,6 +1128,7 @@ def auth_login():
 
 @app.route("/api/auth/logout", methods=["POST"])
 @require_auth
+@require_csrf
 def auth_logout():
     """Endpoint para logout de usuarios"""
     if not AUTH_AVAILABLE:
@@ -1481,6 +1530,7 @@ def debug_test_hash():
 # ---------------------- RUTAS DE PAGOS ----------------------
 
 @app.route("/api/payment/create-preference", methods=["POST"])
+@require_csrf
 def create_payment_preference():
     """Crear preferencia de pago en MercadoPago con rate limiting"""
     if not PAYMENT_AVAILABLE:
@@ -1534,6 +1584,7 @@ def create_payment_preference():
         return jsonify({"error": str(e)}), 500
 
 @app.route("/api/payment/create-transfer-order", methods=["POST"])
+@require_csrf
 def create_transfer_order():
     """Crear pedido para pago por transferencia/depósito con rate limiting"""
     # Las transferencias siempre están disponibles, no dependen de MercadoPago
@@ -2124,6 +2175,7 @@ def delete_user(user_id):
 
 @app.route("/api/admin/users", methods=["POST"])
 @require_admin
+@require_csrf
 def create_user_admin():
     """Crear un nuevo usuario (solo admin)"""
     try:

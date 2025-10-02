@@ -317,10 +317,16 @@ const API_BASE = (() => {
         // Registrar usuario
         async function registerUser(formData) {
             try {
+                // Obtener token CSRF
+                const csrfResponse = await fetch(`${API_BASE}/api/csrf-token`);
+                const csrfData = await csrfResponse.json();
+                const csrfToken = csrfData.csrf_token;
+                
                 const response = await fetch(`${API_BASE}/api/auth/register`, {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'application/json',
+                        'X-CSRF-Token': csrfToken
                     },
                     body: JSON.stringify({
                         username: formData.get('username'),
@@ -333,7 +339,8 @@ const API_BASE = (() => {
                             email: formData.get('email'),
                             direccion: formData.get('direccion'),
                             codigo_postal: formData.get('codigo_postal')
-                        }
+                        },
+                        csrf_token: csrfToken
                     })
                 });
                 

@@ -945,13 +945,22 @@ const API_BASE = (() => {
                 
                 console.log('Enviando request a API:', requestData);
                 
+                // Obtener token CSRF
+                const csrfResponse = await fetch(`${API_BASE}/api/csrf-token`);
+                const csrfData = await csrfResponse.json();
+                const csrfToken = csrfData.csrf_token;
+                
                 const response = await fetch(`${API_BASE}/api/payment/create-transfer-order`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
+                        'Authorization': `Bearer ${token}`,
+                        'X-CSRF-Token': csrfToken
                     },
-                    body: JSON.stringify(requestData)
+                    body: JSON.stringify({
+                        ...requestData,
+                        csrf_token: csrfToken
+                    })
                 });
                 
                 console.log('Response status:', response.status);
@@ -1000,15 +1009,22 @@ const API_BASE = (() => {
                     product_id: item.productId
                 }));
                 
+                // Obtener token CSRF
+                const csrfResponse = await fetch(`${API_BASE}/api/csrf-token`);
+                const csrfData = await csrfResponse.json();
+                const csrfToken = csrfData.csrf_token;
+                
                 const response = await fetch(`${API_BASE}/api/payment/create-preference`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
+                        'Authorization': `Bearer ${token}`,
+                        'X-CSRF-Token': csrfToken
                     },
                     body: JSON.stringify({
                         items: items,
-                        customer_info: customerInfo
+                        customer_info: customerInfo,
+                        csrf_token: csrfToken
                     })
                 });
                 

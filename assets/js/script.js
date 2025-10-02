@@ -509,12 +509,18 @@ document.addEventListener("DOMContentLoaded", () => {
             return "http://127.0.0.1:5000";
         })();
         
+        // Obtener token CSRF
+        const csrfResponse = await fetch(`${API_BASE}/api/csrf-token`);
+        const csrfData = await csrfResponse.json();
+        const csrfToken = csrfData.csrf_token;
+        
         const response = await fetch(`${API_BASE}/api/auth/login`, {
           method: 'POST',
           headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'X-CSRF-Token': csrfToken
           },
-          body: JSON.stringify({ username, password })
+          body: JSON.stringify({ username, password, csrf_token: csrfToken })
         });
         
         const data = await response.json();
@@ -616,29 +622,40 @@ document.addEventListener("DOMContentLoaded", () => {
     }, 100);
   }
 
-  function logout() {
+  async function logout() {
     const token = localStorage.getItem('authToken');
     
     if (token) {
-      // Configuración dinámica de la API
-      const API_BASE = (() => {
-          // Si estamos en Railway (producción), usar la URL actual
-          if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
-              return window.location.origin;
-          }
-          // Si estamos en desarrollo local
-          return "http://127.0.0.1:5000";
-      })();
-      
-      // Intentar cerrar sesión en el servidor
-      fetch(`${API_BASE}/api/auth/logout`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      }).catch(() => {
+      try {
+        // Configuración dinámica de la API
+        const API_BASE = (() => {
+            // Si estamos en Railway (producción), usar la URL actual
+            if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+                return window.location.origin;
+            }
+            // Si estamos en desarrollo local
+            return "http://127.0.0.1:5000";
+        })();
+        
+        // Obtener token CSRF
+        const csrfResponse = await fetch(`${API_BASE}/api/csrf-token`);
+        const csrfData = await csrfResponse.json();
+        const csrfToken = csrfData.csrf_token;
+        
+        // Intentar cerrar sesión en el servidor
+        await fetch(`${API_BASE}/api/auth/logout`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+            'X-CSRF-Token': csrfToken
+          },
+          body: JSON.stringify({ csrf_token: csrfToken })
+        });
+      } catch (error) {
         // Si falla, continuar con el logout local
-      });
+        console.log('Error en logout del servidor, continuando con logout local:', error);
+      }
     }
     
     // Limpiar localStorage

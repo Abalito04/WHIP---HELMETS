@@ -181,11 +181,13 @@
         // Obtener parámetros de la URL
         const urlParams = new URLSearchParams(window.location.search);
         const orderNumber = urlParams.get('order_number') || 'N/A';
+        const verificationCode = urlParams.get('verification_code') || 'N/A';
         console.log('URL completa:', window.location.href);
         console.log('Parámetros de URL:', window.location.search);
         console.log('Order number extraído:', orderNumber);
+        console.log('Código de verificación extraído:', verificationCode);
         
-        // Generar elementos de seguridad
+        // Generar fecha y hora actual
         const now = new Date();
         const orderDate = now.toLocaleString('es-ES', {
             year: 'numeric',
@@ -195,15 +197,6 @@
             minute: '2-digit',
             second: '2-digit'
         });
-        
-        // Generar código de verificación único
-        const generateVerificationCode = (orderNum) => {
-            const timestamp = now.getTime().toString();
-            const hash = btoa(orderNum + timestamp).substring(0, 8).toUpperCase();
-            return hash;
-        };
-        
-        const verificationCode = generateVerificationCode(orderNumber);
         
         // Actualizar elementos en la página
         document.getElementById('order-number').textContent = orderNumber;

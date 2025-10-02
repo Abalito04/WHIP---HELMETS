@@ -1574,6 +1574,7 @@ def create_transfer_order_direct(items, customer_info, total_amount):
                 "success": True,
                 "order_id": order_id,
                 "order_number": order_number,
+                "verification_code": verification_code,
                 "total_amount": total_amount,
                 "message": "¡Pedido creado exitosamente! Realiza la transferencia a la cuenta de Jose Ignacio Abalo (MercadoPago) y envía el comprobante por WhatsApp al +54 295 454-4001"
             }), 200

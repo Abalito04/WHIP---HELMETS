@@ -41,7 +41,7 @@ def sanitize_input(text):
     return text.strip()
 
 def check_rate_limit(ip, action, limit=5, window=300):
-    """Verifica rate limiting básico"""
+    """Verifica rate limiting mejorado"""
     now = datetime.now()
     key = f"{ip}_{action}"
     
@@ -56,6 +56,15 @@ def check_rate_limit(ip, action, limit=5, window=300):
     
     login_attempts[key].append(now)
     return True
+
+def get_rate_limits():
+    """Obtener límites de rate limiting según configuración"""
+    return {
+        'login': int(os.environ.get('RATE_LIMIT_LOGIN', 3)),  # 3 intentos por defecto
+        'register': int(os.environ.get('RATE_LIMIT_REGISTER', 2)),  # 2 intentos por defecto
+        'payment': int(os.environ.get('RATE_LIMIT_PAYMENT', 5)),  # 5 intentos por defecto
+        'api': int(os.environ.get('RATE_LIMIT_API', 60)),  # 60 requests por defecto
+    }
 
 app = Flask(__name__)
 app.config['DEBUG'] = os.environ.get('DEBUG', 'False').lower() == 'true'
@@ -908,11 +917,18 @@ def upload_image():
 
 @app.route("/api/auth/register", methods=["POST"])
 def auth_register():
-    """Endpoint para registro de nuevos usuarios"""
+    """Endpoint para registro de nuevos usuarios con rate limiting"""
     if not AUTH_AVAILABLE:
         return jsonify({"error": "Sistema de autenticación no disponible"}), 503
     
     try:
+        # Rate limiting para registro
+        client_ip = request.remote_addr
+        rate_limits = get_rate_limits()
+        
+        if not check_rate_limit(client_ip, 'register', limit=rate_limits['register'], window=600):
+            return jsonify({"error": "Demasiados intentos de registro. Intenta en 10 minutos."}), 429
+        
         data = request.get_json()
         username = data.get('username')
         password = data.get('password')
@@ -976,11 +992,12 @@ def auth_login():
         return jsonify({"error": "Sistema de autenticación no disponible"}), 503
     
     try:
-        # Rate limiting básico
+        # Rate limiting mejorado
         client_ip = request.remote_addr
+        rate_limits = get_rate_limits()
         print(f"DEBUG: IP del cliente: {client_ip}")
         
-        if not check_rate_limit(client_ip, 'login', limit=5, window=300):
+        if not check_rate_limit(client_ip, 'login', limit=rate_limits['login'], window=300):
             print(f"DEBUG: Rate limit excedido para IP: {client_ip}")
             return jsonify({"error": "Demasiados intentos de login. Intenta en 5 minutos."}), 429
         
@@ -1413,9 +1430,16 @@ def debug_test_hash():
 
 @app.route("/api/payment/create-preference", methods=["POST"])
 def create_payment_preference():
-    """Crear preferencia de pago en MercadoPago"""
+    """Crear preferencia de pago en MercadoPago con rate limiting"""
     if not PAYMENT_AVAILABLE:
         return jsonify({"error": "Sistema de pagos no disponible"}), 503
+    
+    # Rate limiting para pagos
+    client_ip = request.remote_addr
+    rate_limits = get_rate_limits()
+    
+    if not check_rate_limit(client_ip, 'payment', limit=rate_limits['payment'], window=300):
+        return jsonify({"error": "Demasiados intentos de pago. Intenta en 5 minutos."}), 429
     
     # Verificar autenticación
     auth_header = request.headers.get('Authorization')
@@ -1459,8 +1483,15 @@ def create_payment_preference():
 
 @app.route("/api/payment/create-transfer-order", methods=["POST"])
 def create_transfer_order():
-    """Crear pedido para pago por transferencia/depósito"""
+    """Crear pedido para pago por transferencia/depósito con rate limiting"""
     # Las transferencias siempre están disponibles, no dependen de MercadoPago
+    
+    # Rate limiting para transferencias
+    client_ip = request.remote_addr
+    rate_limits = get_rate_limits()
+    
+    if not check_rate_limit(client_ip, 'payment', limit=rate_limits['payment'], window=300):
+        return jsonify({"error": "Demasiados intentos de pago. Intenta en 5 minutos."}), 429
     
     # Verificar autenticación
     auth_header = request.headers.get('Authorization')

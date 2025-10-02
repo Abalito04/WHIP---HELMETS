@@ -18,6 +18,7 @@ __pycache__/
 .env
 .env.local
 .env.production
+railway.env
 
 # Logs
 *.log
@@ -41,3 +42,17 @@ Thumbs.db
 
 # Archivos de cache del navegador
 .cache/
+
+# ===== REPORTES DE SEGURIDAD (CONFIDENCIALES) =====
+REPORTE_SEGURIDAD.md
+ANALISIS_COMPATIBILIDAD_SEGURIDAD.md
+RAILWAY_SECURITY_CONFIG.md
+*_SEGURIDAD*.md
+*_SECURITY*.md
+security_report*.md
+audit_report*.md
+*_CONFIG*.md
+
+# Archivos de configuración de ejemplo
+env.example
+generate_secret_key.py

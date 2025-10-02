@@ -58,7 +58,7 @@ def check_rate_limit(ip, action, limit=5, window=300):
     return True
 
 app = Flask(__name__)
-app.config['DEBUG'] = True
+app.config['DEBUG'] = os.environ.get('DEBUG', 'False').lower() == 'true'
 CORS(app)
 
 # ---------------------- Database helpers ----------------------

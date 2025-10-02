@@ -1,8 +1,9 @@
 import os
 
 # Configuración de MercadoPago
-# Railway usará la variable de entorno MP_ACCESS_TOKEN
-MP_ACCESS_TOKEN = os.environ.get('MP_ACCESS_TOKEN', 'TEST-123456789-123456789-123456789')
+# Railway usará las variables de entorno de MercadoPago
+MP_ACCESS_TOKEN = os.environ.get('MERCADOPAGO_ACCESS_TOKEN', os.environ.get('MP_ACCESS_TOKEN', 'TEST-123456789-123456789-123456789'))
+MP_PUBLIC_KEY = os.environ.get('MERCADOPAGO_PUBLIC_KEY', 'TEST-123456789-123456789-123456789')
 
 # Verificar si estamos en modo de prueba o producción
 IS_PRODUCTION = os.environ.get('IS_PRODUCTION', 'False').lower() == 'true'

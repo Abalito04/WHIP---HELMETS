@@ -69,13 +69,40 @@ def get_rate_limits():
 app = Flask(__name__)
 app.config['DEBUG'] = os.environ.get('DEBUG', 'False').lower() == 'true'
 # Configurar CORS de forma más segura
-cors_origins = os.environ.get('CORS_ORIGINS', '*').split(',')
-if cors_origins == ['*']:
-    # En desarrollo, permitir cualquier origen
-    CORS(app, supports_credentials=True)
-else:
-    # En producción, usar orígenes específicos
-    CORS(app, origins=cors_origins, supports_credentials=True)
+def configure_cors():
+    """Configurar CORS según el entorno"""
+    # Detectar si estamos en Railway (producción)
+    is_production = not app.config['DEBUG'] or os.environ.get('IS_PRODUCTION', 'False').lower() == 'true'
+    
+    if is_production:
+        # En producción, usar orígenes específicos
+        railway_url = os.environ.get('RAILWAY_STATIC_URL', '')
+        public_domain = os.environ.get('RAILWAY_PUBLIC_DOMAIN', '')
+        custom_origins = os.environ.get('CORS_ORIGINS', '').split(',')
+        
+        # Construir lista de orígenes permitidos
+        allowed_origins = []
+        
+        if railway_url:
+            allowed_origins.append(railway_url)
+        if public_domain:
+            allowed_origins.append(f"https://{public_domain}")
+        if custom_origins and custom_origins != ['']:
+            allowed_origins.extend(custom_origins)
+        
+        # Si no hay orígenes específicos, usar el dominio de Railway detectado
+        if not allowed_origins:
+            # Detectar automáticamente desde el host
+            allowed_origins = ['https://whip-helmets.up.railway.app']
+        
+        print(f"🔒 CORS configurado para producción: {allowed_origins}")
+        CORS(app, origins=allowed_origins, supports_credentials=True)
+    else:
+        # En desarrollo, permitir cualquier origen
+        print("🔓 CORS configurado para desarrollo: permitir todos los orígenes")
+        CORS(app, supports_credentials=True)
+
+configure_cors()
 
 # ---------------------- Headers de Seguridad ----------------------
 @app.after_request

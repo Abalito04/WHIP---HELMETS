@@ -59,7 +59,36 @@ def check_rate_limit(ip, action, limit=5, window=300):
 
 app = Flask(__name__)
 app.config['DEBUG'] = os.environ.get('DEBUG', 'False').lower() == 'true'
-CORS(app)
+# Configurar CORS de forma más segura
+cors_origins = os.environ.get('CORS_ORIGINS', '*').split(',')
+if cors_origins == ['*']:
+    # En desarrollo, permitir cualquier origen
+    CORS(app, supports_credentials=True)
+else:
+    # En producción, usar orígenes específicos
+    CORS(app, origins=cors_origins, supports_credentials=True)
+
+# ---------------------- Headers de Seguridad ----------------------
+@app.after_request
+def add_security_headers(response):
+    """Agregar headers de seguridad básicos"""
+    # Prevenir MIME type sniffing
+    response.headers['X-Content-Type-Options'] = 'nosniff'
+    
+    # Protección básica contra clickjacking (permisivo para MercadoPago)
+    response.headers['X-Frame-Options'] = 'SAMEORIGIN'
+    
+    # Protección XSS básica
+    response.headers['X-XSS-Protection'] = '1; mode=block'
+    
+    # Política de referrer (privacidad)
+    response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
+    
+    # Solo en producción: HTTPS obligatorio
+    if not app.config['DEBUG']:
+        response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
+    
+    return response
 
 # ---------------------- Database helpers ----------------------
 def get_conn():

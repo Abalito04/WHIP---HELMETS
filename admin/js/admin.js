@@ -2583,6 +2583,11 @@ function renderOrders() {
             </td>
             <td>${formatDate(order.created_at)}</td>
             <td>
+                <span class="verification-code" title="Código de verificación del comprobante">
+                    ${order.verification_code || 'N/A'}
+                </span>
+            </td>
+            <td>
                 <button class="btn btn-sm btn-primary" onclick="viewOrderDetails(${order.id})">
                     Ver Detalles
                 </button>

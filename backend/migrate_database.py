@@ -73,6 +73,10 @@ def create_orders_table():
             if 'user_id' not in existing_columns:
                 print("Agregando columna user_id...")
                 cursor.execute("ALTER TABLE orders ADD COLUMN user_id INTEGER")
+                
+            if 'verification_code' not in existing_columns:
+                print("Agregando columna verification_code...")
+                cursor.execute("ALTER TABLE orders ADD COLUMN verification_code VARCHAR(20)")
             
             conn.commit()
             print("Columnas de orders verificadas")

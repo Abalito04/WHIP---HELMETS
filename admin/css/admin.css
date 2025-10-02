@@ -110,6 +110,19 @@ header {
     font-size: 12px;
 }
 
+/* Código de verificación */
+.verification-code {
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    font-weight: bold;
+    color: #dc3545;
+    background: #f8f9fa;
+    padding: 4px 8px;
+    border-radius: 4px;
+    border: 1px solid #dee2e6;
+    letter-spacing: 1px;
+}
+
 /* Estilos para enlaces que se ven como botones */
 .admin-actions a.btn {
     text-decoration: none;

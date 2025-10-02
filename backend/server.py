@@ -1470,6 +1470,12 @@ def create_transfer_order_direct(items, customer_info, total_amount):
             order_number = f"TRF-{datetime.now().strftime('%Y%m%d%H%M%S')}"
             print(f"DEBUG - order_number: {order_number}")
             
+            # Generar código de verificación único
+            import hashlib
+            timestamp = datetime.now().timestamp()
+            verification_code = hashlib.md5(f"{order_number}{timestamp}".encode()).hexdigest()[:8].upper()
+            print(f"DEBUG - verification_code: {verification_code}")
+            
             # Insertar pedido
             insert_params = (
                 order_number,
@@ -1489,11 +1495,11 @@ def create_transfer_order_direct(items, customer_info, total_amount):
                 """
                 INSERT INTO orders (order_number, customer_name, customer_email, customer_phone, 
                                   customer_address, customer_city, customer_zip, total_amount, 
-                                  payment_method, status)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                                  payment_method, status, verification_code)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 RETURNING id
                 """,
-                insert_params
+                insert_params + (verification_code,)
             )
             
             result = cursor.fetchone()
@@ -1665,6 +1671,7 @@ def get_user_orders():
                     'customer_address': order[10],
                     'customer_city': order[11],
                     'customer_zip': order[12],
+                    'verification_code': order[13],
                     'items': [
                         {
                             'product_id': item[0],
@@ -1700,7 +1707,8 @@ def get_all_orders():
             cursor.execute("""
                 SELECT o.id, o.order_number, o.customer_name, o.customer_email, 
                        o.customer_phone, o.total_amount, o.payment_method, o.status,
-                       o.created_at, o.updated_at, o.customer_address, o.customer_city, o.customer_zip
+                       o.created_at, o.updated_at, o.customer_address, o.customer_city, o.customer_zip,
+                       o.verification_code
                 FROM orders o
                 ORDER BY o.created_at DESC
             """)
@@ -1733,6 +1741,7 @@ def get_all_orders():
                     'customer_address': order[10],
                     'customer_city': order[11],
                     'customer_zip': order[12],
+                    'verification_code': order[13],
                     'items': [
                         {
                             'product_id': item[0],

@@ -110,13 +110,18 @@ class PaymentHandler:
                 # Crear número de pedido único
                 order_number = f"ORD-{datetime.now().strftime('%Y%m%d%H%M%S')}"
                 
+                # Generar código de verificación único
+                import hashlib
+                timestamp = datetime.now().timestamp()
+                verification_code = hashlib.md5(f"{order_number}{timestamp}".encode()).hexdigest()[:8].upper()
+                
                 # Insertar pedido con todas las columnas necesarias
                 cursor.execute(
                     """
                     INSERT INTO orders (order_number, customer_name, customer_email, customer_phone, 
                                       customer_address, customer_city, customer_zip, total_amount, 
-                                      payment_method, payment_id, status, user_id)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                                      payment_method, payment_id, status, user_id, verification_code)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                     RETURNING id
                     """,
                     (
@@ -131,7 +136,8 @@ class PaymentHandler:
                         'mercadopago',  # Método de pago
                         payment_id,
                         'pending',
-                        customer_info.get('user_id')  # ID del usuario si está disponible
+                        customer_info.get('user_id'),  # ID del usuario si está disponible
+                        verification_code
                     )
                 )
                 
@@ -302,13 +308,19 @@ class PaymentHandler:
                 order_number = f"TRF-{datetime.now().strftime('%Y%m%d%H%M%S')}"
                 print(f"DEBUG - order_number: {order_number}")
                 
+                # Generar código de verificación único
+                import hashlib
+                timestamp = datetime.now().timestamp()
+                verification_code = hashlib.md5(f"{order_number}{timestamp}".encode()).hexdigest()[:8].upper()
+                print(f"DEBUG - verification_code: {verification_code}")
+                
                 # Insertar pedido
                 cursor.execute(
                     """
                     INSERT INTO orders (order_number, customer_name, customer_email, customer_phone, 
                                       customer_address, customer_city, customer_zip, total_amount, 
-                                      payment_method, status)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                                      payment_method, status, verification_code)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                     RETURNING id
                     """,
                     (
@@ -321,7 +333,8 @@ class PaymentHandler:
                         customer_info.get('zip', ''),
                         total_amount,
                         'transfer',
-                        'pending_transfer'
+                        'pending_transfer',
+                        verification_code
                     )
                 )
                 

@@ -121,6 +121,39 @@ def create_order_items_table():
         raise
 
 
+def add_verification_code_column():
+    """Agregar columna verification_code a la tabla orders si no existe"""
+    try:
+        with get_conn() as conn:
+            cursor = conn.cursor()
+            
+            # Verificar si la columna verification_code existe
+            cursor.execute("""
+                SELECT column_name
+                FROM information_schema.columns
+                WHERE table_name = 'orders' AND column_name = 'verification_code'
+            """)
+            
+            if not cursor.fetchone():
+                print("Agregando columna verification_code a orders...")
+                cursor.execute("ALTER TABLE orders ADD COLUMN verification_code VARCHAR(20)")
+                
+                # Generar códigos de verificación para pedidos existentes
+                cursor.execute("""
+                    UPDATE orders 
+                    SET verification_code = UPPER(SUBSTRING(MD5(order_number || EXTRACT(EPOCH FROM created_at)::text), 1, 8))
+                    WHERE verification_code IS NULL
+                """)
+                
+                conn.commit()
+                print("Columna verification_code agregada exitosamente")
+            else:
+                print("Columna verification_code ya existe")
+                
+    except Exception as e:
+        print(f"Error agregando columna verification_code: {e}")
+        raise
+
 def main():
     """Ejecutar migración completa"""
     try:
@@ -128,6 +161,7 @@ def main():
         
         create_orders_table()
         create_order_items_table()
+        add_verification_code_column()
         
         print("Migración completada exitosamente")
         

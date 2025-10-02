@@ -103,15 +103,38 @@ def init_db():
         # Ejecutar migración completa de base de datos
         try:
             print("🔄 Ejecutando migración de base de datos...")
-            from migrate_database import create_orders_table, create_order_items_table
+            from migrate_database import create_orders_table, create_order_items_table, add_verification_code_column
             
             create_orders_table()
             create_order_items_table()
+            add_verification_code_column()
             
             print("✅ Migración de base de datos completada")
                     
         except Exception as e:
             print(f"⚠️  Error en migración de base de datos: {e}")
+            # Intentar migración individual de verification_code como respaldo
+            try:
+                print("🔄 Intentando migración individual de verification_code...")
+                from database import get_conn
+                with get_conn() as conn:
+                    cursor = conn.cursor()
+                    cursor.execute("""
+                        SELECT column_name
+                        FROM information_schema.columns
+                        WHERE table_name = 'orders' AND column_name = 'verification_code'
+                    """)
+                    if not cursor.fetchone():
+                        cursor.execute("ALTER TABLE orders ADD COLUMN verification_code VARCHAR(20)")
+                        cursor.execute("""
+                            UPDATE orders 
+                            SET verification_code = UPPER(SUBSTRING(MD5(order_number || EXTRACT(EPOCH FROM created_at)::text), 1, 8))
+                            WHERE verification_code IS NULL
+                        """)
+                        conn.commit()
+                        print("✅ Columna verification_code agregada como respaldo")
+            except Exception as backup_error:
+                print(f"⚠️  Error en migración de respaldo: {backup_error}")
             # No fallar el inicio del servidor por esto
             
     except Exception as e:

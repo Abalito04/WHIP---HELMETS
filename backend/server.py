@@ -175,11 +175,47 @@ def add_security_headers(response):
     # Política de referrer (privacidad)
     response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
     
+    # Content Security Policy básico
+    csp_policy = generate_csp_policy()
+    response.headers['Content-Security-Policy'] = csp_policy
+    
     # Solo en producción: HTTPS obligatorio
     if not app.config['DEBUG']:
         response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
     
     return response
+
+def generate_csp_policy():
+    """Generar Content Security Policy según el entorno"""
+    is_production = not app.config['DEBUG'] or os.environ.get('IS_PRODUCTION', 'False').lower() == 'true'
+    
+    if is_production:
+        # CSP estricto para producción
+        csp_directives = [
+            "default-src 'self'",
+            "script-src 'self' 'unsafe-inline' https://sdk.mercadopago.com https://www.mercadopago.com",
+            "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+            "font-src 'self' https://fonts.gstatic.com",
+            "img-src 'self' data: https: http:",
+            "connect-src 'self' https://api.mercadopago.com https://whip-helmets.up.railway.app",
+            "frame-src 'self' https://www.mercadopago.com",
+            "object-src 'none'",
+            "base-uri 'self'",
+            "form-action 'self'"
+        ]
+    else:
+        # CSP permisivo para desarrollo
+        csp_directives = [
+            "default-src 'self'",
+            "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+            "style-src 'self' 'unsafe-inline'",
+            "img-src 'self' data: https: http:",
+            "connect-src 'self' http://localhost:* https://localhost:*",
+            "frame-src 'self'",
+            "object-src 'none'"
+        ]
+    
+    return "; ".join(csp_directives)
 
 # ---------------------- Database helpers ----------------------
 def get_conn():
@@ -767,8 +803,9 @@ def get_product_images(pid: int):
 
 
 @app.route("/api/products/<int:pid>/images", methods=["POST"])
+@require_csrf
 def add_product_images(pid: int):
-    """Agregar nuevas imágenes a un producto"""
+    """Agregar nuevas imágenes a un producto con validación de seguridad"""
     try:
         if 'files' not in request.files:
             return jsonify({"error": "No se encontraron archivos"}), 400
@@ -797,9 +834,11 @@ def add_product_images(pid: int):
         for file in files:
             if file.filename == '':
                 continue
-                
-            # Verificar que sea una imagen
-            if not file.filename.lower().endswith(('.png', '.jpg', '.jpeg', '.gif', '.webp')):
+            
+            # Validación de seguridad mejorada
+            is_valid, message = validate_file_security(file)
+            if not is_valid:
+                print(f"Archivo rechazado: {file.filename} - {message}")
                 continue
             
             try:
@@ -920,36 +959,125 @@ def seed():
 
 # ---------------------- Optimización de imágenes deshabilitada ----------------------
 
+# ---------------------- VALIDACIÓN DE ARCHIVOS MEJORADA ----------------------
+
+def validate_file_security(file):
+    """Validación de seguridad mejorada para archivos"""
+    import magic
+    import imghdr
+    
+    # 1. Validar que el archivo existe
+    if not file or file.filename == '':
+        return False, "No se seleccionó archivo"
+    
+    # 2. Validar extensión del archivo
+    allowed_extensions = {'.png', '.jpg', '.jpeg', '.gif', '.webp', '.bmp', '.tiff'}
+    file_extension = os.path.splitext(file.filename.lower())[1]
+    if file_extension not in allowed_extensions:
+        return False, f"Extensión de archivo no permitida: {file_extension}"
+    
+    # 3. Validar tamaño del archivo (máximo 10MB)
+    file.seek(0, 2)  # Ir al final del archivo
+    file_size = file.tell()
+    file.seek(0)  # Volver al inicio
+    
+    max_size = 10 * 1024 * 1024  # 10MB
+    if file_size > max_size:
+        return False, f"Archivo demasiado grande. Máximo permitido: 10MB, recibido: {file_size / (1024*1024):.1f}MB"
+    
+    # 4. Validar que el archivo no esté vacío
+    if file_size == 0:
+        return False, "El archivo está vacío"
+    
+    # 5. Validar MIME type real del archivo
+    try:
+        # Leer los primeros bytes para detectar el tipo real
+        file.seek(0)
+        file_header = file.read(1024)
+        file.seek(0)
+        
+        # Detectar tipo MIME real
+        mime_type = magic.from_buffer(file_header, mime=True)
+        allowed_mime_types = {
+            'image/png', 'image/jpeg', 'image/gif', 'image/webp', 
+            'image/bmp', 'image/tiff', 'image/x-icon'
+        }
+        
+        if mime_type not in allowed_mime_types:
+            return False, f"Tipo de archivo no permitido: {mime_type}"
+        
+        # 6. Validación adicional con imghdr
+        file.seek(0)
+        detected_format = imghdr.what(file)
+        file.seek(0)
+        
+        if not detected_format:
+            return False, "El archivo no es una imagen válida"
+        
+        # 7. Verificar que la extensión coincida con el contenido real
+        extension_to_format = {
+            '.png': 'png', '.jpg': 'jpeg', '.jpeg': 'jpeg', 
+            '.gif': 'gif', '.webp': 'webp', '.bmp': 'bmp', '.tiff': 'tiff'
+        }
+        
+        expected_format = extension_to_format.get(file_extension)
+        if expected_format and detected_format != expected_format:
+            return False, f"La extensión del archivo no coincide con su contenido real"
+        
+        return True, "Archivo válido"
+        
+    except Exception as e:
+        return False, f"Error al validar el archivo: {str(e)}"
+
+def sanitize_filename(filename):
+    """Sanitizar nombre de archivo para evitar path traversal"""
+    import re
+    
+    # Remover caracteres peligrosos
+    filename = re.sub(r'[<>:"/\\|?*]', '', filename)
+    
+    # Remover puntos al inicio (path traversal)
+    filename = filename.lstrip('.')
+    
+    # Limitar longitud
+    if len(filename) > 100:
+        name, ext = os.path.splitext(filename)
+        filename = name[:95] + ext
+    
+    return filename
+
 # ---------------------- SUBIDA DE IMÁGENES ----------------------
 
 @app.route("/api/upload", methods=["POST"])
+@require_csrf
 def upload_image():
-    """Endpoint para subir imágenes a Cloudinary"""
+    """Endpoint para subir imágenes con validación de seguridad mejorada"""
     try:
         if 'file' not in request.files:
             return jsonify({"error": "No se encontró archivo"}), 400
         
         file = request.files['file']
-        if file.filename == '':
-            return jsonify({"error": "No se seleccionó archivo"}), 400
         
-        # Verificar que sea una imagen
-        if not file.filename.lower().endswith(('.png', '.jpg', '.jpeg', '.gif', '.webp')):
-            return jsonify({"error": "Solo se permiten archivos de imagen"}), 400
+        # Validación de seguridad mejorada
+        is_valid, message = validate_file_security(file)
+        if not is_valid:
+            return jsonify({"error": message}), 400
+        
+        # Sanitizar nombre de archivo
+        sanitized_filename = sanitize_filename(file.filename)
         
         # Verificar configuración de Cloudinary
         if not CLOUDINARY_CLOUD_NAME or not CLOUDINARY_API_KEY or not CLOUDINARY_API_SECRET:
             # Modo temporal: guardar en local y devolver URL relativa
             import uuid
-            import os
             
             # Crear directorio si no existe
             upload_dir = "../assets/images/products/uploaded"
             os.makedirs(upload_dir, exist_ok=True)
             
-            # Generar nombre único
-            file_extension = file.filename.split('.')[-1]
-            unique_filename = f"{uuid.uuid4()}.{file_extension}"
+            # Generar nombre único con extensión segura
+            file_extension = os.path.splitext(sanitized_filename)[1]
+            unique_filename = f"{uuid.uuid4()}{file_extension}"
             file_path = os.path.join(upload_dir, unique_filename)
             
             # Guardar archivo
@@ -962,7 +1090,7 @@ def upload_image():
                 "success": True,
                 "message": "Imagen subida correctamente (modo temporal)",
                 "file_path": relative_path,
-                "filename": file.filename,
+                "filename": sanitized_filename,
                 "note": "Cloudinary no configurado - usando almacenamiento temporal"
             }), 200
         
@@ -996,7 +1124,7 @@ def upload_image():
             "message": "Imagen subida correctamente a Cloudinary",
             "file_path": cloudinary_url,
             "cloudinary_id": result['public_id'],
-            "filename": file.filename
+            "filename": sanitized_filename
         }), 200
         
     except Exception as e:

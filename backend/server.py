@@ -1,5 +1,6 @@
 from flask import Flask, request, jsonify, send_from_directory, g
 from flask_cors import CORS
+from functools import wraps
 import os
 import re
 from database import get_conn, init_postgresql
@@ -65,6 +66,23 @@ def get_rate_limits():
         'payment': int(os.environ.get('RATE_LIMIT_PAYMENT', 5)),  # 5 intentos por defecto
         'api': int(os.environ.get('RATE_LIMIT_API', 60)),  # 60 requests por defecto
     }
+
+def debug_only(f):
+    """Decorador para endpoints que solo funcionan en modo debug/desarrollo"""
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        # Verificar si estamos en modo debug o desarrollo
+        is_debug = app.config.get('DEBUG', False)
+        is_dev = os.environ.get('ENABLE_DEBUG_ENDPOINTS', 'False').lower() == 'true'
+        
+        if not is_debug and not is_dev:
+            return jsonify({
+                "error": "Endpoint no disponible en producción",
+                "message": "Los endpoints de debug están deshabilitados por seguridad"
+            }), 403
+        
+        return f(*args, **kwargs)
+    return decorated_function
 
 app = Flask(__name__)
 app.config['DEBUG'] = os.environ.get('DEBUG', 'False').lower() == 'true'
@@ -1173,6 +1191,7 @@ def list_products_admin():
 # ---------------------- RUTAS DE DEBUG ----------------------
 
 @app.route("/api/debug/sessions", methods=["GET"])
+@debug_only
 def debug_sessions():
     """Debug: Ver todas las sesiones activas"""
     try:
@@ -1209,6 +1228,7 @@ def debug_sessions():
         conn.close()
 
 @app.route("/api/debug/validate-token", methods=["POST"])
+@debug_only
 def debug_validate_token():
     """Debug: Validar un token específico"""
     try:
@@ -1267,6 +1287,7 @@ def refresh_token():
         return jsonify({"error": str(e)}), 500
 
 @app.route("/api/debug/users", methods=["GET"])
+@debug_only
 def debug_users():
     """Debug: Ver todos los usuarios"""
     try:
@@ -1304,6 +1325,7 @@ def debug_users():
         conn.close()
 
 @app.route("/api/debug/create-test-users", methods=["POST"])
+@debug_only
 def create_test_users():
     """Debug: Crear usuarios de prueba"""
     try:
@@ -1359,6 +1381,7 @@ def create_test_users():
         return jsonify({"error": str(e)}), 500
 
 @app.route("/api/debug/check-password", methods=["POST"])
+@debug_only
 def debug_check_password():
     """Debug: Verificar contraseña de un usuario"""
     try:
@@ -1399,6 +1422,7 @@ def debug_check_password():
         conn.close()
 
 @app.route("/api/debug/user-hash/<username>", methods=["GET"])
+@debug_only
 def debug_user_hash(username):
     """Debug: Ver el hash de contraseña de un usuario"""
     try:
@@ -1430,6 +1454,7 @@ def debug_user_hash(username):
         conn.close()
 
 @app.route("/api/debug/test-hash", methods=["POST"])
+@debug_only
 def debug_test_hash():
     """Debug: Probar hash de contraseña"""
     try:

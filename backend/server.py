@@ -194,8 +194,8 @@ def generate_csp_policy():
         csp_directives = [
             "default-src 'self'",
             "script-src 'self' 'unsafe-inline' https://sdk.mercadopago.com https://www.mercadopago.com",
-            "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-            "font-src 'self' https://fonts.gstatic.com",
+            "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com",
+            "font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com",
             "img-src 'self' data: https: http:",
             "connect-src 'self' https://api.mercadopago.com https://whip-helmets.up.railway.app",
             "frame-src 'self' https://www.mercadopago.com",
@@ -208,7 +208,8 @@ def generate_csp_policy():
         csp_directives = [
             "default-src 'self'",
             "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
-            "style-src 'self' 'unsafe-inline'",
+            "style-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com",
+            "font-src 'self' https://cdnjs.cloudflare.com",
             "img-src 'self' data: https: http:",
             "connect-src 'self' http://localhost:* https://localhost:*",
             "frame-src 'self'",

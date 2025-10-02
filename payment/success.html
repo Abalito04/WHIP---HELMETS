@@ -14,6 +14,29 @@
             background: #fff;
             border-radius: 10px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        /* Marca de agua de fondo */
+        .payment-result::before {
+            content: "WHIP-HELMETS";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-45deg);
+            font-size: 120px;
+            font-weight: bold;
+            color: rgba(240, 173, 78, 0.05);
+            z-index: 1;
+            pointer-events: none;
+            user-select: none;
+        }
+        
+        /* Contenido por encima de la marca de agua */
+        .payment-result > * {
+            position: relative;
+            z-index: 2;
         }
         .success-icon {
             font-size: 80px;
@@ -92,6 +115,33 @@
             font-style: italic;
         }
         
+        /* Elementos de seguridad */
+        #verification-code {
+            color: #dc3545;
+            font-family: 'Courier New', monospace;
+            letter-spacing: 2px;
+        }
+        
+        #order-date {
+            color: #6c757d;
+            font-family: 'Courier New', monospace;
+        }
+        
+        /* Patrón de seguridad en el fondo */
+        .security-pattern {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: 
+                radial-gradient(circle at 20% 20%, rgba(240, 173, 78, 0.02) 1px, transparent 1px),
+                radial-gradient(circle at 80% 80%, rgba(240, 173, 78, 0.02) 1px, transparent 1px);
+            background-size: 50px 50px;
+            z-index: 1;
+            pointer-events: none;
+        }
+        
         /* Ocultar botones al imprimir */
         @media print {
             .payment-result .btn-primary,
@@ -103,10 +153,13 @@
 </head>
 <body>
     <div class="payment-result">
+        <div class="security-pattern"></div>
         <div class="success-icon">⏳</div>
         <h1>¡Pago y Verificación en Curso!</h1>
         <p>Tu pedido ha sido procesado correctamente.</p>
         <p>Número de pedido: <strong id="order-number">Cargando...</strong></p>
+        <p>Fecha y hora: <strong id="order-date">Cargando...</strong></p>
+        <p>Código de verificación: <strong id="verification-code">Cargando...</strong></p>
         <div>
             <a href="../index.html" class="btn-primary">Volver a la Tienda</a>
             <a href="#" class="btn-secondary" onclick="window.print()">Imprimir Comprobante</a>
@@ -131,7 +184,31 @@
         console.log('URL completa:', window.location.href);
         console.log('Parámetros de URL:', window.location.search);
         console.log('Order number extraído:', orderNumber);
+        
+        // Generar elementos de seguridad
+        const now = new Date();
+        const orderDate = now.toLocaleString('es-ES', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit'
+        });
+        
+        // Generar código de verificación único
+        const generateVerificationCode = (orderNum) => {
+            const timestamp = now.getTime().toString();
+            const hash = btoa(orderNum + timestamp).substring(0, 8).toUpperCase();
+            return hash;
+        };
+        
+        const verificationCode = generateVerificationCode(orderNumber);
+        
+        // Actualizar elementos en la página
         document.getElementById('order-number').textContent = orderNumber;
+        document.getElementById('order-date').textContent = orderDate;
+        document.getElementById('verification-code').textContent = verificationCode;
         
         // Limpiar carrito después del pago exitoso
         localStorage.removeItem("cart_v1");

@@ -2100,6 +2100,15 @@ def payment_pending():
     return send_from_directory("payment", "pending.html")
 
 if __name__ == "__main__":
+    # Verificar configuración antes de iniciar
+    from config import check_database_config, check_cloudinary_config, check_mercadopago_config
+    
+    print("🔍 Verificando configuración...")
+    check_database_config()
+    check_cloudinary_config()
+    check_mercadopago_config()
+    print("✅ Configuración verificada")
+    
     init_db()
     
     # Configuración para Railway
@@ -2107,4 +2116,5 @@ if __name__ == "__main__":
     port = int(os.environ.get('PORT', 5000))
     debug = os.environ.get('DEBUG', 'False').lower() == 'true'
     
+    print(f"🚀 Iniciando servidor en puerto {port} (debug={debug})")
     app.run(host="0.0.0.0", port=port, debug=debug)

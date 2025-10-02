@@ -2,8 +2,17 @@ import os
 
 # Configuración de MercadoPago
 # Railway usará las variables de entorno de MercadoPago
-MP_ACCESS_TOKEN = os.environ.get('MERCADOPAGO_ACCESS_TOKEN', os.environ.get('MP_ACCESS_TOKEN', 'TEST-123456789-123456789-123456789'))
-MP_PUBLIC_KEY = os.environ.get('MERCADOPAGO_PUBLIC_KEY', 'TEST-123456789-123456789-123456789')
+MP_ACCESS_TOKEN = os.environ.get('MERCADOPAGO_ACCESS_TOKEN') or os.environ.get('MP_ACCESS_TOKEN')
+MP_PUBLIC_KEY = os.environ.get('MERCADOPAGO_PUBLIC_KEY')
+
+def check_mercadopago_config():
+    """Verificar que las credenciales de MercadoPago estén configuradas"""
+    if not MP_ACCESS_TOKEN or not MP_PUBLIC_KEY:
+        print("⚠️  WARNING: MercadoPago no está completamente configurado")
+        print("   Pagos online podrían no funcionar")
+        print("   Configura: MERCADOPAGO_ACCESS_TOKEN, MERCADOPAGO_PUBLIC_KEY")
+        return False
+    return True
 
 # Verificar si estamos en modo de prueba o producción
 IS_PRODUCTION = os.environ.get('IS_PRODUCTION', 'False').lower() == 'true'
@@ -62,9 +71,18 @@ SMTP_USERNAME = os.environ.get('SMTP_USERNAME', '')
 SMTP_PASSWORD = os.environ.get('SMTP_PASSWORD', '')
 
 # Configuración de Cloudinary
-CLOUDINARY_CLOUD_NAME = os.environ.get('CLOUDINARY_CLOUD_NAME', 'ddowcuhlu')
-CLOUDINARY_API_KEY = os.environ.get('CLOUDINARY_API_KEY', '291494695985798')
-CLOUDINARY_API_SECRET = os.environ.get('CLOUDINARY_API_SECRET', 'pSrCsNF60-t5bSP_YUA2iGrTvBA')
+CLOUDINARY_CLOUD_NAME = os.environ.get('CLOUDINARY_CLOUD_NAME')
+CLOUDINARY_API_KEY = os.environ.get('CLOUDINARY_API_KEY')
+CLOUDINARY_API_SECRET = os.environ.get('CLOUDINARY_API_SECRET')
 
 # También soporte para CLOUDINARY_URL (formato completo)
 CLOUDINARY_URL = os.environ.get('CLOUDINARY_URL', '')
+
+def check_cloudinary_config():
+    """Verificar que las credenciales de Cloudinary estén configuradas"""
+    if not CLOUDINARY_CLOUD_NAME or not CLOUDINARY_API_KEY or not CLOUDINARY_API_SECRET:
+        print("⚠️  WARNING: Cloudinary no está completamente configurado")
+        print("   Funcionalidades de imágenes podrían no funcionar")
+        print("   Configura: CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET")
+        return False
+    return True

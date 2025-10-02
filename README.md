@@ -11,23 +11,30 @@
 - ✅ **Responsive** - Optimizado para móviles, tablets y desktop
 - ✅ **Admin panel** - Gestión completa de productos y usuarios
 - ✅ **Checkout** - Integración con MercadoPago
-- ✅ **Seguridad básica** - Rate limiting, sanitización de inputs
+- ✅ **Seguridad avanzada** - Headers de seguridad, CSRF, CSP, validación de archivos
 - ✅ **Optimización de imágenes** - Procesamiento automático
+- ✅ **Proyecto optimizado** - 38 archivos innecesarios eliminados
 
 ### 🔧 **CONFIGURACIÓN REQUERIDA EN RAILWAY:**
 
 #### **Variables de Entorno Obligatorias:**
 ```bash
 # MercadoPago (CRÍTICO para pagos)
-MP_ACCESS_TOKEN=tu_access_token_real_aqui
+MERCADOPAGO_ACCESS_TOKEN=tu_access_token_real_aqui
+MERCADOPAGO_PUBLIC_KEY=tu_public_key_real_aqui
 
-# Seguridad
+# Seguridad (CRÍTICO para producción)
 SECRET_KEY=tu_clave_secreta_unica_aqui
 JWT_SECRET_KEY=tu_jwt_secret_key_aqui
 
 # Configuración
 DEBUG=False
 IS_PRODUCTION=True
+
+# Cloudinary (para imágenes)
+CLOUDINARY_CLOUD_NAME=tu_cloud_name
+CLOUDINARY_API_KEY=tu_api_key
+CLOUDINARY_API_SECRET=tu_api_secret
 ```
 
 #### **Variables de Entorno Opcionales:**
@@ -78,10 +85,10 @@ whip-helmets/
 │   ├── server.py                       # Servidor Flask principal
 │   ├── auth.py                         # Sistema de autenticación
 │   ├── payment_handler.py              # Integración MercadoPago
-│   ├── image_processor.py              # Optimización de imágenes
 │   ├── config.py                       # Configuración
+│   ├── database.py                     # Gestión de base de datos
 │   ├── requirements.txt                # Dependencias Python
-│   └── productos.db                    # Base de datos SQLite (generado)
+│   └── migrate_*.py                    # Scripts de migración
 ├── payment/                            # Páginas de pago
 │   ├── success.html                    # Pago exitoso
 │   ├── failure.html                    # Pago fallido
@@ -163,12 +170,17 @@ whip-helmets/
 - ✅ Sanitización de inputs
 - ✅ Integración MercadoPago
 
-### Seguridad
-- ✅ Rate limiting en login
+### Seguridad Avanzada
+- ✅ Rate limiting configurable por endpoint
+- ✅ Headers de seguridad (XSS, clickjacking, MIME sniffing)
+- ✅ Content Security Policy (CSP) implementado
+- ✅ Protección CSRF con tokens únicos
+- ✅ Validación robusta de archivos subidos
+- ✅ CORS configurado restrictivamente
+- ✅ Endpoints de debug protegidos
 - ✅ Sanitización de inputs
-- ✅ Validación de datos
-- ✅ Manejo seguro de errores
-- ✅ Autenticación con tokens
+- ✅ Autenticación con tokens JWT
+- ✅ Credenciales en variables de entorno
 
 ## 📋 Endpoints de la API
 
@@ -189,15 +201,26 @@ whip-helmets/
 
 ## 🛡️ Seguridad Implementada
 
-✅ **Rate Limiting** - Máximo 5 intentos de login por 5 minutos
+✅ **Rate Limiting** - Configurable por endpoint (login, register, payment, API)
+✅ **Headers de Seguridad** - XSS, clickjacking, MIME sniffing protection
+✅ **Content Security Policy** - Protección contra inyección de scripts
+✅ **Protección CSRF** - Tokens únicos para endpoints críticos
+✅ **Validación de Archivos** - Anti-malware y path traversal protection
+✅ **CORS Restrictivo** - Solo dominios autorizados
+✅ **Endpoints Debug Protegidos** - Solo disponibles en desarrollo
 ✅ **Sanitización** - Limpieza de inputs del usuario
 ✅ **Validación** - Verificación de datos de entrada
 ✅ **Manejo de errores** - Respuestas seguras sin información sensible
-✅ **Autenticación** - Sistema de tokens con expiración
+✅ **Autenticación** - Sistema de tokens JWT con expiración
+✅ **Credenciales Seguras** - Variables de entorno, sin hardcoding
 
 ## 🚨 **MEJORAS FUTURAS RECOMENDADAS:**
 
-### 🔐 **Seguridad Avanzada (Prioridad Alta)**
+### 🔐 **Seguridad Avanzada (Prioridad Media)**
+- [x] ~~Implementar headers de seguridad~~ ✅ COMPLETADO
+- [x] ~~Implementar protección CSRF~~ ✅ COMPLETADO
+- [x] ~~Implementar Content Security Policy~~ ✅ COMPLETADO
+- [x] ~~Validación robusta de archivos~~ ✅ COMPLETADO
 - [ ] Implementar JWT real con refresh tokens
 - [ ] Agregar validación de contraseñas robusta
 - [ ] Implementar 2FA para administradores

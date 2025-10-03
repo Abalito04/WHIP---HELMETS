@@ -982,8 +982,15 @@ def seed():
 
 def validate_file_security(file):
     """Validación de seguridad mejorada para archivos"""
-    import magic
     import imghdr
+    
+    # Intentar importar magic, si no está disponible usar validación básica
+    try:
+        import magic
+        MAGIC_AVAILABLE = True
+    except ImportError:
+        MAGIC_AVAILABLE = False
+        print("⚠️  python-magic no disponible, usando validación básica")
     
     # 1. Validar que el archivo existe
     if not file or file.filename == '':
@@ -1016,14 +1023,18 @@ def validate_file_security(file):
         file.seek(0)
         
         # Detectar tipo MIME real
-        mime_type = magic.from_buffer(file_header, mime=True)
-        allowed_mime_types = {
-            'image/png', 'image/jpeg', 'image/gif', 'image/webp', 
-            'image/bmp', 'image/tiff', 'image/x-icon'
-        }
-        
-        if mime_type not in allowed_mime_types:
-            return False, f"Tipo de archivo no permitido: {mime_type}"
+        if MAGIC_AVAILABLE:
+            mime_type = magic.from_buffer(file_header, mime=True)
+            allowed_mime_types = {
+                'image/png', 'image/jpeg', 'image/gif', 'image/webp', 
+                'image/bmp', 'image/tiff', 'image/x-icon'
+            }
+            
+            if mime_type not in allowed_mime_types:
+                return False, f"Tipo de archivo no permitido: {mime_type}"
+        else:
+            # Validación básica sin magic
+            print("⚠️  Validación MIME básica (python-magic no disponible)")
         
         # 6. Validación adicional con imghdr
         file.seek(0)

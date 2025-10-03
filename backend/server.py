@@ -108,13 +108,31 @@ def require_csrf(f):
         if request.method in ['POST', 'PUT', 'DELETE']:
             # Obtener token del header o del JSON
             csrf_token = request.headers.get('X-CSRF-Token') or request.get_json().get('csrf_token') if request.get_json() else None
-            
+
             if not validate_csrf_token(csrf_token):
                 return jsonify({
                     "error": "Token CSRF inválido o faltante",
                     "message": "Se requiere un token CSRF válido para esta operación"
                 }), 403
-        
+
+        return f(*args, **kwargs)
+    return decorated_function
+
+def require_csrf_file_upload(f):
+    """Decorador para requerir token CSRF en endpoints de subida de archivos"""
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        # Solo aplicar CSRF a métodos POST, PUT, DELETE
+        if request.method in ['POST', 'PUT', 'DELETE']:
+            # Para archivos, obtener token del header o del form data
+            csrf_token = request.headers.get('X-CSRF-Token') or request.form.get('csrf_token')
+
+            if not validate_csrf_token(csrf_token):
+                return jsonify({
+                    "error": "Token CSRF inválido o faltante",
+                    "message": "Se requiere un token CSRF válido para esta operación"
+                }), 403
+
         return f(*args, **kwargs)
     return decorated_function
 
@@ -804,7 +822,7 @@ def get_product_images(pid: int):
 
 
 @app.route("/api/products/<int:pid>/images", methods=["POST"])
-@require_csrf
+@require_csrf_file_upload
 def add_product_images(pid: int):
     """Agregar nuevas imágenes a un producto con validación de seguridad"""
     try:
@@ -1050,7 +1068,7 @@ def sanitize_filename(filename):
 # ---------------------- SUBIDA DE IMÁGENES ----------------------
 
 @app.route("/api/upload", methods=["POST"])
-@require_csrf
+@require_csrf_file_upload
 def upload_image():
     """Endpoint para subir imágenes con validación de seguridad mejorada"""
     try:

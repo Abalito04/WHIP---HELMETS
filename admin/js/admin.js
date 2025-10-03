@@ -1048,8 +1048,15 @@ function setupEventListeners() {
     // Subir archivo
     try {
       console.log("Iniciando subida a Cloudinary...");
+      
+      // Obtener token CSRF
+      const csrfResponse = await fetch(`${API_BASE}/api/csrf-token`);
+      const csrfData = await csrfResponse.json();
+      const csrfToken = csrfData.csrf_token;
+      
       const formData = new FormData();
       formData.append('file', file);
+      formData.append('csrf_token', csrfToken);
 
       const response = await fetch(`${API_BASE}/api/upload`, {
         method: 'POST',
@@ -1909,6 +1916,11 @@ async function uploadImagesToGallery(files) {
   }
   
   try {
+    // Obtener token CSRF
+    const csrfResponse = await fetch(`${API_BASE}/api/csrf-token`);
+    const csrfData = await csrfResponse.json();
+    const csrfToken = csrfData.csrf_token;
+
     const formData = new FormData();
     files.forEach((file, index) => {
       console.log(`Agregando archivo ${index}:`, {
@@ -1918,6 +1930,9 @@ async function uploadImagesToGallery(files) {
       });
       formData.append('files', file);
     });
+    
+    // Agregar token CSRF al FormData
+    formData.append('csrf_token', csrfToken);
 
     const url = `${API_BASE}/api/products/${currentGalleryProduct}/images`;
     console.log('Enviando petición a:', url);

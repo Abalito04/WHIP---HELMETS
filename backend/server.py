@@ -28,6 +28,14 @@ except ImportError:
     PAYMENT_AVAILABLE = False
     print("⚠️  Módulo de pagos no disponible")
 
+# Importar el servicio de email
+try:
+    from email_service import email_service
+    EMAIL_AVAILABLE = True
+except ImportError:
+    EMAIL_AVAILABLE = False
+    print("⚠️  Módulo de email no disponible")
+
 # Importar configuración
 from config import *
 
@@ -410,6 +418,21 @@ def get_csrf_token():
     return jsonify({
         "csrf_token": token,
         "message": "Token CSRF generado correctamente"
+    }), 200
+
+@app.route("/api/email/status", methods=["GET"])
+def get_email_status():
+    """Verificar estado del sistema de email"""
+    if not EMAIL_AVAILABLE:
+        return jsonify({
+            "available": False,
+            "message": "Módulo de email no disponible"
+        }), 503
+    
+    return jsonify({
+        "available": email_service.is_configured,
+        "configured": email_service.is_configured,
+        "message": "Sistema de email configurado" if email_service.is_configured else "Sistema de email no configurado - configurar variables SMTP_*"
     }), 200
 
 
@@ -1225,6 +1248,27 @@ def auth_register():
         result = auth_manager.register_user(username, password, **profile_data)
         
         if result['success']:
+            # Enviar email de bienvenida si está disponible
+            if EMAIL_AVAILABLE and profile_data.get('email'):
+                try:
+                    customer_name = f"{profile_data.get('nombre', '')} {profile_data.get('apellido', '')}".strip()
+                    if not customer_name:
+                        customer_name = username
+                    
+                    success, message = email_service.send_welcome_email(
+                        profile_data['email'],
+                        customer_name
+                    )
+                    
+                    if success:
+                        print(f"✅ Email de bienvenida enviado a {profile_data['email']}")
+                    else:
+                        print(f"⚠️  Error enviando email de bienvenida: {message}")
+                        
+                except Exception as e:
+                    print(f"⚠️  Error en envío de email de bienvenida: {e}")
+                    # No fallar el registro por error de email
+            
             return jsonify(result), 201
         else:
             return jsonify(result), 400
@@ -1890,6 +1934,35 @@ def create_transfer_order_direct(items, customer_info, total_amount):
             
             conn.commit()
             print(f"DEBUG - Pedido guardado exitosamente con ID: {order_id}")
+            
+            # Enviar email de confirmación si está disponible
+            if EMAIL_AVAILABLE and customer_info.get('email'):
+                try:
+                    # Preparar datos del pedido para el email
+                    order_data = {
+                        'order_number': order_number,
+                        'created_at': datetime.now().strftime('%d/%m/%Y %H:%M'),
+                        'status': 'Pendiente',
+                        'payment_method': 'Transferencia',
+                        'total_amount': total_amount,
+                        'items': items
+                    }
+                    
+                    # Enviar email de confirmación
+                    success, message = email_service.send_order_confirmation(
+                        customer_info['email'],
+                        customer_info.get('name', 'Cliente'),
+                        order_data
+                    )
+                    
+                    if success:
+                        print(f"✅ Email de confirmación enviado a {customer_info['email']}")
+                    else:
+                        print(f"⚠️  Error enviando email: {message}")
+                        
+                except Exception as e:
+                    print(f"⚠️  Error en envío de email: {e}")
+                    # No fallar el pedido por error de email
             
             return jsonify({
                 "success": True,

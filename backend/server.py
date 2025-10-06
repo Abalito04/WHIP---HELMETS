@@ -436,6 +436,252 @@ def get_email_status():
         "message": "Sistema de email configurado" if email_service.is_configured else "Sistema de email no configurado - configurar RESEND_API_KEY"
     }), 200
 
+@app.route("/api/auth/forgot-password", methods=["POST"])
+@require_csrf
+def forgot_password():
+    """Solicitar recuperación de contraseña"""
+    if not AUTH_AVAILABLE:
+        return jsonify({"error": "Sistema de autenticación no disponible"}), 503
+    
+    try:
+        # Rate limiting para recuperación de contraseña
+        client_ip = request.remote_addr
+        rate_limits = get_rate_limits()
+        
+        if not check_rate_limit(client_ip, 'forgot_password', limit=3, window=3600):  # 3 intentos por hora
+            return jsonify({"error": "Demasiados intentos. Intenta en 1 hora."}), 429
+        
+        data = request.get_json()
+        email = sanitize_input(data.get('email', ''))
+        
+        if not email:
+            return jsonify({"error": "Email requerido"}), 400
+        
+        # Validar formato de email
+        import re
+        email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+        if not re.match(email_pattern, email):
+            return jsonify({"error": "Formato de email inválido"}), 400
+        
+        # Buscar usuario por email
+        conn = get_conn()
+        try:
+            cursor = conn.cursor()
+            cursor.execute("""
+                SELECT id, username, email, nombre, apellido 
+                FROM users 
+                WHERE email = %s
+            """, (email,))
+            user = cursor.fetchone()
+            
+            if not user:
+                # Por seguridad, no revelar si el email existe o no
+                return jsonify({
+                    "success": True,
+                    "message": "Si el email existe, recibirás un enlace de recuperación"
+                }), 200
+            
+            # Generar token de recuperación
+            import secrets
+            import hashlib
+            from datetime import datetime, timedelta
+            
+            # Crear token único
+            token = secrets.token_urlsafe(32)
+            token_hash = hashlib.sha256(token.encode()).hexdigest()
+            
+            # Expira en 1 hora
+            expires_at = datetime.now() + timedelta(hours=1)
+            
+            # Limpiar tokens anteriores del usuario
+            cursor.execute("""
+                DELETE FROM password_reset_tokens 
+                WHERE user_id = %s OR email = %s
+            """, (user['id'], email))
+            
+            # Insertar nuevo token
+            cursor.execute("""
+                INSERT INTO password_reset_tokens (user_id, token, email, expires_at)
+                VALUES (%s, %s, %s, %s)
+            """, (user['id'], token_hash, email, expires_at))
+            
+            conn.commit()
+            
+            # Enviar email de recuperación
+            if EMAIL_AVAILABLE:
+                try:
+                    customer_name = f"{user.get('nombre', '')} {user.get('apellido', '')}".strip()
+                    if not customer_name:
+                        customer_name = user.get('username', 'Usuario')
+                    
+                    success, message = email_service.send_password_reset(
+                        email,
+                        customer_name,
+                        token  # Enviar token sin hashear
+                    )
+                    
+                    if success:
+                        print(f"✅ Email de recuperación enviado a {email}")
+                    else:
+                        print(f"⚠️  Error enviando email de recuperación: {message}")
+                        
+                except Exception as e:
+                    print(f"⚠️  Error en envío de email de recuperación: {e}")
+                    # No fallar el proceso por error de email
+            
+            return jsonify({
+                "success": True,
+                "message": "Si el email existe, recibirás un enlace de recuperación"
+            }), 200
+            
+        finally:
+            conn.close()
+            
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/api/auth/reset-password", methods=["POST"])
+@require_csrf
+def reset_password():
+    """Restablecer contraseña con token"""
+    if not AUTH_AVAILABLE:
+        return jsonify({"error": "Sistema de autenticación no disponible"}), 503
+    
+    try:
+        data = request.get_json()
+        token = data.get('token', '')
+        new_password = data.get('new_password', '')
+        
+        if not token or not new_password:
+            return jsonify({"error": "Token y nueva contraseña requeridos"}), 400
+        
+        # Validar longitud de contraseña
+        if len(new_password) < 8:
+            return jsonify({"error": "La contraseña debe tener al menos 8 caracteres"}), 400
+        
+        # Validar que la contraseña contenga letras y números
+        has_letter = any(c.isalpha() for c in new_password)
+        has_number = any(c.isdigit() for c in new_password)
+        if not (has_letter and has_number):
+            return jsonify({"error": "La contraseña debe contener al menos una letra y un número"}), 400
+        
+        # Buscar token válido
+        import hashlib
+        from datetime import datetime
+        
+        token_hash = hashlib.sha256(token.encode()).hexdigest()
+        
+        conn = get_conn()
+        try:
+            cursor = conn.cursor()
+            cursor.execute("""
+                SELECT prt.id, prt.user_id, prt.email, prt.expires_at, prt.used,
+                       u.username, u.nombre, u.apellido
+                FROM password_reset_tokens prt
+                JOIN users u ON prt.user_id = u.id
+                WHERE prt.token = %s
+            """, (token_hash,))
+            
+            reset_token = cursor.fetchone()
+            
+            if not reset_token:
+                return jsonify({"error": "Token inválido"}), 400
+            
+            if reset_token['used']:
+                return jsonify({"error": "Token ya utilizado"}), 400
+            
+            if datetime.now() > reset_token['expires_at']:
+                return jsonify({"error": "Token expirado"}), 400
+            
+            # Actualizar contraseña del usuario
+            import hashlib
+            password_hash = hashlib.sha256(new_password.encode()).hexdigest()
+            
+            cursor.execute("""
+                UPDATE users 
+                SET password_hash = %s, updated_at = CURRENT_TIMESTAMP
+                WHERE id = %s
+            """, (password_hash, reset_token['user_id']))
+            
+            # Marcar token como usado
+            cursor.execute("""
+                UPDATE password_reset_tokens 
+                SET used = TRUE 
+                WHERE id = %s
+            """, (reset_token['id'],))
+            
+            conn.commit()
+            
+            print(f"✅ Contraseña restablecida para usuario {reset_token['username']}")
+            
+            return jsonify({
+                "success": True,
+                "message": "Contraseña restablecida exitosamente"
+            }), 200
+            
+        finally:
+            conn.close()
+            
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/api/auth/validate-reset-token", methods=["POST"])
+def validate_reset_token():
+    """Validar si un token de recuperación es válido"""
+    try:
+        data = request.get_json()
+        token = data.get('token', '')
+        
+        if not token:
+            return jsonify({"error": "Token requerido"}), 400
+        
+        import hashlib
+        from datetime import datetime
+        
+        token_hash = hashlib.sha256(token.encode()).hexdigest()
+        
+        conn = get_conn()
+        try:
+            cursor = conn.cursor()
+            cursor.execute("""
+                SELECT prt.expires_at, prt.used, u.username
+                FROM password_reset_tokens prt
+                JOIN users u ON prt.user_id = u.id
+                WHERE prt.token = %s
+            """, (token_hash,))
+            
+            reset_token = cursor.fetchone()
+            
+            if not reset_token:
+                return jsonify({
+                    "valid": False,
+                    "message": "Token inválido"
+                }), 400
+            
+            if reset_token['used']:
+                return jsonify({
+                    "valid": False,
+                    "message": "Token ya utilizado"
+                }), 400
+            
+            if datetime.now() > reset_token['expires_at']:
+                return jsonify({
+                    "valid": False,
+                    "message": "Token expirado"
+                }), 400
+            
+            return jsonify({
+                "valid": True,
+                "message": "Token válido",
+                "username": reset_token['username']
+            }), 200
+            
+        finally:
+            conn.close()
+            
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 
 @app.route("/api/products", methods=["GET"])
 def list_products():

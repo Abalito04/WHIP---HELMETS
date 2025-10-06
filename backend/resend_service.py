@@ -280,6 +280,104 @@ class ResendEmailService:
         
         return self.send_email(customer_email, subject, html_content, text_content)
     
+    def send_password_reset(self, customer_email, customer_name, reset_token):
+        """Enviar email de recuperación de contraseña"""
+        subject = "Recuperar Contraseña - WHIP HELMETS"
+        
+        # URL del reset (ajustar según tu dominio)
+        reset_url = f"https://whip-helmets.up.railway.app/reset-password?token={reset_token}"
+        
+        html_content = f"""
+        <!DOCTYPE html>
+        <html lang="es">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Recuperar Contraseña</title>
+            <style>
+                body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; }}
+                .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
+                .header {{ background: linear-gradient(135deg, #f0ad4e, #e67e22); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }}
+                .content {{ background: #f9f9f9; padding: 30px; }}
+                .footer {{ text-align: center; padding: 20px; color: #666; font-size: 12px; background: #eee; border-radius: 0 0 10px 10px; }}
+                .logo {{ font-size: 24px; font-weight: bold; margin-bottom: 10px; }}
+                .reset-btn {{ background: #f0ad4e; color: white; padding: 15px 30px; text-decoration: none; border-radius: 25px; display: inline-block; margin: 20px 0; font-weight: bold; }}
+                .reset-btn:hover {{ background: #e67e22; }}
+                .warning {{ background: #fff3cd; border: 1px solid #ffeaa7; padding: 15px; border-radius: 5px; margin: 15px 0; }}
+                .token {{ background: #f8f9fa; border: 1px solid #dee2e6; padding: 10px; border-radius: 5px; font-family: monospace; word-break: break-all; }}
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="header">
+                    <div class="logo">🏍️ WHIP HELMETS</div>
+                    <h1>Recuperar Contraseña</h1>
+                </div>
+                
+                <div class="content">
+                    <p>Hola <strong>{customer_name}</strong>,</p>
+                    
+                    <p>Recibimos una solicitud para restablecer la contraseña de tu cuenta en WHIP HELMETS.</p>
+                    
+                    <div style="text-align: center; margin: 30px 0;">
+                        <a href="{reset_url}" class="reset-btn">
+                            🔐 Restablecer Contraseña
+                        </a>
+                    </div>
+                    
+                    <p>O copia y pega este enlace en tu navegador:</p>
+                    <div class="token">{reset_url}</div>
+                    
+                    <div class="warning">
+                        <strong>⚠️ Importante:</strong>
+                        <ul>
+                            <li>Este enlace expira en <strong>1 hora</strong></li>
+                            <li>Solo puedes usarlo <strong>una vez</strong></li>
+                            <li>Si no solicitaste este cambio, ignora este email</li>
+                        </ul>
+                    </div>
+                    
+                    <p>Si tienes problemas con el enlace, contáctanos por WhatsApp:</p>
+                    
+                    <div style="text-align: center; margin-top: 20px;">
+                        <a href="https://wa.me/542954544001" style="background: #25d366; color: white; padding: 12px 25px; text-decoration: none; border-radius: 25px; display: inline-block;">
+                            📱 Contactar por WhatsApp
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="footer">
+                    <p><strong>WHIP HELMETS</strong> - Cascos y Accesorios de Motociclismo</p>
+                    <p>WhatsApp: +54 295 454-4001</p>
+                    <p>Email: {self.from_email}</p>
+                </div>
+            </div>
+        </body>
+        </html>
+        """
+        
+        text_content = f"""
+        WHIP HELMETS - Recuperar Contraseña
+        
+        Hola {customer_name},
+        
+        Recibimos una solicitud para restablecer la contraseña de tu cuenta.
+        
+        Para restablecer tu contraseña, haz clic en este enlace:
+        {reset_url}
+        
+        IMPORTANTE:
+        - Este enlace expira en 1 hora
+        - Solo puedes usarlo una vez
+        - Si no solicitaste este cambio, ignora este email
+        
+        Si tienes problemas, contáctanos: +54 295 454-4001 (WhatsApp)
+        
+        WHIP HELMETS
+        """
+        
+        return self.send_email(customer_email, subject, html_content, text_content)
+    
     def _format_order_items(self, items):
         """Formatear items del pedido para HTML"""
         if not items:

@@ -310,7 +310,7 @@ class ResendEmailService:
         <body>
             <div class="container">
                 <div class="header">
-                    <div class="logo">🏍️ WHIP HELMETS</div>
+                    <div class="logo">WHIP HELMETS</div>
                     <h1>Recuperar Contraseña</h1>
                 </div>
                 
@@ -321,7 +321,7 @@ class ResendEmailService:
                     
                     <div style="text-align: center; margin: 30px 0;">
                         <a href="{reset_url}" class="reset-btn">
-                            🔐 Restablecer Contraseña
+                            Restablecer Contraseña
                         </a>
                     </div>
                     
@@ -329,7 +329,7 @@ class ResendEmailService:
                     <div class="token">{reset_url}</div>
                     
                     <div class="warning">
-                        <strong>⚠️ Importante:</strong>
+                        <strong>Importante:</strong>
                         <ul>
                             <li>Este enlace expira en <strong>1 hora</strong></li>
                             <li>Solo puedes usarlo <strong>una vez</strong></li>
@@ -341,7 +341,7 @@ class ResendEmailService:
                     
                     <div style="text-align: center; margin-top: 20px;">
                         <a href="https://wa.me/542954544001" style="background: #25d366; color: white; padding: 12px 25px; text-decoration: none; border-radius: 25px; display: inline-block;">
-                            📱 Contactar por WhatsApp
+                            Contactar por WhatsApp
                         </a>
                     </div>
                 </div>

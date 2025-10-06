@@ -28,9 +28,9 @@ except ImportError:
     PAYMENT_AVAILABLE = False
     print("⚠️  Módulo de pagos no disponible")
 
-# Importar el servicio de email
+# Importar el servicio de email (Resend)
 try:
-    from email_service import email_service
+    from resend_service import resend_email_service as email_service
     EMAIL_AVAILABLE = True
 except ImportError:
     EMAIL_AVAILABLE = False
@@ -432,7 +432,8 @@ def get_email_status():
     return jsonify({
         "available": email_service.is_configured,
         "configured": email_service.is_configured,
-        "message": "Sistema de email configurado" if email_service.is_configured else "Sistema de email no configurado - configurar variables SMTP_*"
+        "service": "Resend",
+        "message": "Sistema de email configurado" if email_service.is_configured else "Sistema de email no configurado - configurar RESEND_API_KEY"
     }), 200
 
 

@@ -778,6 +778,8 @@ def verify_email():
         data = request.get_json()
         token = data.get('token', '').strip()
         
+        print(f"🔍 DEBUG - Verificando email con token: {token[:10]}...")
+        
         if not token:
             return jsonify({"error": "Token requerido"}), 400
         
@@ -785,13 +787,19 @@ def verify_email():
         conn = get_conn()
         cursor = conn.cursor()
         cursor.execute(
-            '''SELECT vt.*, u.email, u.name 
+            '''SELECT vt.*, u.email, u.username 
                FROM email_verification_tokens vt
                JOIN users u ON vt.user_id = u.id
                WHERE vt.token = %s AND vt.used = FALSE AND vt.expires_at > %s''',
             (token, datetime.now())
         )
         verification = cursor.fetchone()
+        
+        print(f"🔍 DEBUG - Resultado de búsqueda de token:")
+        print(f"   Token encontrado: {verification is not None}")
+        if verification:
+            print(f"   User ID: {verification[1]}")
+            print(f"   Email: {verification[6] if len(verification) > 6 else 'N/A'}")
         
         if not verification:
             conn.close()
@@ -2073,6 +2081,12 @@ def auth_register():
                     customer_name = f"{profile_data.get('nombre', '')} {profile_data.get('apellido', '')}".strip()
                     if not customer_name:
                         customer_name = username
+                    
+                    print(f"🔍 DEBUG - Datos del perfil:")
+                    print(f"   nombre: '{profile_data.get('nombre', '')}'")
+                    print(f"   apellido: '{profile_data.get('apellido', '')}'")
+                    print(f"   username: '{username}'")
+                    print(f"   customer_name final: '{customer_name}'")
                     
                     # Generar token de verificación
                     import secrets

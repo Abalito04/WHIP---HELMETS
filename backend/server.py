@@ -543,8 +543,7 @@ def sitemap():
             cursor.execute("""
                 SELECT id, name, updated_at
                 FROM productos 
-                WHERE activo = TRUE
-                ORDER BY updated_at DESC
+                ORDER BY id DESC
             """)
             products = cursor.fetchall()
         finally:

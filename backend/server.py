@@ -497,22 +497,22 @@ def forgot_password():
             cursor.execute("""
                 DELETE FROM password_reset_tokens 
                 WHERE user_id = %s OR email = %s
-            """, (user['id'], email))
+            """, (user[0], email))  # user[0] es el id
             
             # Insertar nuevo token
             cursor.execute("""
                 INSERT INTO password_reset_tokens (user_id, token, email, expires_at)
                 VALUES (%s, %s, %s, %s)
-            """, (user['id'], token_hash, email, expires_at))
+            """, (user[0], token_hash, email, expires_at))  # user[0] es el id
             
             conn.commit()
             
             # Enviar email de recuperación
             if EMAIL_AVAILABLE:
                 try:
-                    customer_name = f"{user.get('nombre', '')} {user.get('apellido', '')}".strip()
+                    customer_name = f"{user[3] or ''} {user[4] or ''}".strip()  # user[3] es nombre, user[4] es apellido
                     if not customer_name:
-                        customer_name = user.get('username', 'Usuario')
+                        customer_name = user[1] or 'Usuario'  # user[1] es username
                     
                     success, message = email_service.send_password_reset(
                         email,
@@ -587,10 +587,10 @@ def reset_password():
             if not reset_token:
                 return jsonify({"error": "Token inválido"}), 400
             
-            if reset_token['used']:
+            if reset_token[4]:  # reset_token[4] es used
                 return jsonify({"error": "Token ya utilizado"}), 400
             
-            if datetime.now() > reset_token['expires_at']:
+            if datetime.now() > reset_token[3]:  # reset_token[3] es expires_at
                 return jsonify({"error": "Token expirado"}), 400
             
             # Actualizar contraseña del usuario
@@ -601,18 +601,18 @@ def reset_password():
                 UPDATE users 
                 SET password_hash = %s, updated_at = CURRENT_TIMESTAMP
                 WHERE id = %s
-            """, (password_hash, reset_token['user_id']))
+            """, (password_hash, reset_token[1]))  # reset_token[1] es user_id
             
             # Marcar token como usado
             cursor.execute("""
                 UPDATE password_reset_tokens 
                 SET used = TRUE 
                 WHERE id = %s
-            """, (reset_token['id'],))
+            """, (reset_token[0],))  # reset_token[0] es id
             
             conn.commit()
             
-            print(f"✅ Contraseña restablecida para usuario {reset_token['username']}")
+            print(f"✅ Contraseña restablecida para usuario {reset_token[5]}")  # reset_token[5] es username
             
             return jsonify({
                 "success": True,
@@ -658,13 +658,13 @@ def validate_reset_token():
                     "message": "Token inválido"
                 }), 400
             
-            if reset_token['used']:
+            if reset_token[1]:  # reset_token[1] es used
                 return jsonify({
                     "valid": False,
                     "message": "Token ya utilizado"
                 }), 400
             
-            if datetime.now() > reset_token['expires_at']:
+            if datetime.now() > reset_token[0]:  # reset_token[0] es expires_at
                 return jsonify({
                     "valid": False,
                     "message": "Token expirado"
@@ -673,7 +673,7 @@ def validate_reset_token():
             return jsonify({
                 "valid": True,
                 "message": "Token válido",
-                "username": reset_token['username']
+                "username": reset_token[2]  # reset_token[2] es username
             }), 200
             
         finally:

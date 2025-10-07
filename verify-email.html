@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verificar Email - WHIP HELMETS</title>
+    <link rel="stylesheet" href="assets/css/style.css">
+    <style>
+        .verification-container {
+            max-width: 500px;
+            margin: 100px auto;
+            padding: 40px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        
+        .verification-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 20px;
+            background: #f8f9fa;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+        }
+        
+        .verification-icon.success {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .verification-icon.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .verification-icon.pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .verification-title {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #333;
+        }
+        
+        .verification-message {
+            font-size: 16px;
+            color: #666;
+            margin-bottom: 30px;
+            line-height: 1.5;
+        }
+        
+        .verification-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary {
+            background: #007bff;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #0056b3;
+            transform: translateY(-2px);
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #545b62;
+            transform: translateY(-2px);
+        }
+        
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: #1e7e34;
+            transform: translateY(-2px);
+        }
+        
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #007bff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .error-details {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            font-size: 14px;
+        }
+        
+        .resend-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="verification-container">
+        <div id="verification-icon" class="verification-icon pending">
+            📧
+        </div>
+        
+        <h1 id="verification-title" class="verification-title">
+            Verificando Email...
+        </h1>
+        
+        <p id="verification-message" class="verification-message">
+            Por favor espera mientras verificamos tu email.
+        </p>
+        
+        <div id="verification-actions" class="verification-actions" style="display: none;">
+            <a href="/" class="btn btn-primary">Ir al Inicio</a>
+            <button id="resend-btn" class="btn btn-secondary" style="display: none;">
+                Reenviar Email
+            </button>
+        </div>
+        
+        <div id="error-details" class="error-details" style="display: none;"></div>
+        <div id="resend-info" class="resend-info" style="display: none;"></div>
+    </div>
+
+    <script>
+        // Obtener token de la URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const token = urlParams.get('token');
+        
+        if (!token) {
+            showError('Token de verificación no encontrado', 'El enlace de verificación no es válido.');
+            return;
+        }
+        
+        // Verificar email
+        verifyEmail(token);
+        
+        async function verifyEmail(token) {
+            try {
+                const response = await fetch('/api/auth/verify-email', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ token: token })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showSuccess(result.message || 'Email verificado exitosamente');
+                } else {
+                    showError(result.error || 'Error al verificar email', result.message);
+                }
+                
+            } catch (error) {
+                console.error('Error:', error);
+                showError('Error de conexión', 'No se pudo conectar con el servidor. Intenta nuevamente.');
+            }
+        }
+        
+        function showSuccess(message) {
+            document.getElementById('verification-icon').innerHTML = '✅';
+            document.getElementById('verification-icon').className = 'verification-icon success';
+            document.getElementById('verification-title').textContent = '¡Email Verificado!';
+            document.getElementById('verification-message').textContent = message;
+            document.getElementById('verification-actions').style.display = 'flex';
+            
+            // Mostrar botón de login
+            const loginBtn = document.createElement('a');
+            loginBtn.href = '/';
+            loginBtn.className = 'btn btn-success';
+            loginBtn.textContent = 'Iniciar Sesión';
+            document.getElementById('verification-actions').appendChild(loginBtn);
+        }
+        
+        function showError(error, details) {
+            document.getElementById('verification-icon').innerHTML = '❌';
+            document.getElementById('verification-icon').className = 'verification-icon error';
+            document.getElementById('verification-title').textContent = 'Error de Verificación';
+            document.getElementById('verification-message').textContent = error;
+            document.getElementById('verification-actions').style.display = 'flex';
+            
+            if (details) {
+                document.getElementById('error-details').textContent = details;
+                document.getElementById('error-details').style.display = 'block';
+            }
+            
+            // Mostrar botón de reenvío si es un token expirado o inválido
+            if (error.includes('expirado') || error.includes('inválido')) {
+                document.getElementById('resend-btn').style.display = 'inline-block';
+                document.getElementById('resend-info').style.display = 'block';
+                document.getElementById('resend-info').textContent = 'Puedes solicitar un nuevo email de verificación.';
+            }
+        }
+        
+        // Manejar reenvío de email
+        document.getElementById('resend-btn').addEventListener('click', async function() {
+            this.innerHTML = '<span class="loading-spinner"></span>Enviando...';
+            this.disabled = true;
+            
+            try {
+                // Aquí podrías implementar un endpoint para reenviar el email
+                // Por ahora, redirigimos al registro
+                window.location.href = '/register.html';
+            } catch (error) {
+                console.error('Error:', error);
+                this.innerHTML = 'Reenviar Email';
+                this.disabled = false;
+                alert('Error al reenviar email. Intenta registrarte nuevamente.');
+            }
+        });
+    </script>
+</body>
+</html>

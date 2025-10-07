@@ -123,7 +123,7 @@ class AuthManager:
             with get_conn() as conn:
                 cursor = conn.cursor()
                 cursor.execute(
-                    "SELECT id, username, password_hash, role FROM users WHERE username = %s",
+                    "SELECT id, username, password_hash, role, email_verified FROM users WHERE username = %s",
                     (username,)
                 )
                 user = cursor.fetchone()
@@ -139,10 +139,25 @@ class AuthManager:
                     print(f"DEBUG: Contraseña válida: {password_valid}")
                     
                     if password_valid:
+                        # Verificar si el email está verificado
+                        email_verified = user.get('email_verified', False)
+                        print(f"DEBUG: Email verificado: {email_verified}")
+                        
+                        if not email_verified:
+                            print(f"DEBUG: Email no verificado para usuario: {username}")
+                            return {
+                                'id': user['id'],
+                                'username': user['username'],
+                                'role': user['role'],
+                                'email_verified': False,
+                                'error': 'email_not_verified'
+                            }
+                        
                         result = {
                             'id': user['id'],
                             'username': user['username'],
-                            'role': user['role']
+                            'role': user['role'],
+                            'email_verified': True
                         }
                         print(f"DEBUG: Usuario autenticado exitosamente: {result}")
                         return result
@@ -168,6 +183,15 @@ class AuthManager:
             print(f"DEBUG: Resultado de autenticación: {user}")
             
             if user:
+                # Verificar si hay error de email no verificado
+                if user.get('error') == 'email_not_verified':
+                    print(f"DEBUG: Email no verificado para usuario: {username}")
+                    return {
+                        'success': False,
+                        'error': 'email_not_verified',
+                        'message': 'Debes verificar tu email antes de poder iniciar sesión. Revisa tu bandeja de entrada.'
+                    }
+                
                 print(f"DEBUG: Usuario autenticado, creando sesión para ID: {user['id']}")
                 
                 # Crear sesión

@@ -781,7 +781,10 @@ def verify_email():
         print(f"🔍 DEBUG - Verificando email con token: {token[:10]}...")
         
         if not token:
-            return jsonify({"error": "Token requerido"}), 400
+            return jsonify({
+                "success": False,
+                "error": "Token requerido"
+            }), 400
         
         # Buscar token válido
         conn = get_conn()
@@ -815,7 +818,10 @@ def verify_email():
         
         if not verification:
             conn.close()
-            return jsonify({"error": "Token inválido o expirado"}), 400
+            return jsonify({
+                "success": False,
+                "error": "Token inválido o expirado"
+            }), 400
         
         # Marcar email como verificado
         cursor.execute(
@@ -833,6 +839,7 @@ def verify_email():
         conn.close()
         
         return jsonify({
+            "success": True,
             "message": "Email verificado correctamente",
             "user": {
                 "name": verification[6],  # name está en la posición 6
@@ -842,7 +849,10 @@ def verify_email():
         
     except Exception as e:
         print(f"Error en verify_email: {e}")
-        return jsonify({"error": "Error interno del servidor"}), 500
+        return jsonify({
+            "success": False,
+            "error": "Error interno del servidor"
+        }), 500
 
 @app.route("/api/auth/resend-verification", methods=["POST"])
 def resend_verification():

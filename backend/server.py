@@ -2045,6 +2045,12 @@ def auth_register():
         
         result = auth_manager.register_user(username, password, **profile_data)
         
+        print(f"🔍 DEBUG - Resultado del registro:")
+        print(f"   Success: {result.get('success')}")
+        print(f"   User ID: {result.get('user_id')}")
+        print(f"   Message: {result.get('message')}")
+        print(f"   Error: {result.get('error')}")
+        
         if result['success']:
             # Crear tabla de verificación de email si no existe
             conn = get_conn()

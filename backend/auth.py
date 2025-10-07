@@ -117,6 +117,11 @@ class AuthManager:
                 user_result = cursor.fetchone()
                 user_id = user_result[0] if user_result else None
                 
+                print(f"🔍 DEBUG - Usuario creado:")
+                print(f"   Username: {username}")
+                print(f"   User ID obtenido: {user_id}")
+                print(f"   User result: {user_result}")
+                
                 return {"success": True, "message": "Usuario registrado correctamente", "user_id": user_id}
                 
         except Exception as e:

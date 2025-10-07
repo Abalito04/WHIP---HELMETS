@@ -786,6 +786,11 @@ def verify_email():
         # Buscar token válido
         conn = get_conn()
         cursor = conn.cursor()
+        
+        print(f"🔍 DEBUG - Buscando token en BD:")
+        print(f"   Token completo: {token}")
+        print(f"   Fecha actual: {datetime.now()}")
+        
         cursor.execute(
             '''SELECT vt.*, u.email, u.username 
                FROM email_verification_tokens vt
@@ -794,6 +799,13 @@ def verify_email():
             (token, datetime.now())
         )
         verification = cursor.fetchone()
+        
+        # También buscar sin filtros para debugging
+        cursor.execute("SELECT * FROM email_verification_tokens WHERE token = %s", (token,))
+        all_tokens = cursor.fetchall()
+        print(f"🔍 DEBUG - Tokens encontrados (sin filtros): {len(all_tokens)}")
+        for i, t in enumerate(all_tokens):
+            print(f"   Token {i+1}: {t}")
         
         print(f"🔍 DEBUG - Resultado de búsqueda de token:")
         print(f"   Token encontrado: {verification is not None}")
@@ -2098,6 +2110,10 @@ def auth_register():
                     import secrets
                     verification_token = secrets.token_urlsafe(32)
                     
+                    print(f"🔍 DEBUG - Token generado: {verification_token[:10]}...")
+                    print(f"🔍 DEBUG - User ID para token: {result['user_id']}")
+                    print(f"🔍 DEBUG - Email para token: {profile_data['email']}")
+                    
                     # Guardar token en base de datos
                     conn = get_conn()
                     cursor = conn.cursor()
@@ -2107,7 +2123,9 @@ def auth_register():
                         (result['user_id'], verification_token, profile_data['email'], 
                          datetime.now() + timedelta(hours=24))
                     )
+                    print(f"🔍 DEBUG - Token insertado en BD")
                     conn.commit()
+                    print(f"🔍 DEBUG - Commit realizado para token")
                     conn.close()
                     
                     print(f"🔄 Intentando enviar email de verificación a {profile_data['email']}")

@@ -28,16 +28,18 @@ except ImportError:
     PAYMENT_AVAILABLE = False
     print("⚠️  Módulo de pagos no disponible")
 
-# Importar el servicio de email (Resend o SMTP)
+# Importar el servicio de email (SMTP prioritario, Resend como fallback)
 try:
-    from resend_service import resend_email_service as email_service
+    from smtp_service import smtp_email_service as email_service
     EMAIL_AVAILABLE = True
-    EMAIL_SERVICE = "Resend"
+    EMAIL_SERVICE = "SMTP"
+    print("✅ Usando servicio SMTP")
 except ImportError:
     try:
-        from smtp_service import smtp_email_service as email_service
+        from resend_service import resend_email_service as email_service
         EMAIL_AVAILABLE = True
-        EMAIL_SERVICE = "SMTP"
+        EMAIL_SERVICE = "Resend"
+        print("⚠️  Usando servicio Resend (SMTP no disponible)")
     except ImportError:
         EMAIL_AVAILABLE = False
         EMAIL_SERVICE = "None"
@@ -459,7 +461,10 @@ def get_email_status():
     if email_service.is_configured:
         status_info["message"] = "Sistema de email configurado correctamente"
     else:
-        status_info["message"] = "Sistema de email no configurado - configurar RESEND_API_KEY"
+        if EMAIL_SERVICE == "SMTP":
+            status_info["message"] = "Sistema de email no configurado - configurar SMTP_USERNAME y SMTP_PASSWORD"
+        else:
+            status_info["message"] = "Sistema de email no configurado - configurar RESEND_API_KEY"
     
     return jsonify(status_info), 200
 

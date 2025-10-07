@@ -28,13 +28,20 @@ except ImportError:
     PAYMENT_AVAILABLE = False
     print("⚠️  Módulo de pagos no disponible")
 
-# Importar el servicio de email (Resend)
+# Importar el servicio de email (Resend o SMTP)
 try:
     from resend_service import resend_email_service as email_service
     EMAIL_AVAILABLE = True
+    EMAIL_SERVICE = "Resend"
 except ImportError:
-    EMAIL_AVAILABLE = False
-    print("⚠️  Módulo de email no disponible")
+    try:
+        from smtp_service import smtp_email_service as email_service
+        EMAIL_AVAILABLE = True
+        EMAIL_SERVICE = "SMTP"
+    except ImportError:
+        EMAIL_AVAILABLE = False
+        EMAIL_SERVICE = "None"
+        print("⚠️  Módulo de email no disponible")
 
 # Importar utilidades SEO
 try:
@@ -442,10 +449,10 @@ def get_email_status():
     status_info = {
         "available": EMAIL_AVAILABLE,
         "configured": email_service.is_configured,
-        "service": "Resend",
+        "service": EMAIL_SERVICE,
         "from_email": email_service.from_email,
         "from_name": email_service.from_name,
-        "api_key_set": bool(email_service.api_key),
+        "api_key_set": bool(email_service.api_key) if EMAIL_SERVICE == "Resend" else bool(getattr(email_service, 'smtp_username', None)),
         "api_key_length": len(email_service.api_key) if email_service.api_key else 0
     }
     

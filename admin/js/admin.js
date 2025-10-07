@@ -1124,6 +1124,7 @@ function setupEventListeners() {
         try {
           const formData = new FormData();
           formData.append('file', file);
+          formData.append('csrf_token', csrfToken);
 
           const response = await fetch(`${API_BASE}/api/upload`, {
             method: 'POST',

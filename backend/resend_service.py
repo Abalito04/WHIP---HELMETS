@@ -15,7 +15,7 @@ class ResendEmailService:
     def __init__(self):
         """Inicializar servicio de email con Resend"""
         self.api_key = os.environ.get('RESEND_API_KEY', '')
-        self.from_email = os.environ.get('FROM_EMAIL', 'abalito95@gmail.com')
+        self.from_email = os.environ.get('FROM_EMAIL', 'onboarding@resend.dev')
         self.from_name = os.environ.get('FROM_NAME', 'WHIP HELMETS')
         
         # Verificar configuración

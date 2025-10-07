@@ -347,12 +347,16 @@ const API_BASE = (() => {
                 const result = await response.json();
                 
                 if (response.ok) {
-                    showSuccess('Cuenta creada exitosamente. Revisa tu email para verificar tu cuenta.');
+                    showSuccess('¡Cuenta creada exitosamente! 📧 Revisa tu email para verificar tu cuenta. Una vez verificado, podrás iniciar sesión.');
+                    
+                    // Limpiar formulario después del registro exitoso
+                    document.getElementById('registerForm').reset();
+                    
                     // NO guardar token ni redirigir - el usuario debe verificar su email primero
                     // localStorage.setItem('authToken', result.session_token);
                     // localStorage.setItem('currentUser', JSON.stringify(result.user));
                     
-                    // NO redirigir automáticamente - mostrar mensaje de verificación
+                    // NO redirigir automáticamente - el usuario debe verificar su email
                     // setTimeout(() => {
                     //     window.location.href = 'index.html';
                     // }, 2000);

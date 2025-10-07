@@ -167,17 +167,23 @@
     </div>
 
     <script>
-        // Obtener token de la URL
-        const urlParams = new URLSearchParams(window.location.search);
-        const token = urlParams.get('token');
-        
-        if (!token) {
-            showError('Token de verificación no encontrado', 'El enlace de verificación no es válido.');
-            return;
+        // Función principal
+        function initVerification() {
+            // Obtener token de la URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const token = urlParams.get('token');
+            
+            if (!token) {
+                showError('Token de verificación no encontrado', 'El enlace de verificación no es válido.');
+                return;
+            }
+            
+            // Verificar email
+            verifyEmail(token);
         }
         
-        // Verificar email
-        verifyEmail(token);
+        // Inicializar cuando se carga la página
+        document.addEventListener('DOMContentLoaded', initVerification);
         
         async function verifyEmail(token) {
             try {

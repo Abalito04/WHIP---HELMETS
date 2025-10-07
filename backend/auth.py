@@ -107,11 +107,13 @@ class AuthManager:
                     """
                     INSERT INTO users (username, password_hash, email, nombre, apellido, dni, telefono, direccion, codigo_postal, role)
                     VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    RETURNING id
                     """,
                     (username, password_hash, email, nombre, apellido, dni, telefono, direccion, codigo_postal, 'user')
                 )
+                user_id = cursor.fetchone()[0]
                 conn.commit()
-                return {"success": True, "message": "Usuario registrado correctamente"}
+                return {"success": True, "message": "Usuario registrado correctamente", "user_id": user_id}
                 
         except Exception as e:
             return {"success": False, "error": f"Error al registrar usuario: {str(e)}"}

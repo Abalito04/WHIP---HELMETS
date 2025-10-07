@@ -232,7 +232,13 @@ async function checkWishlistStatus(productId) {
         });
         
         if (response.status === 401) {
+            console.log(`🔒 Usuario no autenticado para producto ${productId}`);
             return false; // Usuario no autenticado
+        }
+        
+        if (!response.ok) {
+            console.error(`❌ Error del servidor para producto ${productId}:`, response.status);
+            return false;
         }
         
         const data = await response.json();
@@ -347,6 +353,23 @@ async function toggleWishlist(productId) {
 
 // Función para cargar estados de wishlist
 async function loadWishlistStates() {
+    // Primero verificar si el usuario está autenticado
+    try {
+        const authResponse = await fetch(`${API_BASE}/api/auth/status`, {
+            credentials: 'include'
+        });
+        
+        if (authResponse.status !== 200) {
+            console.log('👤 Usuario no autenticado, saltando carga de wishlist');
+            return; // No cargar estados de wishlist si no está autenticado
+        }
+        
+        console.log('✅ Usuario autenticado, cargando estados de wishlist');
+    } catch (error) {
+        console.log('❌ Error verificando autenticación:', error);
+        return;
+    }
+    
     const wishlistButtons = document.querySelectorAll('.wishlist-btn');
     
     for (const button of wishlistButtons) {
@@ -359,6 +382,15 @@ async function loadWishlistStates() {
         }
     }
 }
+
+// Función para recargar estados de wishlist (útil después del login)
+function reloadWishlistStates() {
+    console.log('🔄 Recargando estados de wishlist...');
+    loadWishlistStates();
+}
+
+// Hacer la función disponible globalmente para poder llamarla desde otros scripts
+window.reloadWishlistStates = reloadWishlistStates;
 
 // Función para mostrar notificación
 function showMiniNotification(message) {

@@ -18,7 +18,7 @@ body {
     -webkit-tap-highlight-color: transparent;
     -webkit-overflow-scrolling: touch;
     scroll-behavior: smooth;
-    transition: all 0.3s ease;
+    transition: background 0.3s ease, color 0.3s ease;
 }
 
 /* ================================================== */
@@ -2753,8 +2753,22 @@ a, button, input, select {
 /* Excluir botones flotantes de transiciones globales que puedan interferir */
 .chatbot-container,
 .chatbot-toggle,
-#mini-cart {
+.chatbot-window,
+.chatbot-send,
+.chatbot-close,
+#mini-cart,
+#mini-cart-dropdown {
     transition: transform 0.3s ease, box-shadow 0.3s ease !important;
+}
+
+/* Forzar posición fija para el chatbot */
+.chatbot-container {
+    position: fixed !important;
+    bottom: 20px !important;
+    right: 20px !important;
+    z-index: 99999 !important;
+    transform: none !important;
+    animation: none !important;
 }
 
 /* Debug temporal removido - chatbot funcionando correctamente */

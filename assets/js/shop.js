@@ -50,7 +50,12 @@ async function loadProducts() {
 
 // Función para mostrar estado de carga
 function showLoading(container, message) {
-    container.innerHTML = `<div class="loading-message">${message}</div>`;
+    container.innerHTML = `
+        <div class="loading-message">
+            <div class="loading-spinner"></div>
+            <p>${message}</p>
+        </div>
+    `;
 }
 
 // Función para mostrar error
@@ -85,8 +90,10 @@ function renderProducts() {
     if (helmets.length === 0) {
         productsGrid.innerHTML = '<div class="no-products">No hay cascos disponibles en este momento.</div>';
     } else {
-        helmets.forEach(product => {
+        helmets.forEach((product, index) => {
             const productCard = createProductCard(product);
+            // Agregar delay escalonado para animación
+            productCard.style.animationDelay = `${index * 0.1}s`;
             productsGrid.appendChild(productCard);
         });
     }
@@ -95,8 +102,10 @@ function renderProducts() {
     if (accessories.length === 0) {
         accessoriesGrid.innerHTML = '<div class="no-products">No hay accesorios disponibles en este momento.</div>';
     } else {
-        accessories.forEach(product => {
+        accessories.forEach((product, index) => {
             const productCard = createProductCard(product);
+            // Agregar delay escalonado para animación
+            productCard.style.animationDelay = `${index * 0.1}s`;
             accessoriesGrid.appendChild(productCard);
         });
     }

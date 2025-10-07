@@ -18,6 +18,90 @@ body {
     -webkit-tap-highlight-color: transparent;
     -webkit-overflow-scrolling: touch;
     scroll-behavior: smooth;
+    transition: all 0.3s ease;
+}
+
+/* ================================================== */
+/*                  ANIMACIONES GLOBALES             */
+/* ================================================== */
+
+/* Animación de entrada suave para elementos */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeInScale {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes slideInRight {
+    from {
+        opacity: 0;
+        transform: translateX(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+@keyframes bounce {
+    0%, 20%, 50%, 80%, 100% {
+        transform: translateY(0);
+    }
+    40% {
+        transform: translateY(-10px);
+    }
+    60% {
+        transform: translateY(-5px);
+    }
+}
+
+/* Clases de animación */
+.animate-fade-in-up {
+    animation: fadeInUp 0.6s ease-out;
+}
+
+.animate-fade-in-scale {
+    animation: fadeInScale 0.5s ease-out;
+}
+
+.animate-slide-in-right {
+    animation: slideInRight 0.5s ease-out;
+}
+
+.animate-pulse {
+    animation: pulse 2s infinite;
+}
+
+.animate-bounce {
+    animation: bounce 1s infinite;
 }
 
 /* Mejorar la experiencia táctil en móviles */
@@ -47,6 +131,10 @@ main {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    animation: slideInRight 0.8s ease-out;
+    backdrop-filter: blur(10px);
+    background: rgba(0, 0, 0, 0.1);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .header-left, .header-right {
@@ -162,6 +250,7 @@ main {
     overflow: hidden;
     border-bottom: 4px solid rgba(0, 0, 0, 0.1);
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    animation: fadeInUp 1s ease-out;
 }
 
 
@@ -229,6 +318,7 @@ main {
     font-weight: bold;
     letter-spacing: 4px;
     color: #fff;
+    animation: fadeInUp 1.2s ease-out 0.3s both;
 }
 
 .hero-banner p {
@@ -239,6 +329,7 @@ main {
     opacity: 0.95;
     font-weight: 600;
     color: #fff;
+    animation: fadeInUp 1.2s ease-out 0.6s both;
 }
 
 .stats-grid {
@@ -246,6 +337,7 @@ main {
     grid-template-columns: repeat(3, 1fr);
     gap: 2em;
     max-width: 800px;
+    animation: fadeInUp 1.2s ease-out 0.9s both;
     margin: 0 auto;
 }
 
@@ -318,11 +410,15 @@ main {
     border-radius: 10px;
     padding: 0;
     text-align: center;
-    transition: transform 0.3s ease;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     display: flex;
     flex-direction: column;
     height: 100%;
     min-height: 420px;
+    opacity: 0;
+    transform: translateY(20px);
+    animation: fadeInUp 0.6s ease-out forwards;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
 }
 
 /* Contenedor principal del producto */
@@ -571,7 +667,9 @@ main {
 
 
 .product-card:hover {
-    transform: translateY(-5px);
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+    background-color: rgba(0, 0, 0, 0.8);
 }
 
 .product-images-container {
@@ -712,7 +810,7 @@ main {
 
 
 .product-card button {
-    background-color: #f0ad4e;
+    background: linear-gradient(135deg, #f0ad4e, #e67e22);
     color: #000;
     border: none;
     padding: 0.8em 1.5em;
@@ -721,20 +819,43 @@ main {
     font-weight: bold;
     font-size: 1em;
     width: 100%;
-    transition: all 0.3s ease;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     min-height: 48px;
     touch-action: manipulation;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(240, 173, 78, 0.3);
 }
 
 .product-card button:hover:not(:disabled) {
-    background-color: #e6a23c;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    background: linear-gradient(135deg, #e67e22, #d35400);
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 8px 25px rgba(240, 173, 78, 0.4);
 }
 
 .product-card button:active:not(:disabled) {
-    transform: translateY(0);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    transform: translateY(-1px) scale(0.98);
+    box-shadow: 0 4px 15px rgba(240, 173, 78, 0.3);
+    transition: all 0.1s ease;
+}
+
+/* Efecto de ripple en botones */
+.product-card button::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+}
+
+.product-card button:active::before {
+    width: 300px;
+    height: 300px;
 }
 
 .product-card button:disabled {
@@ -2570,6 +2691,62 @@ footer.legal-footer a:hover {
     .mini-cart {
         max-height: 90vh;
     }
+}
+
+/* ================================================== */
+/*                  LOADING STATES                   */
+/* ================================================== */
+
+.loading-message {
+    text-align: center;
+    padding: 2em;
+    font-size: 1.2em;
+    color: #666;
+    animation: pulse 2s infinite;
+}
+
+/* Spinner de carga mejorado */
+.loading-spinner {
+    display: inline-block;
+    width: 40px;
+    height: 40px;
+    border: 4px solid rgba(240, 173, 78, 0.3);
+    border-radius: 50%;
+    border-top-color: #f0ad4e;
+    animation: spin 1s ease-in-out infinite;
+    margin: 0 auto 1em;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* ================================================== */
+/*                  MEJORAS DE UX                    */
+/* ================================================== */
+
+/* Smooth scrolling mejorado */
+html {
+    scroll-behavior: smooth;
+}
+
+/* Focus states mejorados para accesibilidad */
+button:focus,
+input:focus,
+select:focus {
+    outline: 2px solid #f0ad4e;
+    outline-offset: 2px;
+}
+
+/* Transiciones suaves para todos los elementos interactivos */
+a, button, input, select {
+    transition: all 0.3s ease;
+}
+
+/* Mejora de contraste para texto */
+.text-high-contrast {
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+}
     
     /* Galería en móviles pequeños */
     .gallery-content {

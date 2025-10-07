@@ -12,22 +12,22 @@ class SEOUtils:
     def __init__(self):
         self.base_url = os.environ.get('BASE_URL', 'https://whip-helmets.up.railway.app')
         self.site_name = "WHIP HELMETS"
-        self.default_description = "Cascos y accesorios de motociclismo de alta calidad. Encuentra el casco perfecto para tu seguridad y estilo."
-        self.default_keywords = "cascos, motociclismo, seguridad, accesorios, moto, helmet, protección"
+        self.default_description = "Cascos de moto nuevos y usados homologados en La Pampa. Bell, Fox, Alpinestars, Troy Lee Design. Cascos de motocross, enduro y calle."
+        self.default_keywords = "cascos de moto, cascos usados, cascos nuevos, cascos homologados, cascos motocross, cascos enduro, Bell, Fox, Alpinestars, Troy Lee Design, La Pampa, Argentina"
     
     def get_homepage_meta(self):
         """Meta tags para la página principal"""
         return {
-            "title": f"{self.site_name} - Cascos y Accesorios de Motociclismo",
+            "title": f"Cascos de Moto Nuevos y Usados - {self.site_name} | Cascos Homologados La Pampa",
             "description": self.default_description,
             "keywords": self.default_keywords,
-            "og_title": f"{self.site_name} - Cascos y Accesorios de Motociclismo",
+            "og_title": f"Cascos de Moto Nuevos y Usados - {self.site_name}",
             "og_description": self.default_description,
             "og_image": f"{self.base_url}/assets/images/logo.png",
             "og_url": self.base_url,
             "og_type": "website",
             "twitter_card": "summary_large_image",
-            "twitter_title": f"{self.site_name} - Cascos y Accesorios de Motociclismo",
+            "twitter_title": f"Cascos de Moto Nuevos y Usados - {self.site_name}",
             "twitter_description": self.default_description,
             "twitter_image": f"{self.base_url}/assets/images/logo.png"
         }

@@ -508,6 +508,35 @@ def forgot_password():
         conn = get_conn()
         try:
             cursor = conn.cursor()
+            
+            # Crear tabla si no existe
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS password_reset_tokens (
+                    id SERIAL PRIMARY KEY,
+                    user_id INTEGER NOT NULL,
+                    token VARCHAR(255) NOT NULL UNIQUE,
+                    email VARCHAR(255) NOT NULL,
+                    expires_at TIMESTAMP NOT NULL,
+                    used BOOLEAN DEFAULT FALSE,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+                )
+            """)
+            
+            # Crear índices si no existen
+            cursor.execute("""
+                CREATE INDEX IF NOT EXISTS idx_password_reset_tokens_token 
+                ON password_reset_tokens(token)
+            """)
+            cursor.execute("""
+                CREATE INDEX IF NOT EXISTS idx_password_reset_tokens_user_id 
+                ON password_reset_tokens(user_id)
+            """)
+            cursor.execute("""
+                CREATE INDEX IF NOT EXISTS idx_password_reset_tokens_expires_at 
+                ON password_reset_tokens(expires_at)
+            """)
+            
             cursor.execute("""
                 SELECT id, username, email, nombre, apellido 
                 FROM users 
@@ -615,6 +644,21 @@ def reset_password():
         conn = get_conn()
         try:
             cursor = conn.cursor()
+            
+            # Crear tabla si no existe
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS password_reset_tokens (
+                    id SERIAL PRIMARY KEY,
+                    user_id INTEGER NOT NULL,
+                    token VARCHAR(255) NOT NULL UNIQUE,
+                    email VARCHAR(255) NOT NULL,
+                    expires_at TIMESTAMP NOT NULL,
+                    used BOOLEAN DEFAULT FALSE,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+                )
+            """)
+            
             cursor.execute("""
                 SELECT prt.id, prt.user_id, prt.email, prt.expires_at, prt.used,
                        u.username, u.nombre, u.apellido
@@ -684,6 +728,21 @@ def validate_reset_token():
         conn = get_conn()
         try:
             cursor = conn.cursor()
+            
+            # Crear tabla si no existe
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS password_reset_tokens (
+                    id SERIAL PRIMARY KEY,
+                    user_id INTEGER NOT NULL,
+                    token VARCHAR(255) NOT NULL UNIQUE,
+                    email VARCHAR(255) NOT NULL,
+                    expires_at TIMESTAMP NOT NULL,
+                    used BOOLEAN DEFAULT FALSE,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+                )
+            """)
+            
             cursor.execute("""
                 SELECT prt.expires_at, prt.used, u.username
                 FROM password_reset_tokens prt

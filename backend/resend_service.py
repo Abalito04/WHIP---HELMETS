@@ -76,7 +76,8 @@ class ResendEmailService:
             else:
                 print(f"❌ Error enviando email a {to_email}: Respuesta inválida")
                 print(f"   Respuesta recibida: {response}")
-                return False, "Error en respuesta del servicio"
+                print(f"   Atributos de respuesta: {dir(response) if response else 'None'}")
+                return False, f"Error en respuesta del servicio: {response}"
             
         except Exception as e:
             logger.error(f"❌ Error enviando email a {to_email}: {e}")

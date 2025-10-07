@@ -1099,6 +1099,11 @@ function setupEventListeners() {
       multiplePreview.style.display = "block";
       imagesList.innerHTML = "";
 
+      // Obtener token CSRF
+      const csrfResponse = await fetch(`${API_BASE}/api/csrf-token`);
+      const csrfData = await csrfResponse.json();
+      const csrfToken = csrfData.csrf_token;
+
       // Subir archivos uno por uno
       selectedImages = [];
       let uploadedCount = 0;

@@ -347,15 +347,15 @@ const API_BASE = (() => {
                 const result = await response.json();
                 
                 if (response.ok) {
-                    showSuccess('Cuenta creada exitosamente. Redirigiendo...');
-                    // Guardar token y datos del usuario
-                    localStorage.setItem('authToken', result.session_token);
-                    localStorage.setItem('currentUser', JSON.stringify(result.user));
+                    showSuccess('Cuenta creada exitosamente. Revisa tu email para verificar tu cuenta.');
+                    // NO guardar token ni redirigir - el usuario debe verificar su email primero
+                    // localStorage.setItem('authToken', result.session_token);
+                    // localStorage.setItem('currentUser', JSON.stringify(result.user));
                     
-                    // Redirigir a la página principal después de 2 segundos
-                    setTimeout(() => {
-                        window.location.href = 'index.html';
-                    }, 2000);
+                    // NO redirigir automáticamente - mostrar mensaje de verificación
+                    // setTimeout(() => {
+                    //     window.location.href = 'index.html';
+                    // }, 2000);
                 } else {
                     throw new Error(result.error || 'Error al crear la cuenta');
                 }
@@ -505,8 +505,9 @@ const API_BASE = (() => {
         document.addEventListener('DOMContentLoaded', () => {
             const token = localStorage.getItem('authToken');
             if (token) {
-                // Si ya está logueado, redirigir a la página principal
-                window.location.href = 'index.html';
+                // Si ya está logueado, mostrar mensaje pero no redirigir automáticamente
+                // window.location.href = 'index.html';
+                console.log('Usuario ya logueado, pero permitiendo acceso a registro');
             }
             
             // Agregar validaciones en tiempo real

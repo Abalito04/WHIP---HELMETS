@@ -72,14 +72,24 @@ class AuthManager:
     def register_user(self, username, password, email=None, nombre=None, apellido=None, dni=None, telefono=None, direccion=None, codigo_postal=None):
         """Registrar nuevo usuario"""
         try:
+            print(f"🔍 DEBUG - Iniciando registro de usuario:")
+            print(f"   Username: {username}")
+            print(f"   Email: {email}")
+            print(f"   Nombre: {nombre}")
+            print(f"   Apellido: {apellido}")
+            print(f"   DNI: {dni}")
+            print(f"   Teléfono: {telefono}")
+            
             with get_conn() as conn:
                 cursor = conn.cursor()
                 # Verificar si el usuario ya existe (username, email, DNI, teléfono)
+                print(f"🔍 DEBUG - Verificando usuario existente...")
                 cursor.execute(
                     "SELECT id FROM users WHERE username = %s OR email = %s OR dni = %s OR telefono = %s",
                     (username, email, dni, telefono)
                 )
                 existing_user = cursor.fetchone()
+                print(f"🔍 DEBUG - Usuario existente encontrado: {existing_user is not None}")
                 
                 if existing_user:
                     # Verificar cuál campo específico está duplicado
@@ -102,7 +112,10 @@ class AuthManager:
                     return {"success": False, "error": "Los datos proporcionados ya están en uso"}
                 
                 # Crear usuario
+                print(f"🔍 DEBUG - Creando usuario...")
                 password_hash = self.hash_password(password)
+                print(f"🔍 DEBUG - Password hash generado: {password_hash[:10]}...")
+                
                 cursor.execute(
                     """
                     INSERT INTO users (username, password_hash, email, nombre, apellido, dni, telefono, direccion, codigo_postal, role)
@@ -110,12 +123,16 @@ class AuthManager:
                     """,
                     (username, password_hash, email, nombre, apellido, dni, telefono, direccion, codigo_postal, 'user')
                 )
+                print(f"🔍 DEBUG - Usuario insertado en BD")
                 conn.commit()
+                print(f"🔍 DEBUG - Commit realizado")
                 
                 # Obtener el ID del usuario recién creado
+                print(f"🔍 DEBUG - Obteniendo ID del usuario...")
                 cursor.execute("SELECT id FROM users WHERE username = %s", (username,))
                 user_result = cursor.fetchone()
                 user_id = user_result[0] if user_result else None
+                print(f"🔍 DEBUG - ID obtenido: {user_id}")
                 
                 print(f"🔍 DEBUG - Usuario creado:")
                 print(f"   Username: {username}")
@@ -125,6 +142,11 @@ class AuthManager:
                 return {"success": True, "message": "Usuario registrado correctamente", "user_id": user_id}
                 
         except Exception as e:
+            print(f"❌ ERROR en register_user:")
+            print(f"   Tipo de error: {type(e).__name__}")
+            print(f"   Mensaje: {str(e)}")
+            import traceback
+            traceback.print_exc()
             return {"success": False, "error": f"Error al registrar usuario: {str(e)}"}
     
     def authenticate_user(self, username, password):

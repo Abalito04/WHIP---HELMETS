@@ -70,9 +70,10 @@ class ResendEmailService:
             print(f"📨 Respuesta de Resend: {response}")
             print(f"   Tipo de respuesta: {type(response)}")
             
-            if response and hasattr(response, 'id'):
-                print(f"✅ Email enviado a {to_email}: {subject} (ID: {response.id})")
-                return True, f"Email enviado correctamente (ID: {response.id})"
+            if response and (hasattr(response, 'id') or (isinstance(response, dict) and 'id' in response)):
+                email_id = response.id if hasattr(response, 'id') else response['id']
+                print(f"✅ Email enviado a {to_email}: {subject} (ID: {email_id})")
+                return True, f"Email enviado correctamente (ID: {email_id})"
             else:
                 print(f"❌ Error enviando email a {to_email}: Respuesta inválida")
                 print(f"   Respuesta recibida: {response}")

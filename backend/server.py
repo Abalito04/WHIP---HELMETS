@@ -534,6 +534,31 @@ def test_verification_email():
             "error": f"Error en prueba de email: {str(e)}"
         }), 500
 
+@app.route("/api/auth/verify-existing-users", methods=["POST"])
+def verify_existing_users():
+    """Marcar todos los usuarios existentes como verificados (temporal sin auth)"""
+    try:
+        conn = get_conn()
+        cursor = conn.cursor()
+        
+        # Marcar todos los usuarios existentes como verificados
+        cursor.execute("UPDATE users SET email_verified = TRUE WHERE email_verified IS NULL OR email_verified = FALSE")
+        updated_count = cursor.rowcount
+        conn.commit()
+        conn.close()
+        
+        return jsonify({
+            "success": True,
+            "message": f"Se marcaron {updated_count} usuarios existentes como verificados",
+            "updated_count": updated_count
+        }), 200
+        
+    except Exception as e:
+        return jsonify({
+            "success": False,
+            "error": f"Error actualizando usuarios: {str(e)}"
+        }), 500
+
 @app.route("/api/seo/meta", methods=["GET"])
 def get_seo_meta():
     """Obtener meta tags SEO para una página"""

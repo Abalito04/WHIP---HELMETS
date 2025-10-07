@@ -708,6 +708,41 @@ main {
     display: flex;
     align-items: center;
     justify-content: center;
+    gap: 10px;
+}
+
+/* Botón de wishlist */
+.wishlist-btn {
+    background: transparent;
+    border: 2px solid #f0ad4e;
+    color: #f0ad4e;
+    padding: 8px 12px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 1.2em;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.wishlist-btn:hover {
+    background: #f0ad4e;
+    color: white;
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(240, 173, 78, 0.3);
+}
+
+.wishlist-btn:active {
+    transform: scale(0.95);
+}
+
+.wishlist-icon {
+    font-size: 1.2em;
+    transition: all 0.3s ease;
 }
 
 .product-card button {

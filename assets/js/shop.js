@@ -107,6 +107,9 @@ function renderProducts() {
     // Inicializar eventos para los nuevos botones
     initProductEvents();
     
+    // Cargar estado de wishlist para cada producto
+    loadWishlistStates();
+    
     // Inicializar la UI de stock después de renderizar
     setTimeout(initializeStockUI, 100);
     
@@ -199,6 +202,9 @@ function createProductCard(product) {
         <button class="add-to-cart-btn" data-product-id="${product.id}" ${isOutOfStock ? 'disabled' : ''}>
             ${isOutOfStock ? 'Sin stock' : 'Añadir al Carrito'}
         </button>
+        <button class="wishlist-btn" data-product-id="${product.id}" title="Agregar a favoritos">
+            <span class="wishlist-icon">🤍</span>
+        </button>
         </div>
     `;
     
@@ -213,6 +219,121 @@ function updateCartCount() {
     
     if (miniCartCount) {
         miniCartCount.textContent = cart.length;
+    }
+}
+
+// ===== FUNCIONES DE WISHLIST =====
+
+// Función para verificar estado de wishlist
+async function checkWishlistStatus(productId) {
+    try {
+        const response = await fetch(`${API_BASE}/api/wishlist/check/${productId}`, {
+            credentials: 'include'
+        });
+        
+        if (response.status === 401) {
+            return false; // Usuario no autenticado
+        }
+        
+        const data = await response.json();
+        return data.success ? data.is_in_wishlist : false;
+    } catch (error) {
+        console.error('Error verificando wishlist:', error);
+        return false;
+    }
+}
+
+// Función para actualizar icono de wishlist
+async function updateWishlistIcon(productId, isInWishlist) {
+    const wishlistBtn = document.querySelector(`[data-product-id="${productId}"] .wishlist-btn`);
+    if (wishlistBtn) {
+        const icon = wishlistBtn.querySelector('.wishlist-icon');
+        if (icon) {
+            icon.textContent = isInWishlist ? '❤️' : '🤍';
+        }
+        wishlistBtn.title = isInWishlist ? 'Quitar de favoritos' : 'Agregar a favoritos';
+    }
+}
+
+// Función para agregar/quitar de wishlist
+async function toggleWishlist(productId) {
+    try {
+        // Verificar si está autenticado
+        const response = await fetch(`${API_BASE}/api/wishlist/check/${productId}`, {
+            credentials: 'include'
+        });
+        
+        if (response.status === 401) {
+            showMiniNotification('Debes iniciar sesión para usar favoritos', 'error');
+            setTimeout(() => {
+                // Mostrar modal de login
+                const loginModal = document.getElementById('loginModal');
+                if (loginModal) {
+                    loginModal.style.display = 'block';
+                }
+            }, 1000);
+            return;
+        }
+        
+        const checkData = await response.json();
+        const isInWishlist = checkData.success ? checkData.is_in_wishlist : false;
+        
+        // Obtener token CSRF
+        const csrfResponse = await fetch(`${API_BASE}/api/csrf-token`);
+        const csrfData = await csrfResponse.json();
+        const csrfToken = csrfData.csrf_token;
+        
+        let actionResponse;
+        if (isInWishlist) {
+            // Remover de wishlist
+            actionResponse = await fetch(`${API_BASE}/api/wishlist/${productId}`, {
+                method: 'DELETE',
+                headers: {
+                    'X-CSRF-Token': csrfToken,
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'include'
+            });
+        } else {
+            // Agregar a wishlist
+            actionResponse = await fetch(`${API_BASE}/api/wishlist/${productId}`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-Token': csrfToken,
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'include'
+            });
+        }
+        
+        const actionData = await actionResponse.json();
+        
+        if (actionData.success) {
+            showMiniNotification(actionData.message, 'success');
+            // Actualizar icono
+            await updateWishlistIcon(productId, !isInWishlist);
+        } else {
+            showMiniNotification(actionData.error || 'Error en favoritos', 'error');
+        }
+        
+    } catch (error) {
+        console.error('Error en wishlist:', error);
+        showMiniNotification('Error de conexión', 'error');
+    }
+}
+
+// Función para cargar estados de wishlist
+async function loadWishlistStates() {
+    const wishlistButtons = document.querySelectorAll('.wishlist-btn');
+    
+    for (const button of wishlistButtons) {
+        const productId = button.dataset.productId;
+        try {
+            const isInWishlist = await checkWishlistStatus(productId);
+            await updateWishlistIcon(productId, isInWishlist);
+        } catch (error) {
+            console.error(`Error cargando estado de wishlist para producto ${productId}:`, error);
+        }
     }
 }
 
@@ -262,6 +383,15 @@ function initProductEvents() {
                 // Usar la función global para agregar al carrito
                 window.addToCart(product.name, priceToUse, size, productId);
             }
+        });
+    });
+    
+    // Manejar clic en botón de wishlist
+    document.querySelectorAll(".wishlist-btn").forEach(button => {
+        button.addEventListener("click", function(e) {
+            e.preventDefault();
+            const productId = this.dataset.productId;
+            toggleWishlist(productId);
         });
     });
     

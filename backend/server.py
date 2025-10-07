@@ -655,6 +655,48 @@ def migrate_password_reset():
     finally:
         conn.close()
 
+@app.route("/api/migrate/wishlist", methods=["POST"])
+@debug_only
+def migrate_wishlist():
+    """Ejecutar migración de wishlist"""
+    try:
+        conn = get_conn()
+        cursor = conn.cursor()
+        
+        # Leer el archivo SQL
+        with open('backend/migrate_wishlist.sql', 'r', encoding='utf-8') as f:
+            sql_content = f.read()
+        
+        # Ejecutar la migración
+        cursor.execute(sql_content)
+        conn.commit()
+        
+        # Verificar que la tabla se creó
+        cursor.execute("""
+            SELECT table_name 
+            FROM information_schema.tables 
+            WHERE table_name = 'wishlist'
+        """)
+        
+        if cursor.fetchone():
+            return jsonify({
+                "success": True,
+                "message": "Tabla 'wishlist' creada exitosamente"
+            }), 200
+        else:
+            return jsonify({
+                "success": False,
+                "message": "Error: Tabla no se creó"
+            }), 500
+            
+    except Exception as e:
+        return jsonify({
+            "success": False,
+            "message": f"Error ejecutando migración: {str(e)}"
+        }), 500
+    finally:
+        conn.close()
+
 @app.route("/api/auth/forgot-password", methods=["POST"])
 @require_csrf
 def forgot_password():
@@ -952,6 +994,220 @@ def validate_reset_token():
                 "valid": True,
                 "message": "Token válido",
                 "username": reset_token[2]  # reset_token[2] es username
+            }), 200
+            
+        finally:
+            conn.close()
+            
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+# ===== ENDPOINTS DE WISHLIST =====
+
+@app.route("/api/wishlist", methods=["GET"])
+@require_auth
+def get_wishlist():
+    """Obtener wishlist del usuario autenticado"""
+    try:
+        user_id = session.get('user_id')
+        if not user_id:
+            return jsonify({"error": "Usuario no autenticado"}), 401
+        
+        conn = get_conn()
+        try:
+            cursor = conn.cursor()
+            
+            # Crear tabla si no existe
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS wishlist (
+                    id SERIAL PRIMARY KEY,
+                    user_id INTEGER NOT NULL,
+                    product_id INTEGER NOT NULL,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+                    FOREIGN KEY (product_id) REFERENCES productos(id) ON DELETE CASCADE,
+                    UNIQUE(user_id, product_id)
+                )
+            """)
+            
+            # Obtener wishlist con datos del producto
+            cursor.execute("""
+                SELECT w.id, w.product_id, w.created_at,
+                       p.name, p.brand, p.price, p.image, p.images, p.stock, p.status
+                FROM wishlist w
+                JOIN productos p ON w.product_id = p.id
+                WHERE w.user_id = %s
+                ORDER BY w.created_at DESC
+            """, (user_id,))
+            
+            wishlist_items = cursor.fetchall()
+            
+            # Convertir a lista de diccionarios
+            wishlist_data = []
+            for item in wishlist_items:
+                wishlist_data.append({
+                    'wishlist_id': item[0],
+                    'product_id': item[1],
+                    'added_at': item[2].isoformat() if item[2] else None,
+                    'product': {
+                        'id': item[1],
+                        'name': item[3],
+                        'brand': item[4],
+                        'price': float(item[5]) if item[5] else 0,
+                        'image': item[6],
+                        'images': item[7],
+                        'stock': item[8],
+                        'status': item[9]
+                    }
+                })
+            
+            return jsonify({
+                "success": True,
+                "wishlist": wishlist_data,
+                "count": len(wishlist_data)
+            }), 200
+            
+        finally:
+            conn.close()
+            
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/api/wishlist/<int:product_id>", methods=["POST"])
+@require_auth
+@require_csrf
+def add_to_wishlist(product_id):
+    """Agregar producto a wishlist"""
+    try:
+        user_id = session.get('user_id')
+        if not user_id:
+            return jsonify({"error": "Usuario no autenticado"}), 401
+        
+        conn = get_conn()
+        try:
+            cursor = conn.cursor()
+            
+            # Crear tabla si no existe
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS wishlist (
+                    id SERIAL PRIMARY KEY,
+                    user_id INTEGER NOT NULL,
+                    product_id INTEGER NOT NULL,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+                    FOREIGN KEY (product_id) REFERENCES productos(id) ON DELETE CASCADE,
+                    UNIQUE(user_id, product_id)
+                )
+            """)
+            
+            # Verificar que el producto existe
+            cursor.execute("SELECT id, name FROM productos WHERE id = %s", (product_id,))
+            product = cursor.fetchone()
+            
+            if not product:
+                return jsonify({"error": "Producto no encontrado"}), 404
+            
+            # Verificar si ya está en wishlist
+            cursor.execute("""
+                SELECT id FROM wishlist 
+                WHERE user_id = %s AND product_id = %s
+            """, (user_id, product_id))
+            
+            if cursor.fetchone():
+                return jsonify({"error": "Producto ya está en tu wishlist"}), 400
+            
+            # Agregar a wishlist
+            cursor.execute("""
+                INSERT INTO wishlist (user_id, product_id)
+                VALUES (%s, %s)
+                RETURNING id, created_at
+            """, (user_id, product_id))
+            
+            result = cursor.fetchone()
+            conn.commit()
+            
+            return jsonify({
+                "success": True,
+                "message": f"Producto '{product[1]}' agregado a favoritos",
+                "wishlist_id": result[0],
+                "added_at": result[1].isoformat() if result[1] else None
+            }), 201
+            
+        finally:
+            conn.close()
+            
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/api/wishlist/<int:product_id>", methods=["DELETE"])
+@require_auth
+@require_csrf
+def remove_from_wishlist(product_id):
+    """Remover producto de wishlist"""
+    try:
+        user_id = session.get('user_id')
+        if not user_id:
+            return jsonify({"error": "Usuario no autenticado"}), 401
+        
+        conn = get_conn()
+        try:
+            cursor = conn.cursor()
+            
+            # Verificar si está en wishlist
+            cursor.execute("""
+                SELECT w.id, p.name FROM wishlist w
+                JOIN productos p ON w.product_id = p.id
+                WHERE w.user_id = %s AND w.product_id = %s
+            """, (user_id, product_id))
+            
+            wishlist_item = cursor.fetchone()
+            
+            if not wishlist_item:
+                return jsonify({"error": "Producto no está en tu wishlist"}), 404
+            
+            # Remover de wishlist
+            cursor.execute("""
+                DELETE FROM wishlist 
+                WHERE user_id = %s AND product_id = %s
+            """, (user_id, product_id))
+            
+            conn.commit()
+            
+            return jsonify({
+                "success": True,
+                "message": f"Producto '{wishlist_item[1]}' removido de favoritos"
+            }), 200
+            
+        finally:
+            conn.close()
+            
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/api/wishlist/check/<int:product_id>", methods=["GET"])
+@require_auth
+def check_wishlist_status(product_id):
+    """Verificar si un producto está en wishlist"""
+    try:
+        user_id = session.get('user_id')
+        if not user_id:
+            return jsonify({"error": "Usuario no autenticado"}), 401
+        
+        conn = get_conn()
+        try:
+            cursor = conn.cursor()
+            
+            cursor.execute("""
+                SELECT id FROM wishlist 
+                WHERE user_id = %s AND product_id = %s
+            """, (user_id, product_id))
+            
+            is_in_wishlist = cursor.fetchone() is not None
+            
+            return jsonify({
+                "success": True,
+                "is_in_wishlist": is_in_wishlist,
+                "product_id": product_id
             }), 200
             
         finally:

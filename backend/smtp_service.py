@@ -65,18 +65,36 @@ class SMTPEmailService:
             print(f"   To: {msg['To']}")
             print(f"   Subject: {msg['Subject']}")
             
-            # Conectar y enviar
-            server = smtplib.SMTP(self.smtp_server, self.smtp_port)
-            server.starttls()
-            server.login(self.smtp_username, self.smtp_password)
+            # Conectar y enviar con timeout y debug
+            print(f"🔌 Conectando a {self.smtp_server}:{self.smtp_port}")
+            server = smtplib.SMTP(self.smtp_server, self.smtp_port, timeout=30)
             
+            print(f"🔐 Iniciando TLS...")
+            server.starttls()
+            
+            print(f"🔑 Autenticando con usuario: {self.smtp_username}")
+            server.login(self.smtp_username, self.smtp_password)
+            print(f"✅ Autenticación exitosa")
+            
+            print(f"📤 Enviando email...")
             text = msg.as_string()
             server.sendmail(self.from_email, to_email, text)
+            
+            print(f"🔌 Cerrando conexión...")
             server.quit()
             
             print(f"✅ Email SMTP enviado a {to_email}: {subject}")
             return True, f"Email enviado correctamente via SMTP"
             
+        except smtplib.SMTPAuthenticationError as e:
+            logger.error(f"❌ Error de autenticación SMTP: {e}")
+            return False, f"Error de autenticación: Verifica SMTP_USERNAME y SMTP_PASSWORD"
+        except smtplib.SMTPConnectError as e:
+            logger.error(f"❌ Error de conexión SMTP: {e}")
+            return False, f"Error de conexión: Verifica SMTP_SERVER y SMTP_PORT"
+        except smtplib.SMTPException as e:
+            logger.error(f"❌ Error SMTP: {e}")
+            return False, f"Error SMTP: {str(e)}"
         except Exception as e:
             logger.error(f"❌ Error enviando email SMTP a {to_email}: {e}")
             logger.error(f"   Tipo de error: {type(e).__name__}")

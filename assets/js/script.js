@@ -539,6 +539,11 @@ document.addEventListener("DOMContentLoaded", () => {
           setTimeout(() => {
             hideLoginModal();
             
+            // Recargar estados de wishlist después del login exitoso
+            if (window.reloadWishlistStates) {
+              window.reloadWishlistStates();
+            }
+            
             // Si es admin, mostrar opción de ir al panel
             if (data.user.role === 'admin') {
               console.log('Usuario admin detectado, preguntando si quiere ir al panel...');

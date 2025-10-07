@@ -293,14 +293,16 @@ async function toggleWishlist(productId) {
         
         if (response.status === 401) {
             console.log('❌ Usuario no autenticado');
-            showMiniNotification('Debes iniciar sesión para usar favoritos', 'error');
-            setTimeout(() => {
-                // Mostrar modal de login
-                const loginModal = document.getElementById('loginModal');
-                if (loginModal) {
-                    loginModal.style.display = 'block';
-                }
-            }, 1000);
+            showMiniNotification('Inicia sesión para guardar tus productos favoritos', 'info');
+            
+            // Mostrar modal de login inmediatamente
+            const loginModal = document.getElementById('loginModal');
+            if (loginModal) {
+                loginModal.style.display = 'block';
+            } else {
+                // Si no hay modal, redirigir a página de login
+                window.location.href = 'index.html#login';
+            }
             return;
         }
         
@@ -393,19 +395,37 @@ function reloadWishlistStates() {
 window.reloadWishlistStates = reloadWishlistStates;
 
 // Función para mostrar notificación
-function showMiniNotification(message) {
+function showMiniNotification(message, type = 'success') {
     const notification = document.createElement("div");
     notification.textContent = message;
+    
+    // Colores según el tipo
+    let backgroundColor, textColor;
+    if (type === 'success') {
+        backgroundColor = '#28a745';
+        textColor = '#fff';
+    } else if (type === 'error') {
+        backgroundColor = '#dc3545';
+        textColor = '#fff';
+    } else if (type === 'info') {
+        backgroundColor = '#17a2b8';
+        textColor = '#fff';
+    } else {
+        backgroundColor = '#f0ad4e';
+        textColor = '#000';
+    }
+    
     notification.style.cssText = `
         position: fixed;
         bottom: 20px;
         right: 20px;
-        background: #f0ad4e;
-        color: #000;
+        background: ${backgroundColor};
+        color: ${textColor};
         padding: 10px 20px;
         border-radius: 5px;
         z-index: 1000;
         box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        font-weight: bold;
     `;
     
     document.body.appendChild(notification);
@@ -414,7 +434,7 @@ function showMiniNotification(message) {
         notification.style.opacity = "0";
         notification.style.transition = "opacity 0.5s";
         setTimeout(() => notification.remove(), 500);
-    }, 2000);
+    }, 3000);
 }
 
 // Función para inicializar eventos para productos

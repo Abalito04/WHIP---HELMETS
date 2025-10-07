@@ -418,6 +418,76 @@ class ResendEmailService:
         for item in items:
             text += f"- {item.get('name', 'Producto')} ({item.get('brand', '')}) - Cantidad: {item.get('quantity', 1)} - ${item.get('price', 0):,.2f}\n"
         return text
+    
+    def send_email_verification(self, customer_email, customer_name, verification_token):
+        """Enviar email de verificación de cuenta"""
+        subject = "Verifica tu cuenta - WHIP HELMETS"
+        
+        verification_url = f"https://whip-helmets.up.railway.app/verify-email.html?token={verification_token}"
+        
+        html_content = f"""
+        <!DOCTYPE html>
+        <html lang="es">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Verifica tu cuenta</title>
+            <style>
+                body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; }}
+                .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
+                .header {{ background: linear-gradient(135deg, #f0ad4e, #e67e22); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }}
+                .content {{ background: #f9f9f9; padding: 30px; }}
+                .footer {{ text-align: center; padding: 20px; color: #666; font-size: 12px; background: #eee; border-radius: 0 0 10px 10px; }}
+                .verify-btn {{ background: #f0ad4e; color: white; padding: 15px 30px; text-decoration: none; border-radius: 5px; display: inline-block; margin: 20px 0; }}
+                .verify-btn:hover {{ background: #e67e22; }}
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="header">
+                    <h1>🔐 Verifica tu cuenta</h1>
+                </div>
+                
+                <div class="content">
+                    <h2>¡Hola {customer_name}!</h2>
+                    <p>Gracias por registrarte en WHIP HELMETS. Para completar tu registro, necesitas verificar tu dirección de email.</p>
+                    
+                    <p>Haz clic en el botón de abajo para verificar tu cuenta:</p>
+                    
+                    <a href="{verification_url}" class="verify-btn">✅ Verificar mi cuenta</a>
+                    
+                    <p><strong>Este enlace expira en 24 horas.</strong></p>
+                    
+                    <p>Si no creaste una cuenta en WHIP HELMETS, puedes ignorar este email.</p>
+                </div>
+                
+                <div class="footer">
+                    <p>WHIP HELMETS - Tu tienda de confianza para cascos</p>
+                    <p>Este email fue enviado automáticamente. No responder.</p>
+                </div>
+            </div>
+        </body>
+        </html>
+        """
+        
+        text_content = f"""
+        Verifica tu cuenta - WHIP HELMETS
+        
+        ¡Hola {customer_name}!
+        
+        Gracias por registrarte en WHIP HELMETS. Para completar tu registro, necesitas verificar tu dirección de email.
+        
+        Para verificar tu cuenta, visita este enlace:
+        {verification_url}
+        
+        Este enlace expira en 24 horas.
+        
+        Si no creaste una cuenta en WHIP HELMETS, puedes ignorar este email.
+        
+        WHIP HELMETS
+        """
+        
+        return self.send_email(customer_email, subject, html_content, text_content)
 
 # Instancia global del servicio de email
 resend_email_service = ResendEmailService()

@@ -708,6 +708,113 @@ def migrate_password_reset():
         conn.close()
 
 
+@app.route("/api/auth/verify-email", methods=["POST"])
+def verify_email():
+    """Verificar email con token"""
+    try:
+        data = request.get_json()
+        token = data.get('token', '').strip()
+        
+        if not token:
+            return jsonify({"error": "Token requerido"}), 400
+        
+        # Buscar token válido
+        conn = get_db_connection()
+        verification = conn.execute(
+            '''SELECT vt.*, u.email, u.name 
+               FROM email_verification_tokens vt
+               JOIN users u ON vt.user_id = u.id
+               WHERE vt.token = ? AND vt.used = FALSE AND vt.expires_at > ?''',
+            (token, datetime.now())
+        ).fetchone()
+        
+        if not verification:
+            conn.close()
+            return jsonify({"error": "Token inválido o expirado"}), 400
+        
+        # Marcar email como verificado
+        conn.execute(
+            'UPDATE users SET email_verified = TRUE WHERE id = ?',
+            (verification['user_id'],)
+        )
+        
+        # Marcar token como usado
+        conn.execute(
+            'UPDATE email_verification_tokens SET used = TRUE WHERE id = ?',
+            (verification['id'],)
+        )
+        
+        conn.commit()
+        conn.close()
+        
+        return jsonify({
+            "message": "Email verificado correctamente",
+            "user": {
+                "name": verification['name'],
+                "email": verification['email']
+            }
+        }), 200
+        
+    except Exception as e:
+        print(f"Error en verify_email: {e}")
+        return jsonify({"error": "Error interno del servidor"}), 500
+
+@app.route("/api/auth/resend-verification", methods=["POST"])
+def resend_verification():
+    """Reenviar email de verificación"""
+    try:
+        data = request.get_json()
+        email = data.get('email', '').strip().lower()
+        
+        if not email:
+            return jsonify({"error": "Email requerido"}), 400
+        
+        # Buscar usuario no verificado
+        conn = get_db_connection()
+        user = conn.execute(
+            'SELECT id, name, email FROM users WHERE email = ? AND email_verified = FALSE',
+            (email,)
+        ).fetchone()
+        conn.close()
+        
+        if not user:
+            return jsonify({"error": "Usuario no encontrado o ya verificado"}), 404
+        
+        # Generar nuevo token
+        import secrets
+        verification_token = secrets.token_urlsafe(32)
+        
+        # Guardar token
+        conn = get_db_connection()
+        conn.execute(
+            '''INSERT INTO email_verification_tokens (user_id, token, email, expires_at) 
+               VALUES (?, ?, ?, ?)''',
+            (user['id'], verification_token, user['email'], datetime.now() + timedelta(hours=24))
+        )
+        conn.commit()
+        conn.close()
+        
+        # Enviar email de verificación
+        if EMAIL_AVAILABLE and email_service.is_configured:
+            try:
+                success, message = email_service.send_email_verification(
+                    user['email'], user['name'], verification_token
+                )
+                if success:
+                    print(f"✅ Email de verificación reenviado a {user['email']}")
+                else:
+                    print(f"⚠️  Error reenviando email de verificación: {message}")
+            except Exception as e:
+                print(f"⚠️  Error reenviando email de verificación: {e}")
+        
+        return jsonify({
+            "message": "Email de verificación reenviado"
+        }), 200
+        
+    except Exception as e:
+        print(f"Error en resend_verification: {e}")
+        return jsonify({"error": "Error interno del servidor"}), 500
+
 @app.route("/api/auth/forgot-password", methods=["POST"])
 @require_csrf
 def forgot_password():
@@ -1863,30 +1970,74 @@ def auth_register():
         result = auth_manager.register_user(username, password, **profile_data)
         
         if result['success']:
-            # Enviar email de bienvenida si está disponible
+            # Crear tabla de verificación de email si no existe
+            conn = get_db_connection()
+            try:
+                conn.execute('''
+                    CREATE TABLE IF NOT EXISTS email_verification_tokens (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        user_id INTEGER NOT NULL,
+                        token TEXT NOT NULL UNIQUE,
+                        email TEXT NOT NULL,
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        expires_at TIMESTAMP NOT NULL,
+                        used BOOLEAN DEFAULT FALSE,
+                        FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
+                    )
+                ''')
+                
+                # Agregar columna email_verified si no existe
+                try:
+                    conn.execute('ALTER TABLE users ADD COLUMN email_verified BOOLEAN DEFAULT FALSE')
+                except:
+                    pass  # La columna ya existe
+                
+                conn.commit()
+            except Exception as e:
+                print(f"Error creando tabla de verificación: {e}")
+            finally:
+                conn.close()
+            
+            # Enviar email de verificación si está disponible
             if EMAIL_AVAILABLE and profile_data.get('email'):
                 try:
                     customer_name = f"{profile_data.get('nombre', '')} {profile_data.get('apellido', '')}".strip()
                     if not customer_name:
                         customer_name = username
                     
-                    print(f"🔄 Intentando enviar email de bienvenida a {profile_data['email']}")
+                    # Generar token de verificación
+                    import secrets
+                    verification_token = secrets.token_urlsafe(32)
+                    
+                    # Guardar token en base de datos
+                    conn = get_db_connection()
+                    conn.execute(
+                        '''INSERT INTO email_verification_tokens (user_id, token, email, expires_at) 
+                           VALUES (?, ?, ?, ?)''',
+                        (result['user_id'], verification_token, profile_data['email'], 
+                         datetime.now() + timedelta(hours=24))
+                    )
+                    conn.commit()
+                    conn.close()
+                    
+                    print(f"🔄 Intentando enviar email de verificación a {profile_data['email']}")
                     print(f"   Nombre del cliente: {customer_name}")
                     print(f"   Email service configurado: {email_service.is_configured}")
                     
-                    success, message = email_service.send_welcome_email(
+                    success, message = email_service.send_email_verification(
                         profile_data['email'],
-                        customer_name
+                        customer_name,
+                        verification_token
                     )
                     
                     if success:
-                        print(f"✅ Email de bienvenida enviado a {profile_data['email']}")
+                        print(f"✅ Email de verificación enviado a {profile_data['email']}")
                         print(f"   Mensaje: {message}")
                     else:
-                        print(f"⚠️  Error enviando email de bienvenida: {message}")
+                        print(f"⚠️  Error enviando email de verificación: {message}")
                         
                 except Exception as e:
-                    print(f"⚠️  Error en envío de email de bienvenida: {e}")
+                    print(f"⚠️  Error en envío de email de verificación: {e}")
                     print(f"   Tipo de error: {type(e).__name__}")
                     # No fallar el registro por error de email
             

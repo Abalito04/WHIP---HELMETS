@@ -28,7 +28,7 @@ class ResendEmailService:
             try:
                 import resend
                 resend.api_key = self.api_key
-                logger.info("✅ Resend configurado correctamente")
+                print("✅ Resend configurado correctamente")
             except ImportError:
                 logger.error("❌ Módulo 'resend' no instalado")
                 self.is_configured = False
@@ -42,6 +42,11 @@ class ResendEmailService:
         try:
             import resend
             
+            print(f"🔄 Intentando enviar email a {to_email}")
+            print(f"   From: {self.from_name} <{self.from_email}>")
+            print(f"   Subject: {subject}")
+            print(f"   API Key configurada: {bool(self.api_key)}")
+            
             # Preparar datos del email
             email_data = {
                 "from": f"{self.from_name} <{self.from_email}>",
@@ -54,18 +59,29 @@ class ResendEmailService:
             if text_content:
                 email_data["text"] = text_content
             
+            print(f"📧 Datos del email preparados")
+            print(f"   From: {email_data['from']}")
+            print(f"   To: {email_data['to']}")
+            print(f"   Subject: {email_data['subject']}")
+            
             # Enviar email
             response = resend.Emails.send(email_data)
             
+            print(f"📨 Respuesta de Resend: {response}")
+            print(f"   Tipo de respuesta: {type(response)}")
+            
             if response and hasattr(response, 'id'):
-                logger.info(f"✅ Email enviado a {to_email}: {subject} (ID: {response.id})")
+                print(f"✅ Email enviado a {to_email}: {subject} (ID: {response.id})")
                 return True, f"Email enviado correctamente (ID: {response.id})"
             else:
-                logger.error(f"❌ Error enviando email a {to_email}: Respuesta inválida")
+                print(f"❌ Error enviando email a {to_email}: Respuesta inválida")
+                print(f"   Respuesta recibida: {response}")
                 return False, "Error en respuesta del servicio"
             
         except Exception as e:
             logger.error(f"❌ Error enviando email a {to_email}: {e}")
+            logger.error(f"   Tipo de error: {type(e).__name__}")
+            logger.error(f"   Detalles completos: {str(e)}")
             return False, f"Error enviando email: {str(e)}"
     
     def send_order_confirmation(self, customer_email, customer_name, order_data):

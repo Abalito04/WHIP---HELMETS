@@ -1864,6 +1864,10 @@ def auth_register():
                     if not customer_name:
                         customer_name = username
                     
+                    print(f"🔄 Intentando enviar email de bienvenida a {profile_data['email']}")
+                    print(f"   Nombre del cliente: {customer_name}")
+                    print(f"   Email service configurado: {email_service.is_configured}")
+                    
                     success, message = email_service.send_welcome_email(
                         profile_data['email'],
                         customer_name
@@ -1871,11 +1875,13 @@ def auth_register():
                     
                     if success:
                         print(f"✅ Email de bienvenida enviado a {profile_data['email']}")
+                        print(f"   Mensaje: {message}")
                     else:
                         print(f"⚠️  Error enviando email de bienvenida: {message}")
                         
                 except Exception as e:
                     print(f"⚠️  Error en envío de email de bienvenida: {e}")
+                    print(f"   Tipo de error: {type(e).__name__}")
                     # No fallar el registro por error de email
             
             return jsonify(result), 201

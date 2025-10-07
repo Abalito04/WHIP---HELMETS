@@ -90,6 +90,7 @@ class AuthManager:
                 )
                 existing_user = cursor.fetchone()
                 print(f"🔍 DEBUG - Usuario existente encontrado: {existing_user is not None}")
+                print(f"🔍 DEBUG - Existing user result: {existing_user}")
                 
                 if existing_user:
                     # Verificar cuál campo específico está duplicado
@@ -131,7 +132,18 @@ class AuthManager:
                 print(f"🔍 DEBUG - Obteniendo ID del usuario...")
                 cursor.execute("SELECT id FROM users WHERE username = %s", (username,))
                 user_result = cursor.fetchone()
-                user_id = user_result[0] if user_result else None
+                print(f"🔍 DEBUG - User result: {user_result}")
+                print(f"🔍 DEBUG - Tipo de user_result: {type(user_result)}")
+                
+                # Manejar tanto diccionario como tupla
+                if user_result:
+                    if isinstance(user_result, dict):
+                        user_id = user_result['id']
+                    else:
+                        user_id = user_result[0]
+                else:
+                    user_id = None
+                    
                 print(f"🔍 DEBUG - ID obtenido: {user_id}")
                 
                 print(f"🔍 DEBUG - Usuario creado:")

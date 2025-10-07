@@ -719,29 +719,31 @@ def verify_email():
             return jsonify({"error": "Token requerido"}), 400
         
         # Buscar token válido
-        conn = get_db_connection()
-        verification = conn.execute(
+        conn = get_conn()
+        cursor = conn.cursor()
+        cursor.execute(
             '''SELECT vt.*, u.email, u.name 
                FROM email_verification_tokens vt
                JOIN users u ON vt.user_id = u.id
-               WHERE vt.token = ? AND vt.used = FALSE AND vt.expires_at > ?''',
+               WHERE vt.token = %s AND vt.used = FALSE AND vt.expires_at > %s''',
             (token, datetime.now())
-        ).fetchone()
+        )
+        verification = cursor.fetchone()
         
         if not verification:
             conn.close()
             return jsonify({"error": "Token inválido o expirado"}), 400
         
         # Marcar email como verificado
-        conn.execute(
-            'UPDATE users SET email_verified = TRUE WHERE id = ?',
-            (verification['user_id'],)
+        cursor.execute(
+            'UPDATE users SET email_verified = TRUE WHERE id = %s',
+            (verification[1],)  # user_id está en la posición 1
         )
         
         # Marcar token como usado
-        conn.execute(
-            'UPDATE email_verification_tokens SET used = TRUE WHERE id = ?',
-            (verification['id'],)
+        cursor.execute(
+            'UPDATE email_verification_tokens SET used = TRUE WHERE id = %s',
+            (verification[0],)  # id está en la posición 0
         )
         
         conn.commit()
@@ -750,8 +752,8 @@ def verify_email():
         return jsonify({
             "message": "Email verificado correctamente",
             "user": {
-                "name": verification['name'],
-                "email": verification['email']
+                "name": verification[6],  # name está en la posición 6
+                "email": verification[5]  # email está en la posición 5
             }
         }), 200
         
@@ -770,11 +772,13 @@ def resend_verification():
             return jsonify({"error": "Email requerido"}), 400
         
         # Buscar usuario no verificado
-        conn = get_db_connection()
-        user = conn.execute(
-            'SELECT id, name, email FROM users WHERE email = ? AND email_verified = FALSE',
+        conn = get_conn()
+        cursor = conn.cursor()
+        cursor.execute(
+            'SELECT id, name, email FROM users WHERE email = %s AND email_verified = FALSE',
             (email,)
-        ).fetchone()
+        )
+        user = cursor.fetchone()
         conn.close()
         
         if not user:
@@ -785,11 +789,12 @@ def resend_verification():
         verification_token = secrets.token_urlsafe(32)
         
         # Guardar token
-        conn = get_db_connection()
-        conn.execute(
+        conn = get_conn()
+        cursor = conn.cursor()
+        cursor.execute(
             '''INSERT INTO email_verification_tokens (user_id, token, email, expires_at) 
-               VALUES (?, ?, ?, ?)''',
-            (user['id'], verification_token, user['email'], datetime.now() + timedelta(hours=24))
+               VALUES (%s, %s, %s, %s)''',
+            (user[0], verification_token, user[2], datetime.now() + timedelta(hours=24))
         )
         conn.commit()
         conn.close()
@@ -798,10 +803,10 @@ def resend_verification():
         if EMAIL_AVAILABLE and email_service.is_configured:
             try:
                 success, message = email_service.send_email_verification(
-                    user['email'], user['name'], verification_token
+                    user[2], user[1], verification_token  # email, name
                 )
                 if success:
-                    print(f"✅ Email de verificación reenviado a {user['email']}")
+                    print(f"✅ Email de verificación reenviado a {user[2]}")
                 else:
                     print(f"⚠️  Error reenviando email de verificación: {message}")
             except Exception as e:
@@ -1970,33 +1975,34 @@ def auth_register():
         result = auth_manager.register_user(username, password, **profile_data)
         
         if result['success']:
-            # Crear tabla de verificación de email si no existe
-            conn = get_db_connection()
+        # Crear tabla de verificación de email si no existe
+        conn = get_conn()
+        try:
+            cursor = conn.cursor()
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS email_verification_tokens (
+                    id SERIAL PRIMARY KEY,
+                    user_id INTEGER NOT NULL,
+                    token TEXT NOT NULL UNIQUE,
+                    email TEXT NOT NULL,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    expires_at TIMESTAMP NOT NULL,
+                    used BOOLEAN DEFAULT FALSE,
+                    FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
+                )
+            ''')
+            
+            # Agregar columna email_verified si no existe
             try:
-                conn.execute('''
-                    CREATE TABLE IF NOT EXISTS email_verification_tokens (
-                        id INTEGER PRIMARY KEY AUTOINCREMENT,
-                        user_id INTEGER NOT NULL,
-                        token TEXT NOT NULL UNIQUE,
-                        email TEXT NOT NULL,
-                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                        expires_at TIMESTAMP NOT NULL,
-                        used BOOLEAN DEFAULT FALSE,
-                        FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
-                    )
-                ''')
-                
-                # Agregar columna email_verified si no existe
-                try:
-                    conn.execute('ALTER TABLE users ADD COLUMN email_verified BOOLEAN DEFAULT FALSE')
-                except:
-                    pass  # La columna ya existe
-                
-                conn.commit()
-            except Exception as e:
-                print(f"Error creando tabla de verificación: {e}")
-            finally:
-                conn.close()
+                cursor.execute('ALTER TABLE users ADD COLUMN email_verified BOOLEAN DEFAULT FALSE')
+            except:
+                pass  # La columna ya existe
+            
+            conn.commit()
+        except Exception as e:
+            print(f"Error creando tabla de verificación: {e}")
+        finally:
+            conn.close()
             
             # Enviar email de verificación si está disponible
             if EMAIL_AVAILABLE and profile_data.get('email'):
@@ -2010,10 +2016,11 @@ def auth_register():
                     verification_token = secrets.token_urlsafe(32)
                     
                     # Guardar token en base de datos
-                    conn = get_db_connection()
-                    conn.execute(
+                    conn = get_conn()
+                    cursor = conn.cursor()
+                    cursor.execute(
                         '''INSERT INTO email_verification_tokens (user_id, token, email, expires_at) 
-                           VALUES (?, ?, ?, ?)''',
+                           VALUES (%s, %s, %s, %s)''',
                         (result['user_id'], verification_token, profile_data['email'], 
                          datetime.now() + timedelta(hours=24))
                     )

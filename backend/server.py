@@ -1975,34 +1975,34 @@ def auth_register():
         result = auth_manager.register_user(username, password, **profile_data)
         
         if result['success']:
-        # Crear tabla de verificación de email si no existe
-        conn = get_conn()
-        try:
-            cursor = conn.cursor()
-            cursor.execute('''
-                CREATE TABLE IF NOT EXISTS email_verification_tokens (
-                    id SERIAL PRIMARY KEY,
-                    user_id INTEGER NOT NULL,
-                    token TEXT NOT NULL UNIQUE,
-                    email TEXT NOT NULL,
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    expires_at TIMESTAMP NOT NULL,
-                    used BOOLEAN DEFAULT FALSE,
-                    FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
-                )
-            ''')
-            
-            # Agregar columna email_verified si no existe
+            # Crear tabla de verificación de email si no existe
+            conn = get_conn()
             try:
-                cursor.execute('ALTER TABLE users ADD COLUMN email_verified BOOLEAN DEFAULT FALSE')
-            except:
-                pass  # La columna ya existe
-            
-            conn.commit()
-        except Exception as e:
-            print(f"Error creando tabla de verificación: {e}")
-        finally:
-            conn.close()
+                cursor = conn.cursor()
+                cursor.execute('''
+                    CREATE TABLE IF NOT EXISTS email_verification_tokens (
+                        id SERIAL PRIMARY KEY,
+                        user_id INTEGER NOT NULL,
+                        token TEXT NOT NULL UNIQUE,
+                        email TEXT NOT NULL,
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        expires_at TIMESTAMP NOT NULL,
+                        used BOOLEAN DEFAULT FALSE,
+                        FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
+                    )
+                ''')
+                
+                # Agregar columna email_verified si no existe
+                try:
+                    cursor.execute('ALTER TABLE users ADD COLUMN email_verified BOOLEAN DEFAULT FALSE')
+                except:
+                    pass  # La columna ya existe
+                
+                conn.commit()
+            except Exception as e:
+                print(f"Error creando tabla de verificación: {e}")
+            finally:
+                conn.close()
             
             # Enviar email de verificación si está disponible
             if EMAIL_AVAILABLE and profile_data.get('email'):

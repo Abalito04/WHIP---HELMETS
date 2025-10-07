@@ -276,10 +276,17 @@ async function updateWishlistIcon(productId, isInWishlist) {
 // Función para agregar/quitar de wishlist
 async function toggleWishlist(productId) {
     try {
-        // Verificar si está autenticado primero
-        const isAuthenticated = await checkAuthentication();
+        console.log('🔄 Toggle wishlist para producto:', productId);
         
-        if (!isAuthenticated) {
+        // Verificar estado actual del wishlist (esto también verifica autenticación)
+        const response = await fetch(`${API_BASE}/api/wishlist/check/${productId}`, {
+            credentials: 'include'
+        });
+        
+        console.log('📡 Respuesta del servidor:', response.status, response.statusText);
+        
+        if (response.status === 401) {
+            console.log('❌ Usuario no autenticado');
             showMiniNotification('Debes iniciar sesión para usar favoritos', 'error');
             setTimeout(() => {
                 // Mostrar modal de login
@@ -288,16 +295,6 @@ async function toggleWishlist(productId) {
                     loginModal.style.display = 'block';
                 }
             }, 1000);
-            return;
-        }
-        
-        // Verificar estado actual del wishlist
-        const response = await fetch(`${API_BASE}/api/wishlist/check/${productId}`, {
-            credentials: 'include'
-        });
-        
-        if (response.status === 401) {
-            showMiniNotification('Debes iniciar sesión para usar favoritos', 'error');
             return;
         }
         

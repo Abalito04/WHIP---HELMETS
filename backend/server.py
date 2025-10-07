@@ -930,6 +930,31 @@ def reset_password():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route("/api/auth/status", methods=["GET"])
+def auth_status():
+    """Verificar estado de autenticación del usuario"""
+    try:
+        user_id = session.get('user_id')
+        username = session.get('username')
+        
+        if user_id and username:
+            return jsonify({
+                "authenticated": True,
+                "user_id": user_id,
+                "username": username
+            }), 200
+        else:
+            return jsonify({
+                "authenticated": False,
+                "message": "Usuario no autenticado"
+            }), 401
+            
+    except Exception as e:
+        return jsonify({
+            "authenticated": False,
+            "error": str(e)
+        }), 500
+
 @app.route("/api/auth/validate-reset-token", methods=["POST"])
 def validate_reset_token():
     """Validar si un token de recuperación es válido"""

@@ -296,10 +296,29 @@ async function toggleWishlist(productId) {
             showMiniNotification('Inicia sesión para guardar tus productos favoritos', 'info');
             
             // Mostrar modal de login inmediatamente
-            const loginModal = document.getElementById('loginModal');
+            const loginModal = document.getElementById('login-modal');
+            console.log('🔍 Buscando modal de login:', loginModal);
+            
             if (loginModal) {
-                loginModal.style.display = 'block';
+                console.log('✅ Modal encontrado, abriendo...');
+                // Forzar la visualización del modal
+                loginModal.style.display = 'flex';
+                loginModal.style.visibility = 'visible';
+                loginModal.style.opacity = '1';
+                loginModal.classList.add('show');
+                
+                // Asegurar que esté en el frente
+                loginModal.style.zIndex = '9999';
+                
+                console.log('🎯 Modal abierto con estilos:', {
+                    display: loginModal.style.display,
+                    visibility: loginModal.style.visibility,
+                    opacity: loginModal.style.opacity,
+                    zIndex: loginModal.style.zIndex,
+                    classList: loginModal.classList.toString()
+                });
             } else {
+                console.log('❌ Modal no encontrado, redirigiendo...');
                 // Si no hay modal, redirigir a página de login
                 window.location.href = 'index.html#login';
             }

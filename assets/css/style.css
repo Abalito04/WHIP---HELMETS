@@ -135,10 +135,14 @@ main {
     backdrop-filter: blur(10px);
     background: rgba(0, 0, 0, 0.1);
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    z-index: 1000;
 }
 
 .header-left, .header-right {
     flex-basis: 20%;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .header-center {
@@ -146,6 +150,7 @@ main {
     display: flex;
     justify-content: center;
     font-size: 1.5em;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .main-nav ul {
@@ -168,7 +173,7 @@ main {
     font-size: 1.2em;
     padding: 0.5em 1em;
     border-radius: 5px;
-    transition: all 0.3s ease;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     min-height: 44px;
     display: flex;
     align-items: center;
@@ -193,7 +198,7 @@ main {
     font-size: 1.3em;
     padding: 0.8em 1.2em;
     border-radius: 8px;
-    transition: all 0.3s ease;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     background: rgba(240, 173, 78, 0.1);
     border: 1px solid rgba(240, 173, 78, 0.3);
     display: inline-flex;
@@ -2752,11 +2757,7 @@ a, button, input, select {
     transition: transform 0.3s ease, box-shadow 0.3s ease !important;
 }
 
-/* Debug temporal para verificar posición del chatbot */
-.chatbot-container {
-    background: rgba(255, 0, 0, 0.1) !important; /* Debug: fondo rojo temporal */
-    border: 2px solid red !important; /* Debug: borde rojo temporal */
-}
+/* Debug temporal removido - chatbot funcionando correctamente */
 
 /* Mejora de contraste para texto */
 .text-high-contrast {

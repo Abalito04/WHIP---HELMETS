@@ -350,7 +350,7 @@ const API_BASE = (() => {
                     showSuccess('¡Cuenta creada exitosamente! 📧 Revisa tu email para verificar tu cuenta. Una vez verificado, podrás iniciar sesión.');
                     
                     // Limpiar formulario después del registro exitoso
-                    document.getElementById('registerForm').reset();
+                    document.getElementById('register-form').reset();
                     
                     // NO guardar token ni redirigir - el usuario debe verificar su email primero
                     // localStorage.setItem('authToken', result.session_token);

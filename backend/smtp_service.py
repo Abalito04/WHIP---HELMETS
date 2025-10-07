@@ -17,6 +17,14 @@ logger = logging.getLogger(__name__)
 class SMTPEmailService:
     def __init__(self):
         """Inicializar servicio de email con SMTP"""
+        # Probar múltiples servidores SMTP
+        self.smtp_servers = [
+            {'server': 'smtp.gmail.com', 'port': 587},
+            {'server': 'smtp.gmail.com', 'port': 465},
+            {'server': 'smtp.mailgun.org', 'port': 587},
+            {'server': 'smtp.sendgrid.net', 'port': 587}
+        ]
+        
         self.smtp_server = os.environ.get('SMTP_SERVER', 'smtp.gmail.com')
         self.smtp_port = int(os.environ.get('SMTP_PORT', '587'))
         self.smtp_username = os.environ.get('SMTP_USERNAME', '')
@@ -65,26 +73,50 @@ class SMTPEmailService:
             print(f"   To: {msg['To']}")
             print(f"   Subject: {msg['Subject']}")
             
-            # Conectar y enviar con timeout y debug
-            print(f"🔌 Conectando a {self.smtp_server}:{self.smtp_port}")
-            server = smtplib.SMTP(self.smtp_server, self.smtp_port, timeout=30)
+            # Probar múltiples servidores SMTP
+            last_error = None
             
-            print(f"🔐 Iniciando TLS...")
-            server.starttls()
+            for smtp_config in self.smtp_servers:
+                try:
+                    server_name = smtp_config['server']
+                    server_port = smtp_config['port']
+                    
+                    print(f"🔌 Probando conexión a {server_name}:{server_port}")
+                    
+                    # Crear conexión con timeout
+                    if server_port == 465:
+                        # Puerto 465 usa SSL directamente
+                        import ssl
+                        context = ssl.create_default_context()
+                        server = smtplib.SMTP_SSL(server_name, server_port, timeout=30, context=context)
+                        print(f"🔐 Conexión SSL establecida")
+                    else:
+                        # Puerto 587 usa STARTTLS
+                        server = smtplib.SMTP(server_name, server_port, timeout=30)
+                        print(f"🔐 Iniciando TLS...")
+                        server.starttls()
+                    
+                    print(f"🔑 Autenticando con usuario: {self.smtp_username}")
+                    server.login(self.smtp_username, self.smtp_password)
+                    print(f"✅ Autenticación exitosa en {server_name}")
+                    
+                    print(f"📤 Enviando email...")
+                    text = msg.as_string()
+                    server.sendmail(self.from_email, to_email, text)
+                    
+                    print(f"🔌 Cerrando conexión...")
+                    server.quit()
+                    
+                    print(f"✅ Email SMTP enviado a {to_email} via {server_name}")
+                    return True, f"Email enviado correctamente via SMTP ({server_name})"
+                    
+                except Exception as e:
+                    print(f"❌ Error con {server_name}:{server_port} - {e}")
+                    last_error = e
+                    continue
             
-            print(f"🔑 Autenticando con usuario: {self.smtp_username}")
-            server.login(self.smtp_username, self.smtp_password)
-            print(f"✅ Autenticación exitosa")
-            
-            print(f"📤 Enviando email...")
-            text = msg.as_string()
-            server.sendmail(self.from_email, to_email, text)
-            
-            print(f"🔌 Cerrando conexión...")
-            server.quit()
-            
-            print(f"✅ Email SMTP enviado a {to_email}: {subject}")
-            return True, f"Email enviado correctamente via SMTP"
+            # Si llegamos aquí, todos los servidores fallaron
+            raise last_error
             
         except smtplib.SMTPAuthenticationError as e:
             logger.error(f"❌ Error de autenticación SMTP: {e}")

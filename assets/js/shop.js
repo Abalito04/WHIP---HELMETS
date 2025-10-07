@@ -184,6 +184,9 @@ function createProductCard(product) {
         <div class="product-content">
         <div class="product-images-container">
             <img src="${imageUrl}" alt="${product.name}" class="product-image main-view" onclick="openProductGallery(${product.id}, '${product.name}')" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIGZpbGw9IiNFRUVFRUUiLz48cGF0aCBkPSJNMTUgMzBINjBWNDBIMzVWMzBIMjVWMTVIMjBWMzBIMTVaIiBmaWxsPSIjOTk5Ii8+PC9zdmc+'">
+            <button class="wishlist-btn" data-product-id="${product.id}" title="Agregar a favoritos">
+                <span class="wishlist-icon">🤍</span>
+            </button>
         </div>
             <div class="product-info">
         <h3>${product.name}</h3>
@@ -201,9 +204,6 @@ function createProductCard(product) {
         <div class="product-actions">
         <button class="add-to-cart-btn" data-product-id="${product.id}" ${isOutOfStock ? 'disabled' : ''}>
             ${isOutOfStock ? 'Sin stock' : 'Añadir al Carrito'}
-        </button>
-        <button class="wishlist-btn" data-product-id="${product.id}" title="Agregar a favoritos">
-            <span class="wishlist-icon">🤍</span>
         </button>
         </div>
     `;
@@ -243,6 +243,24 @@ async function checkWishlistStatus(productId) {
     }
 }
 
+// Función para verificar si el usuario está autenticado
+async function checkAuthentication() {
+    try {
+        const response = await fetch(`${API_BASE}/api/auth/status`, {
+            credentials: 'include'
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            return data.authenticated === true;
+        }
+        return false;
+    } catch (error) {
+        console.error('Error verificando autenticación:', error);
+        return false;
+    }
+}
+
 // Función para actualizar icono de wishlist
 async function updateWishlistIcon(productId, isInWishlist) {
     const wishlistBtn = document.querySelector(`[data-product-id="${productId}"] .wishlist-btn`);
@@ -258,12 +276,10 @@ async function updateWishlistIcon(productId, isInWishlist) {
 // Función para agregar/quitar de wishlist
 async function toggleWishlist(productId) {
     try {
-        // Verificar si está autenticado
-        const response = await fetch(`${API_BASE}/api/wishlist/check/${productId}`, {
-            credentials: 'include'
-        });
+        // Verificar si está autenticado primero
+        const isAuthenticated = await checkAuthentication();
         
-        if (response.status === 401) {
+        if (!isAuthenticated) {
             showMiniNotification('Debes iniciar sesión para usar favoritos', 'error');
             setTimeout(() => {
                 // Mostrar modal de login
@@ -272,6 +288,16 @@ async function toggleWishlist(productId) {
                     loginModal.style.display = 'block';
                 }
             }, 1000);
+            return;
+        }
+        
+        // Verificar estado actual del wishlist
+        const response = await fetch(`${API_BASE}/api/wishlist/check/${productId}`, {
+            credentials: 'include'
+        });
+        
+        if (response.status === 401) {
+            showMiniNotification('Debes iniciar sesión para usar favoritos', 'error');
             return;
         }
         

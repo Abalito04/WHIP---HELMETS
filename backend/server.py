@@ -28,22 +28,16 @@ except ImportError:
     PAYMENT_AVAILABLE = False
     print("⚠️  Módulo de pagos no disponible")
 
-# Importar el servicio de email (SMTP prioritario, Resend como fallback)
+# Importar el servicio de email (Resend prioritario)
 try:
-    from smtp_service import smtp_email_service as email_service
+    from resend_service import resend_email_service as email_service
     EMAIL_AVAILABLE = True
-    EMAIL_SERVICE = "SMTP"
-    print("✅ Usando servicio SMTP")
+    EMAIL_SERVICE = "Resend"
+    print("✅ Usando servicio Resend")
 except ImportError:
-    try:
-        from resend_service import resend_email_service as email_service
-        EMAIL_AVAILABLE = True
-        EMAIL_SERVICE = "Resend"
-        print("⚠️  Usando servicio Resend (SMTP no disponible)")
-    except ImportError:
-        EMAIL_AVAILABLE = False
-        EMAIL_SERVICE = "None"
-        print("⚠️  Módulo de email no disponible")
+    EMAIL_AVAILABLE = False
+    EMAIL_SERVICE = "None"
+    print("⚠️  Módulo de email no disponible")
 
 # Importar utilidades SEO
 try:

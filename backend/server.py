@@ -36,6 +36,15 @@ except ImportError:
     EMAIL_AVAILABLE = False
     print("⚠️  Módulo de email no disponible")
 
+# Importar utilidades SEO
+try:
+    from seo_utils import SEOUtils
+    seo_utils = SEOUtils()
+    SEO_AVAILABLE = True
+except ImportError:
+    SEO_AVAILABLE = False
+    print("⚠️  Módulo SEO no disponible")
+
 # Importar configuración
 from config import *
 
@@ -435,6 +444,175 @@ def get_email_status():
         "service": "Resend",
         "message": "Sistema de email configurado" if email_service.is_configured else "Sistema de email no configurado - configurar RESEND_API_KEY"
     }), 200
+
+@app.route("/api/seo/meta", methods=["GET"])
+def get_seo_meta():
+    """Obtener meta tags SEO para una página"""
+    if not SEO_AVAILABLE:
+        return jsonify({
+            "available": False,
+            "message": "Módulo SEO no disponible"
+        }), 503
+    
+    try:
+        page_type = request.args.get('type', 'homepage')
+        product_id = request.args.get('product_id')
+        category = request.args.get('category')
+        
+        if page_type == 'product' and product_id:
+            # Obtener datos del producto
+            conn = get_conn()
+            try:
+                cursor = conn.cursor()
+                cursor.execute("""
+                    SELECT id, name, description, price, stock, image
+                    FROM products 
+                    WHERE id = %s
+                """, (product_id,))
+                product = cursor.fetchone()
+                
+                if product:
+                    product_data = {
+                        'id': product[0],
+                        'name': product[1],
+                        'description': product[2],
+                        'price': float(product[3]),
+                        'stock': product[4],
+                        'image': product[5]
+                    }
+                    meta_data = seo_utils.get_product_meta(product_data)
+                    structured_data = seo_utils.generate_structured_data('product', product_data)
+                else:
+                    meta_data = seo_utils.get_homepage_meta()
+                    structured_data = seo_utils.generate_structured_data()
+            finally:
+                conn.close()
+                
+        elif page_type == 'category' and category:
+            meta_data = seo_utils.get_category_meta(category)
+            structured_data = seo_utils.generate_structured_data()
+            
+        elif page_type == 'contact':
+            meta_data = seo_utils.get_contact_meta()
+            structured_data = seo_utils.generate_structured_data()
+            
+        else:  # homepage
+            meta_data = seo_utils.get_homepage_meta()
+            structured_data = seo_utils.generate_structured_data()
+        
+        return jsonify({
+            "available": True,
+            "meta": meta_data,
+            "structured_data": structured_data,
+            "message": "Meta tags generados correctamente"
+        }), 200
+        
+    except Exception as e:
+        return jsonify({
+            "available": False,
+            "message": f"Error generando meta tags: {str(e)}"
+        }), 500
+
+@app.route("/sitemap.xml", methods=["GET"])
+def sitemap():
+    """Generar sitemap.xml automático"""
+    if not SEO_AVAILABLE:
+        return "Sitemap no disponible", 503
+    
+    try:
+        base_url = seo_utils.base_url
+        current_date = datetime.now().strftime('%Y-%m-%d')
+        
+        # Páginas estáticas
+        static_pages = [
+            {'url': '', 'priority': '1.0', 'changefreq': 'daily'},
+            {'url': '/checkout', 'priority': '0.8', 'changefreq': 'monthly'},
+            {'url': '/orders', 'priority': '0.7', 'changefreq': 'monthly'},
+            {'url': '/profile', 'priority': '0.6', 'changefreq': 'monthly'},
+            {'url': '/register', 'priority': '0.5', 'changefreq': 'yearly'},
+            {'url': '/forgot-password', 'priority': '0.3', 'changefreq': 'yearly'},
+            {'url': '/reset-password', 'priority': '0.3', 'changefreq': 'yearly'},
+            {'url': '/pages/politica-de-privacidad', 'priority': '0.4', 'changefreq': 'yearly'},
+            {'url': '/pages/terminos-y-condiciones', 'priority': '0.4', 'changefreq': 'yearly'}
+        ]
+        
+        # Obtener productos
+        conn = get_conn()
+        try:
+            cursor = conn.cursor()
+            cursor.execute("""
+                SELECT id, name, updated_at
+                FROM products 
+                WHERE active = TRUE
+                ORDER BY updated_at DESC
+            """)
+            products = cursor.fetchall()
+        finally:
+            conn.close()
+        
+        # Generar XML
+        xml_content = '<?xml version="1.0" encoding="UTF-8"?>\n'
+        xml_content += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+        
+        # Agregar páginas estáticas
+        for page in static_pages:
+            xml_content += f'  <url>\n'
+            xml_content += f'    <loc>{base_url}{page["url"]}</loc>\n'
+            xml_content += f'    <lastmod>{current_date}</lastmod>\n'
+            xml_content += f'    <changefreq>{page["changefreq"]}</changefreq>\n'
+            xml_content += f'    <priority>{page["priority"]}</priority>\n'
+            xml_content += f'  </url>\n'
+        
+        # Agregar productos
+        for product in products:
+            product_id, product_name, updated_at = product
+            lastmod = updated_at.strftime('%Y-%m-%d') if updated_at else current_date
+            xml_content += f'  <url>\n'
+            xml_content += f'    <loc>{base_url}/producto/{product_id}</loc>\n'
+            xml_content += f'    <lastmod>{lastmod}</lastmod>\n'
+            xml_content += f'    <changefreq>weekly</changefreq>\n'
+            xml_content += f'    <priority>0.8</priority>\n'
+            xml_content += f'  </url>\n'
+        
+        xml_content += '</urlset>'
+        
+        response = make_response(xml_content)
+        response.headers['Content-Type'] = 'application/xml'
+        return response
+        
+    except Exception as e:
+        return f"Error generando sitemap: {str(e)}", 500
+
+@app.route("/robots.txt", methods=["GET"])
+def robots():
+    """Generar robots.txt"""
+    if not SEO_AVAILABLE:
+        return "Robots.txt no disponible", 503
+    
+    try:
+        base_url = seo_utils.base_url
+        current_date = datetime.now().strftime('%Y-%m-%d')
+        
+        robots_content = f"""User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /api/
+Disallow: /backend/
+Disallow: /payment/
+Disallow: /test-chatbot.html
+
+Sitemap: {base_url}/sitemap.xml
+
+# WHIP HELMETS - Cascos y Accesorios de Motociclismo
+# Generado automáticamente el {current_date}
+"""
+        
+        response = make_response(robots_content)
+        response.headers['Content-Type'] = 'text/plain'
+        return response
+        
+    except Exception as e:
+        return f"Error generando robots.txt: {str(e)}", 500
 
 @app.route("/api/migrate/password-reset", methods=["POST"])
 @debug_only

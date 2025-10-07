@@ -1118,8 +1118,10 @@ def create_product():
         except Exception:
             precio_efectivo_exists = False
         
+        cursor = conn.cursor()
+        
         if precio_efectivo_exists:
-            cur = execute_query(conn,
+            cursor.execute(
                 """
                 INSERT INTO productos (name, brand, price, precio_efectivo, porcentaje_descuento, category, condition, sizes, stock, image, images, status)
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
@@ -1128,7 +1130,7 @@ def create_product():
                 (name, brand, price, precio_efectivo, porcentaje_descuento, category, condition, sizes_csv, stock, image, images_json, status),
             )
         else:
-            cur = execute_query(conn,
+            cursor.execute(
                 """
                 INSERT INTO productos (name, brand, price, porcentaje_descuento, category, condition, sizes, stock, image, images, status)
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
@@ -1138,12 +1140,21 @@ def create_product():
             )
         
         # PostgreSQL: obtener el ID del último insert
-        result = cur.fetchone()
-        new_id = result['id']
+        result = cursor.fetchone()
+        new_id = result[0]  # Acceder por índice en lugar de por clave
         conn.commit()  # Confirmar la transacción
 
-        row = execute_query(conn, "SELECT id, name, brand, price, COALESCE(porcentaje_descuento, NULL) as porcentaje_descuento, category, condition, sizes, stock, image, images, status, created_at, updated_at FROM productos WHERE id = %s", (new_id,)).fetchone()
-        return jsonify(row_to_dict(row)), 201
+        cursor.execute("SELECT id, name, brand, price, COALESCE(porcentaje_descuento, NULL) as porcentaje_descuento, category, condition, sizes, stock, image, images, status, created_at, updated_at FROM productos WHERE id = %s", (new_id,))
+        row = cursor.fetchone()
+        
+        # Convertir a diccionario manualmente
+        columns = ['id', 'name', 'brand', 'price', 'porcentaje_descuento', 'category', 'condition', 'sizes', 'stock', 'image', 'images', 'status', 'created_at', 'updated_at']
+        row_dict = {}
+        for i, col in enumerate(columns):
+            if i < len(row):
+                row_dict[col] = row[i]
+        
+        return jsonify(row_dict), 201
     finally:
         conn.close()
 

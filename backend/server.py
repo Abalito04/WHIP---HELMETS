@@ -466,7 +466,7 @@ def get_seo_meta():
                 cursor = conn.cursor()
                 cursor.execute("""
                     SELECT id, name, description, price, stock, image
-                    FROM products 
+                    FROM productos 
                     WHERE id = %s
                 """, (product_id,))
                 product = cursor.fetchone()
@@ -542,8 +542,8 @@ def sitemap():
             cursor = conn.cursor()
             cursor.execute("""
                 SELECT id, name, updated_at
-                FROM products 
-                WHERE active = TRUE
+                FROM productos 
+                WHERE activo = TRUE
                 ORDER BY updated_at DESC
             """)
             products = cursor.fetchall()

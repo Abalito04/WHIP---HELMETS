@@ -293,6 +293,22 @@ async function toggleWishlist(productId) {
         
         if (response.status === 401) {
             console.log('❌ Usuario no autenticado');
+            
+            // Verificar si realmente no está autenticado
+            try {
+                const authCheck = await fetch(`${API_BASE}/api/auth/status`, {
+                    credentials: 'include'
+                });
+                
+                if (authCheck.ok) {
+                    console.log('⚠️ Usuario autenticado pero wishlist falla - posible problema de sesión');
+                    showMiniNotification('Error de sesión. Por favor, recarga la página.', 'error');
+                    return;
+                }
+            } catch (error) {
+                console.log('Error verificando autenticación:', error);
+            }
+            
             showMiniNotification('Inicia sesión para guardar tus productos favoritos', 'info');
             
             // Mostrar modal de login inmediatamente
@@ -324,6 +340,41 @@ async function toggleWishlist(productId) {
                     
                     loginModal.classList.add('show');
                 }
+                
+                // Agregar botón de emergencia para cerrar si se queda trabado
+                setTimeout(() => {
+                    if (loginModal.style.display === 'flex' || loginModal.classList.contains('show')) {
+                        console.log('🚨 Modal abierto - agregando botón de emergencia');
+                        
+                        // Crear botón de emergencia
+                        let emergencyBtn = document.getElementById('emergency-close-btn');
+                        if (!emergencyBtn) {
+                            emergencyBtn = document.createElement('button');
+                            emergencyBtn.id = 'emergency-close-btn';
+                            emergencyBtn.innerHTML = '❌ Cerrar';
+                            emergencyBtn.style.cssText = `
+                                position: fixed;
+                                top: 10px;
+                                right: 10px;
+                                z-index: 10000;
+                                background: #dc3545;
+                                color: white;
+                                border: none;
+                                padding: 10px 15px;
+                                border-radius: 5px;
+                                cursor: pointer;
+                                font-weight: bold;
+                            `;
+                            emergencyBtn.onclick = () => {
+                                console.log('🚨 Cerrando modal de emergencia');
+                                loginModal.style.display = 'none';
+                                loginModal.classList.remove('show');
+                                emergencyBtn.remove();
+                            };
+                            document.body.appendChild(emergencyBtn);
+                        }
+                    }
+                }, 2000);
                 
                 console.log('🎯 Modal abierto con estilos:', {
                     display: loginModal.style.display,

@@ -436,6 +436,48 @@ def get_email_status():
         "message": "Sistema de email configurado" if email_service.is_configured else "Sistema de email no configurado - configurar RESEND_API_KEY"
     }), 200
 
+@app.route("/api/migrate/password-reset", methods=["POST"])
+@debug_only
+def migrate_password_reset():
+    """Ejecutar migración de password_reset_tokens"""
+    try:
+        conn = get_conn()
+        cursor = conn.cursor()
+        
+        # Leer el archivo SQL
+        with open('backend/migrate_password_reset.sql', 'r', encoding='utf-8') as f:
+            sql_content = f.read()
+        
+        # Ejecutar la migración
+        cursor.execute(sql_content)
+        conn.commit()
+        
+        # Verificar que la tabla se creó
+        cursor.execute("""
+            SELECT table_name 
+            FROM information_schema.tables 
+            WHERE table_name = 'password_reset_tokens'
+        """)
+        
+        if cursor.fetchone():
+            return jsonify({
+                "success": True,
+                "message": "Tabla 'password_reset_tokens' creada exitosamente"
+            }), 200
+        else:
+            return jsonify({
+                "success": False,
+                "message": "Error: Tabla no se creó"
+            }), 500
+            
+    except Exception as e:
+        return jsonify({
+            "success": False,
+            "message": f"Error ejecutando migración: {str(e)}"
+        }), 500
+    finally:
+        conn.close()
+
 @app.route("/api/auth/forgot-password", methods=["POST"])
 @require_csrf
 def forgot_password():

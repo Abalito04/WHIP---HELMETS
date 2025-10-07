@@ -12,13 +12,13 @@ class SEOUtils:
     def __init__(self):
         self.base_url = os.environ.get('BASE_URL', 'https://whip-helmets.up.railway.app')
         self.site_name = "WHIP HELMETS"
-        self.default_description = "Cascos de moto nuevos y usados homologados en La Pampa. Bell, Fox, Alpinestars, Troy Lee Design. Cascos de motocross, enduro y calle."
-        self.default_keywords = "cascos de moto, cascos usados, cascos nuevos, cascos homologados, cascos motocross, cascos enduro, Bell, Fox, Alpinestars, Troy Lee Design, La Pampa, Argentina"
+        self.default_description = "Cascos de moto nuevos y usados homologados en Argentina. Bell, Fox, Alpinestars, Troy Lee Design. Cascos de motocross, enduro y calle. Envíos nacionales."
+        self.default_keywords = "cascos de moto, cascos usados, cascos nuevos, cascos homologados, cascos motocross, cascos enduro, Bell, Fox, Alpinestars, Troy Lee Design, Argentina, envíos nacionales"
     
     def get_homepage_meta(self):
         """Meta tags para la página principal"""
         return {
-            "title": f"Cascos de Moto Nuevos y Usados - {self.site_name} | Cascos Homologados La Pampa",
+            "title": f"Cascos de Moto Nuevos y Usados - {self.site_name} | Cascos Homologados Argentina",
             "description": self.default_description,
             "keywords": self.default_keywords,
             "og_title": f"Cascos de Moto Nuevos y Usados - {self.site_name}",

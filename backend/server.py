@@ -437,7 +437,6 @@ def get_email_status():
     }), 200
 
 @app.route("/api/migrate/password-reset", methods=["POST"])
-@debug_only
 def migrate_password_reset():
     """Ejecutar migración de password_reset_tokens"""
     try:

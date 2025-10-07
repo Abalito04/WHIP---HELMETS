@@ -535,8 +535,9 @@ def test_verification_email():
         }), 500
 
 @app.route("/api/auth/verify-existing-users", methods=["POST"])
+@require_admin
 def verify_existing_users():
-    """Marcar todos los usuarios existentes como verificados (temporal sin auth)"""
+    """Marcar todos los usuarios existentes como verificados (solo admin)"""
     try:
         conn = get_conn()
         cursor = conn.cursor()

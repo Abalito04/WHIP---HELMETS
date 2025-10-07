@@ -438,12 +438,58 @@ def get_email_status():
             "message": "Módulo de email no disponible"
         }), 503
     
-    return jsonify({
-        "available": email_service.is_configured,
+    # Información detallada del estado
+    status_info = {
+        "available": EMAIL_AVAILABLE,
         "configured": email_service.is_configured,
         "service": "Resend",
-        "message": "Sistema de email configurado" if email_service.is_configured else "Sistema de email no configurado - configurar RESEND_API_KEY"
-    }), 200
+        "from_email": email_service.from_email,
+        "from_name": email_service.from_name,
+        "api_key_set": bool(email_service.api_key),
+        "api_key_length": len(email_service.api_key) if email_service.api_key else 0
+    }
+    
+    if email_service.is_configured:
+        status_info["message"] = "Sistema de email configurado correctamente"
+    else:
+        status_info["message"] = "Sistema de email no configurado - configurar RESEND_API_KEY"
+    
+    return jsonify(status_info), 200
+
+@app.route("/api/email/test-welcome", methods=["POST"])
+def test_welcome_email():
+    """Endpoint de prueba para enviar email de bienvenida"""
+    if not EMAIL_AVAILABLE:
+        return jsonify({
+            "success": False,
+            "message": "Módulo de email no disponible"
+        }), 503
+    
+    if not email_service.is_configured:
+        return jsonify({
+            "success": False,
+            "message": "Sistema de email no configurado - configurar RESEND_API_KEY"
+        }), 503
+    
+    try:
+        data = request.get_json()
+        test_email = data.get('email', 'test@example.com')
+        test_name = data.get('name', 'Usuario de Prueba')
+        
+        success, message = email_service.send_welcome_email(test_email, test_name)
+        
+        return jsonify({
+            "success": success,
+            "message": message,
+            "test_email": test_email,
+            "test_name": test_name
+        }), 200 if success else 500
+        
+    except Exception as e:
+        return jsonify({
+            "success": False,
+            "message": f"Error en prueba de email: {str(e)}"
+        }), 500
 
 @app.route("/api/seo/meta", methods=["GET"])
 def get_seo_meta():

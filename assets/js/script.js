@@ -692,6 +692,7 @@ document.addEventListener("DOMContentLoaded", () => {
   window.logout = logout;
   window.goToAdmin = goToAdmin;
   window.showRegisterForm = showRegisterForm;
+  window.showLoginModal = showLoginModal;
 
   // Eventos para el botón de login
   if (loginLink) {

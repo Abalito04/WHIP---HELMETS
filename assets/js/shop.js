@@ -301,21 +301,37 @@ async function toggleWishlist(productId) {
             
             if (loginModal) {
                 console.log('✅ Modal encontrado, abriendo...');
-                // Forzar la visualización del modal
-                loginModal.style.display = 'flex';
-                loginModal.style.visibility = 'visible';
-                loginModal.style.opacity = '1';
-                loginModal.classList.add('show');
                 
-                // Asegurar que esté en el frente
-                loginModal.style.zIndex = '9999';
+                // Intentar usar la función existente primero
+                if (window.showLoginModal && typeof window.showLoginModal === 'function') {
+                    console.log('🎯 Usando función showLoginModal existente...');
+                    window.showLoginModal();
+                } else {
+                    console.log('🎯 Usando método directo...');
+                    // Remover cualquier clase que pueda estar interfiriendo
+                    loginModal.classList.remove('hide', 'hidden');
+                    
+                    // Forzar la visualización del modal con !important
+                    loginModal.style.setProperty('display', 'flex', 'important');
+                    loginModal.style.setProperty('visibility', 'visible', 'important');
+                    loginModal.style.setProperty('opacity', '1', 'important');
+                    loginModal.style.setProperty('z-index', '9999', 'important');
+                    loginModal.style.setProperty('position', 'fixed', 'important');
+                    loginModal.style.setProperty('top', '0', 'important');
+                    loginModal.style.setProperty('left', '0', 'important');
+                    loginModal.style.setProperty('width', '100%', 'important');
+                    loginModal.style.setProperty('height', '100%', 'important');
+                    
+                    loginModal.classList.add('show');
+                }
                 
                 console.log('🎯 Modal abierto con estilos:', {
                     display: loginModal.style.display,
                     visibility: loginModal.style.visibility,
                     opacity: loginModal.style.opacity,
                     zIndex: loginModal.style.zIndex,
-                    classList: loginModal.classList.toString()
+                    classList: loginModal.classList.toString(),
+                    computedDisplay: window.getComputedStyle(loginModal).display
                 });
             } else {
                 console.log('❌ Modal no encontrado, redirigiendo...');

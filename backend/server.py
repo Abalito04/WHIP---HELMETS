@@ -454,8 +454,8 @@ def get_email_status():
         "service": EMAIL_SERVICE,
         "from_email": email_service.from_email,
         "from_name": email_service.from_name,
-        "api_key_set": bool(email_service.api_key) if EMAIL_SERVICE == "Resend" else bool(getattr(email_service, 'smtp_username', None)),
-        "api_key_length": len(email_service.api_key) if email_service.api_key else 0
+        "api_key_set": bool(getattr(email_service, 'api_key', None)) if EMAIL_SERVICE == "Resend" else bool(getattr(email_service, 'smtp_username', None)),
+        "api_key_length": len(getattr(email_service, 'api_key', '')) if EMAIL_SERVICE == "Resend" else len(getattr(email_service, 'smtp_username', ''))
     }
     
     if email_service.is_configured:

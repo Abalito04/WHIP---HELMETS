@@ -1444,23 +1444,25 @@ footer.legal-footer a:hover {
 
 /* ================= Mini Carrito flotante ================= */
 #mini-cart {
-    position: fixed;
-    bottom: 20px;
-    right: 100px;
-    background: linear-gradient(135deg, #f0a946, #f3b927);
-    color: #000;
-    width: 70px;
-    height: 70px;
-    border-radius: 50%;
-    cursor: pointer;
-    font-size: 1.8rem;
-    z-index: 1100;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-    transition: all 0.3s ease;
-    border: 3px solid rgba(255, 255, 255, 0.2);
+    position: fixed !important;
+    bottom: 20px !important;
+    right: 100px !important;
+    background: linear-gradient(135deg, #f0a946, #f3b927) !important;
+    color: #000 !important;
+    width: 70px !important;
+    height: 70px !important;
+    border-radius: 50% !important;
+    cursor: pointer !important;
+    font-size: 1.8rem !important;
+    z-index: 99998 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3) !important;
+    transition: all 0.3s ease !important;
+    border: 3px solid rgba(255, 255, 255, 0.2) !important;
+    visibility: visible !important;
+    opacity: 1 !important;
 }
 
 #mini-cart:hover {
@@ -2743,6 +2745,19 @@ a, button, input, select {
     transition: all 0.3s ease;
 }
 
+/* Excluir botones flotantes de transiciones globales que puedan interferir */
+.chatbot-container,
+.chatbot-toggle,
+#mini-cart {
+    transition: transform 0.3s ease, box-shadow 0.3s ease !important;
+}
+
+/* Debug temporal para verificar posición del chatbot */
+.chatbot-container {
+    background: rgba(255, 0, 0, 0.1) !important; /* Debug: fondo rojo temporal */
+    border: 2px solid red !important; /* Debug: borde rojo temporal */
+}
+
 /* Mejora de contraste para texto */
 .text-high-contrast {
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
@@ -2769,29 +2784,31 @@ a, button, input, select {
 /* ================================================== */
 
 .chatbot-container {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    z-index: 9999;
+    position: fixed !important;
+    bottom: 20px !important;
+    right: 20px !important;
+    z-index: 99999 !important;
     font-family: 'Bangers', cursive;
     /* Debug: asegurar que sea visible */
     display: block !important;
     visibility: visible !important;
+    opacity: 1 !important;
 }
 
 .chatbot-toggle {
-    width: 70px;
-    height: 70px;
-    background: linear-gradient(135deg, #f0a946, #f3b927);
-    border-radius: 50%;
+    width: 70px !important;
+    height: 70px !important;
+    background: linear-gradient(135deg, #f0a946, #f3b927) !important;
+    border-radius: 50% !important;
     display: flex !important;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    box-shadow: 0 4px 20px rgba(240, 169, 70, 0.4);
-    transition: all 0.3s ease;
-    position: relative;
-    border: 3px solid rgba(255, 255, 255, 0.2);
+    align-items: center !important;
+    justify-content: center !important;
+    cursor: pointer !important;
+    box-shadow: 0 4px 20px rgba(240, 169, 70, 0.4) !important;
+    transition: all 0.3s ease !important;
+    position: relative !important;
+    border: 3px solid rgba(255, 255, 255, 0.2) !important;
+    z-index: 100000 !important;
     /* Debug: asegurar visibilidad */
     visibility: visible !important;
     opacity: 1 !important;

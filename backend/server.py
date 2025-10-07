@@ -497,6 +497,43 @@ def test_welcome_email():
             "message": f"Error en prueba de email: {str(e)}"
         }), 500
 
+@app.route("/api/email/test-verification", methods=["POST"])
+def test_verification_email():
+    """Endpoint de prueba para enviar email de verificación"""
+    if not EMAIL_AVAILABLE:
+        return jsonify({
+            "success": False,
+            "error": "Sistema de email no disponible"
+        }), 503
+    
+    try:
+        data = request.get_json()
+        email = data.get('email', 'abalito95@gmail.com')
+        token = data.get('token', 'test-token-123')
+        
+        print(f"🧪 Probando envío de email de verificación a {email}")
+        print(f"   Token: {token}")
+        
+        success, message = email_service.send_email_verification(email, "Usuario de Prueba", token)
+        
+        if success:
+            return jsonify({
+                "success": True,
+                "message": f"Email de verificación enviado a {email}",
+                "details": message
+            }), 200
+        else:
+            return jsonify({
+                "success": False,
+                "error": f"Error enviando email: {message}"
+            }), 500
+            
+    except Exception as e:
+        return jsonify({
+            "success": False,
+            "error": f"Error en prueba de email: {str(e)}"
+        }), 500
+
 @app.route("/api/seo/meta", methods=["GET"])
 def get_seo_meta():
     """Obtener meta tags SEO para una página"""

@@ -9,3 +9,5 @@ python-magic==0.4.27
 Pillow==10.1.0
 # Sistema de email - Resend
 resend==0.8.0
+bcrypt
+

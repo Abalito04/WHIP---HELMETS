@@ -111,17 +111,30 @@ def debug_only(f):
 # ---------------------- Protección CSRF ----------------------
 
 def generate_csrf_token():
-    """Generar token CSRF único"""
-    return secrets.token_urlsafe(32)
+    """Generar token CSRF firmado con SECRET_KEY"""
+    raw = secrets.token_urlsafe(32)
+    signature = hmac.new(
+        app.config['SECRET_KEY'].encode('utf-8'),
+        raw.encode('utf-8'),
+        hashlib.sha256
+    ).hexdigest()
+    return f"{raw}.{signature}"
 
 def validate_csrf_token(token):
-    """Validar token CSRF"""
-    if not token:
+    """Validar que el token CSRF fue emitido por este servidor"""
+    if not token or '.' not in token:
         return False
-    
-    # En una implementación más robusta, podrías almacenar tokens en la base de datos
-    # Para esta implementación básica, validamos que el token tenga el formato correcto
-    return len(token) >= 32 and token.replace('-', '').replace('_', '').isalnum()
+    try:
+        raw, signature = token.rsplit('.', 1)
+        expected = hmac.new(
+            app.config['SECRET_KEY'].encode('utf-8'),
+            raw.encode('utf-8'),
+            hashlib.sha256
+        ).hexdigest()
+        return hmac.compare_digest(expected, signature)
+    except Exception:
+        return False
+
 
 def require_csrf(f):
     """Decorador para requerir token CSRF en endpoints POST"""

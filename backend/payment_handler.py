@@ -120,8 +120,8 @@ class PaymentHandler:
                 cursor.execute(
                     """
                     INSERT INTO orders (order_number, customer_name, customer_email, customer_phone, 
-                                      customer_address, customer_city, customer_zip, total_amount, 
-                                      payment_method, payment_id, status, user_id, verification_code)
+                    customer_address, customer_city, customer_zip, total_amount, 
+                    payment_method, payment_id, status, user_id, verification_code)
                     VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                     RETURNING id
                     """,

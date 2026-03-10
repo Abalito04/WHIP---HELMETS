@@ -182,7 +182,7 @@ class PaymentHandler:
             print(f"Error al guardar pedido: {e}")
             raise e
     
-    def update_payment_status(self, payment_id, status):
+def update_payment_status(self, payment_id, status):
         """Actualizar estado del pago"""
         try:
             with get_conn() as conn:
@@ -202,7 +202,7 @@ class PaymentHandler:
             print(f"Error al actualizar estado del pago: {e}")
             return False
         
-    def process_webhook(self, payload: dict, data_id: str = None):
+def process_webhook(self, payload: dict, data_id: str = None):
     """Procesar webhook de MercadoPago consultando el pago real en la API"""
     if not MERCADOPAGO_AVAILABLE:
         return {"success": False, "error": "MercadoPago no configurado"}

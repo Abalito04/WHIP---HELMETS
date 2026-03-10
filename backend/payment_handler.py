@@ -201,6 +201,46 @@ class PaymentHandler:
         except Exception as e:
             print(f"Error al actualizar estado del pago: {e}")
             return False
+        
+    def process_webhook(self, payload: dict, data_id: str = None):
+    """Procesar webhook de MercadoPago consultando el pago real en la API"""
+    if not MERCADOPAGO_AVAILABLE:
+        return {"success": False, "error": "MercadoPago no configurado"}
+
+    payment_id = data_id or (payload.get("data") or {}).get("id")
+    if not payment_id:
+        return {"success": False, "error": "payment_id faltante"}
+
+    try:
+        payment = self.mp.payment().get(payment_id)
+        if not payment or payment.get("status") != 200:
+            return {"success": False, "error": "No se pudo obtener el pago desde MP"}
+
+        info = payment.get("response", {})
+        mp_status = info.get("status")
+        preference_id = info.get("preference_id")
+
+        status_map = {
+            "approved":     "paid",
+            "pending":      "pending",
+            "in_process":   "pending",
+            "rejected":     "cancelled",
+            "cancelled":    "cancelled",
+            "refunded":     "cancelled",
+            "charged_back": "cancelled",
+        }
+        new_status = status_map.get(mp_status, "pending")
+
+        if preference_id:
+            self.update_payment_status(preference_id, new_status)
+            return {"success": True, "payment_id": payment_id, "status": new_status}
+
+        return {"success": False, "error": "preference_id faltante en respuesta de MP"}
+
+    except Exception as e:
+        print(f"❌ Error en process_webhook: {e}")
+        return {"success": False, "error": str(e)}
+
     
     def get_order_by_payment_id(self, payment_id, user_email=None):
         """Obtener pedido por ID de pago"""

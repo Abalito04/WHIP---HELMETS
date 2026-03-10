@@ -7,6 +7,9 @@ from database import get_conn, init_postgresql
 from datetime import datetime, timedelta
 import hashlib
 import secrets
+import hmac
+import time
+
 
 # Importar el módulo de autenticación
 try:
@@ -1116,7 +1119,7 @@ def reset_password():
             
             # Actualizar contraseña del usuario
             import hashlib
-            password_hash = hashlib.sha256(new_password.encode()).hexdigest()
+            password_hash = auth_manager.hash_password(new_password) if AUTH_AVAILABLE else hashlib.sha256(new_password.encode()).hexdigest()
             
             cursor.execute("""
                 UPDATE users 
@@ -1322,6 +1325,7 @@ def get_product(pid: int):
 
 
 @app.route("/api/products", methods=["POST"])
+@require_admin
 def create_product():
     data = request.get_json(force=True) or {}
 
@@ -1444,6 +1448,7 @@ def create_product():
 
 
 @app.route("/api/products/<int:pid>", methods=["PUT", "PATCH"])
+@require_admin
 def update_product(pid: int):
     try:
         data = request.get_json(force=True) or {}
@@ -1633,6 +1638,7 @@ def update_product(pid: int):
 
 
 @app.route("/api/products/<int:pid>", methods=["DELETE"])
+@require_admin
 def delete_product(pid: int):
     conn = get_conn()
     try:
@@ -2868,24 +2874,67 @@ def create_transfer_order_direct(items, customer_info, total_amount):
         import traceback
         traceback.print_exc()
         return jsonify({"error": f"Error al crear pedido: {str(e)}"}), 500
+    
+def verify_mp_webhook_signature(req, secret: str, data_id: str) -> bool:
+    """Verificar firma HMAC-SHA256 del webhook de MercadoPago"""
+    x_signature = req.headers.get("x-signature", "")
+    x_request_id = req.headers.get("x-request-id", "")
+    if not x_signature or not x_request_id or not data_id:
+        return False
+
+    ts, v1 = None, None
+    for part in x_signature.split(","):
+        part = part.strip()
+        if "=" not in part:
+            continue
+        k, val = part.split("=", 1)
+        if k.strip() == "ts":
+            ts = val.strip()
+        elif k.strip() == "v1":
+            v1 = val.strip()
+
+    if not ts or not v1:
+        return False
+
+    try:
+        if abs(int(time.time()) - int(ts)) > 300:  # Rechazar si tiene más de 5 minutos
+            return False
+    except ValueError:
+        return False
+
+    manifest = f"id:{data_id};request-id:{x_request_id};ts:{ts};"
+    expected = hmac.new(secret.encode("utf-8"), manifest.encode("utf-8"), hashlib.sha256).hexdigest()
+    return hmac.compare_digest(expected, v1)
 
 @app.route("/api/payment/webhook", methods=["POST"])
 def payment_webhook():
     """Webhook para recibir notificaciones de MercadoPago"""
     if not PAYMENT_AVAILABLE:
         return jsonify({"error": "Sistema de pagos no disponible"}), 503
-    
+
     try:
-        data = request.get_json()
-        result = payment_handler.process_webhook(data)
-        
-        if result['success']:
-            return jsonify({"status": "ok"}), 200
+        mp_secret = os.environ.get("MP_WEBHOOK_SECRET", "")
+        payload = request.get_json(silent=True) or {}
+
+        data_id = (
+            request.args.get("data.id")
+            or request.args.get("id")
+            or (payload.get("data") or {}).get("id", "")
+        )
+
+        # Verificar firma solo si el secret está configurado
+        if mp_secret:
+            if not verify_mp_webhook_signature(request, mp_secret, str(data_id)):
+                return jsonify({"error": "Webhook signature inválida"}), 401
         else:
-            return jsonify(result), 400
-            
+            print("⚠️ MP_WEBHOOK_SECRET no configurado — verificación de firma desactivada")
+
+        result = payment_handler.process_webhook(payload, data_id=str(data_id))
+        return jsonify({"status": "ok"}), 200 if result.get("success") else 400
+
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
 
 @app.route("/api/payment/status/<payment_id>", methods=["GET"])
 def get_payment_status(payment_id):

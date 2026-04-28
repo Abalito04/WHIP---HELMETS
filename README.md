@@ -1,281 +1,117 @@
-# WHIP HELMETS - E-commerce Web Application
+# 🛒 WHIP Helmets — E-commerce Web App
 
-## 🚀 **ESTADO ACTUAL: OPERACIONAL EN RAILWAY**
+[![Python](https://img.shields.io/badge/Python-3.8+-3776AB?style=flat-square&logo=python&logoColor=white)](https://www.python.org/)
+[![Flask](https://img.shields.io/badge/Flask-3.x-000000?style=flat-square&logo=flask&logoColor=white)](https://flask.palletsprojects.com/)
+[![Railway](https://img.shields.io/badge/Deployed%20on-Railway-0B0D0E?style=flat-square&logo=railway&logoColor=white)](https://whip-helmets.up.railway.app/)
+[![MercadoPago](https://img.shields.io/badge/Payments-MercadoPago-009EE3?style=flat-square&logo=mercadopago&logoColor=white)](https://www.mercadopago.com.ar/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](LICENSE)
 
-### ✅ **FUNCIONALIDADES COMPLETADAS:**
-- ✅ **Deploy en Railway** - Configuración completa
-- ✅ **Base de datos** - Creación automática con datos de ejemplo
-- ✅ **Autenticación** - Sistema de login/logout con rate limiting
-- ✅ **Productos** - CRUD completo con filtros avanzados
-- ✅ **Carrito** - Funcionalidad completa con persistencia
-- ✅ **Responsive** - Optimizado para móviles, tablets y desktop
-- ✅ **Admin panel** - Gestión completa de productos y usuarios
-- ✅ **Checkout** - Integración con MercadoPago
-- ✅ **Seguridad avanzada** - Headers de seguridad, CSRF, CSP, validación de archivos
-- ✅ **Optimización de imágenes** - Procesamiento automático
-- ✅ **Proyecto optimizado** - 38 archivos innecesarios eliminados
+> **EN:** Full-featured e-commerce web application for a motorcycle helmet store. Built with Flask and deployed on Railway, it includes user authentication, shopping cart, checkout flow, and MercadoPago payment integration.
+>
+> **ES:** Aplicación web de e-commerce completa para una tienda de cascos de moto. Desarrollada con Flask y desplegada en Railway, incluye autenticación de usuarios, carrito de compras, flujo de checkout e integración con MercadoPago.
 
-### 🔧 **CONFIGURACIÓN REQUERIDA EN RAILWAY:**
+🌐 **Live Demo:** [whip-helmets.up.railway.app](https://whip-helmets.up.railway.app/)
 
-#### **Variables de Entorno Obligatorias:**
+---
+
+## ✨ Features · Características
+
+- 🔐 **User authentication** — register, login, email verification, forgot/reset password (Resend API)
+- 🛒 **Shopping cart** — add, remove, update quantities, persistent across sessions
+- 💳 **MercadoPago integration** — full checkout flow with payment gateway
+- 📦 **Order management** — users can track their orders
+- 👤 **User profile** — edit personal info and view order history
+- 🛡️ **Admin panel** — manage products, orders and users
+- 📧 **Transactional emails** — order confirmation and password reset via Resend
+- 📱 **Responsive design** — mobile-friendly UI
+
+---
+
+## 🗂️ Project Structure
+
+```
+WHIP---HELMETS/
+├── app.py                  # Flask entry point
+├── backend/                # Routes, models, business logic
+├── admin/                  # Admin panel
+├── payment/                # MercadoPago integration
+├── pages/                  # HTML page templates
+├── assets/                 # Static files (CSS, JS, images)
+├── templates/              # Jinja2 base templates
+├── index.html              # Landing page
+├── checkout.html           # Checkout page
+├── orders.html             # Order tracking page
+├── profile.html            # User profile page
+├── register.html           # Registration page
+├── verify-email.html       # Email verification page
+├── forgot-password.html    # Forgot password page
+├── reset-password.html     # Reset password page
+├── requirements.txt
+├── Procfile                # Railway deployment config
+└── runtime.txt
+```
+
+---
+
+## 🚀 Quick Start · Instalación local
+
+### Prerequisites
+- Python 3.8+
+- pip
+- A MercadoPago developer account (for payments)
+- A Resend account (for emails)
+
+### Installation
+
 ```bash
-# MercadoPago (CRÍTICO para pagos)
-MERCADOPAGO_ACCESS_TOKEN=tu_access_token_real_aqui
-MERCADOPAGO_PUBLIC_KEY=tu_public_key_real_aqui
+# 1. Clone the repo
+git clone https://github.com/Abalito04/WHIP---HELMETS.git
+cd WHIP---HELMETS
 
-# Seguridad (CRÍTICO para producción)
-SECRET_KEY=tu_clave_secreta_unica_aqui
-JWT_SECRET_KEY=tu_jwt_secret_key_aqui
+# 2. Create and activate a virtual environment
+python -m venv venv
+source venv/bin/activate  # Windows: venv\Scripts\activate
 
-# Configuración
-DEBUG=False
-IS_PRODUCTION=True
+# 3. Install dependencies
+pip install -r requirements.txt
 
-# Cloudinary (para imágenes)
-CLOUDINARY_CLOUD_NAME=tu_cloud_name
-CLOUDINARY_API_KEY=tu_api_key
-CLOUDINARY_API_SECRET=tu_api_secret
+# 4. Set up environment variables (copy from railway.env as reference)
+# MERCADOPAGO_ACCESS_TOKEN=your_token
+# RESEND_API_KEY=your_key
+# SECRET_KEY=your_secret
+
+# 5. Run the app
+python app.py
 ```
 
-#### **Variables de Entorno Opcionales:**
-```bash
-# Rate limiting
-RATE_LIMIT_PER_MINUTE=60
+App will be available at `http://localhost:5000`
 
-# JWT
-JWT_ACCESS_TOKEN_EXPIRES=3600
+---
 
-# Email (para futuras implementaciones)
-SMTP_SERVER=
-SMTP_PORT=587
-SMTP_USERNAME=
-SMTP_PASSWORD=
-```
+## 🔧 Tech Stack
 
-### 👥 **USUARIOS POR DEFECTO:**
-- **Admin:** `admin` / `admin123`
-- **Usuario:** `usuario` / `user123`
+| Layer | Technology |
+|-------|------------|
+| Backend | Python · Flask |
+| Frontend | HTML5 · CSS3 · JavaScript |
+| Database | SQLite (local) / PostgreSQL (production) |
+| Payments | MercadoPago API |
+| Emails | Resend API |
+| Deployment | Railway |
+| Server | Gunicorn |
 
-## 📁 Estructura de Archivos Reorganizada
+---
 
-```
-whip-helmets/
-├── index.html                          # Página principal
-├── pages/                              # Páginas secundarias
-│   ├── politica-de-privacidad.html     # Política de privacidad
-│   └── terminos-y-condiciones.html     # Términos y condiciones
-├── admin/                              # Panel de administración
-│   ├── admin.html                      # Dashboard administrativo
-│   ├── css/
-│   │   └── admin.css                   # Estilos del panel admin
-│   └── js/
-│       └── admin.js                    # Lógica del panel admin
-├── assets/                             # Recursos del frontend
-│   ├── css/
-│   │   └── style.css                   # Estilos principales
-│   ├── js/
-│   │   ├── script.js                   # Funciones de carrito y UI
-│   │   └── shop.js                     # Comunicación con API
-│   └── images/                         # Imágenes organizadas
-│       ├── logo.png                    # Logo principal
-│       ├── backgrounds/
-│       │   └── fondo1.jpg              # Imagen de fondo hero
-│       └── products/                   # Imágenes de productos
-├── backend/                            # Servidor y API
-│   ├── server.py                       # Servidor Flask principal
-│   ├── auth.py                         # Sistema de autenticación
-│   ├── payment_handler.py              # Integración MercadoPago
-│   ├── config.py                       # Configuración
-│   ├── database.py                     # Gestión de base de datos
-│   ├── requirements.txt                # Dependencias Python
-│   └── migrate_*.py                    # Scripts de migración
-├── payment/                            # Páginas de pago
-│   ├── success.html                    # Pago exitoso
-│   ├── failure.html                    # Pago fallido
-│   └── pending.html                    # Pago pendiente
-├── app.py                              # Entry point para Railway
-├── Procfile                            # Comando de inicio
-├── runtime.txt                         # Versión de Python
-└── requirements.txt                    # Dependencias (raíz)
-```
+## ☁️ Deployment
 
-## 🚀 Instalación y Configuración
+This app is deployed on **Railway**. See [`RAILWAY_DEPLOY.md`](RAILWAY_DEPLOY.md) for the full deployment guide.
 
-### ☁️ Despliegue en Railway (Recomendado)
+For email setup, see [`RESEND_SETUP.md`](RESEND_SETUP.md).
 
-**📋 Ver `RAILWAY_DEPLOY.md` para instrucciones detalladas**
+---
 
-1. **Subir a GitHub** (con todos los archivos)
-2. **Conectar Railway** con tu repositorio
-3. **Configurar variables de entorno** en Railway
-4. **¡Listo!** La app estará online
+## 👨‍💻 Author
 
-### 🖥️ Desarrollo Local
+**Matias Abalo** — [@Abalito04](https://github.com/Abalito04)
 
-#### Prerrequisitos
-- Python 3.10+
-- Navegador web moderno
-
-#### Pasos de instalación
-
-1. **Clonar/Descargar el proyecto**
-   ```bash
-   git clone [url-del-repositorio]
-   cd whip-helmets
-   ```
-
-2. **Configurar el Backend**
-   ```bash
-   cd backend
-   
-   # Configurar archivo de configuración
-   cp config.example.py config.py
-   # EDITAR config.py con tus credenciales de MercadoPago
-   
-   pip install -r requirements.txt
-   python server.py  # Las bases de datos se crean automáticamente
-   ```
-   
-   El servidor iniciará en: `http://127.0.0.1:5000`
-
-## 🌟 Características
-
-### Frontend Principal
-- ✅ Catálogo de productos dinámico
-- ✅ Carrito de compras con LocalStorage
-- ✅ Control de stock en tiempo real
-- ✅ Filtros por marca y categoría
-- ✅ Diseño responsive completo
-- ✅ Sistema de notificaciones
-- ✅ Galería de imágenes de productos
-
-### Panel Administrativo
-- ✅ CRUD completo de productos
-- ✅ Gestión de stock
-- ✅ Filtros avanzados
-- ✅ Exportación de datos (CSV)
-- ✅ Guardado masivo de cambios
-- ✅ Autenticación segura
-- ✅ Gestión de usuarios
-- ✅ Optimización de imágenes
-- ✅ Estadísticas de productos
-
-### Backend API
-- ✅ REST API completa
-- ✅ Base de datos SQLite
-- ✅ Validación de datos robusta
-- ✅ Manejo de errores
-- ✅ CORS configurado
-- ✅ Rate limiting
-- ✅ Sanitización de inputs
-- ✅ Integración MercadoPago
-
-### Seguridad Avanzada
-- ✅ Rate limiting configurable por endpoint
-- ✅ Headers de seguridad (XSS, clickjacking, MIME sniffing)
-- ✅ Content Security Policy (CSP) implementado
-- ✅ Protección CSRF con tokens únicos
-- ✅ Validación robusta de archivos subidos
-- ✅ CORS configurado restrictivamente
-- ✅ Endpoints de debug protegidos
-- ✅ Sanitización de inputs
-- ✅ Autenticación con tokens JWT
-- ✅ Credenciales en variables de entorno
-
-## 📋 Endpoints de la API
-
-| Método | Endpoint | Descripción |
-|--------|----------|-------------|
-| GET | `/api/health` | Estado de la API |
-| GET | `/api/products` | Listar productos |
-| POST | `/api/products` | Crear producto |
-| PUT | `/api/products/{id}` | Actualizar producto |
-| DELETE | `/api/products/{id}` | Eliminar producto |
-| POST | `/api/auth/login` | Login de usuario |
-| POST | `/api/auth/logout` | Logout de usuario |
-| GET | `/api/profile` | Obtener perfil |
-| PUT | `/api/profile` | Actualizar perfil |
-| POST | `/api/payment/create-preference` | Crear preferencia de pago |
-| POST | `/api/payment/webhook` | Webhook de MercadoPago |
-| GET | `/api/orders` | Obtener pedidos del usuario |
-
-## 🛡️ Seguridad Implementada
-
-✅ **Rate Limiting** - Configurable por endpoint (login, register, payment, API)
-✅ **Headers de Seguridad** - XSS, clickjacking, MIME sniffing protection
-✅ **Content Security Policy** - Protección contra inyección de scripts
-✅ **Protección CSRF** - Tokens únicos para endpoints críticos
-✅ **Validación de Archivos** - Anti-malware y path traversal protection
-✅ **CORS Restrictivo** - Solo dominios autorizados
-✅ **Endpoints Debug Protegidos** - Solo disponibles en desarrollo
-✅ **Sanitización** - Limpieza de inputs del usuario
-✅ **Validación** - Verificación de datos de entrada
-✅ **Manejo de errores** - Respuestas seguras sin información sensible
-✅ **Autenticación** - Sistema de tokens JWT con expiración
-✅ **Credenciales Seguras** - Variables de entorno, sin hardcoding
-
-## 🚨 **MEJORAS FUTURAS RECOMENDADAS:**
-
-### 🔐 **Seguridad Avanzada (Prioridad Media)**
-- [x] ~~Implementar headers de seguridad~~ ✅ COMPLETADO
-- [x] ~~Implementar protección CSRF~~ ✅ COMPLETADO
-- [x] ~~Implementar Content Security Policy~~ ✅ COMPLETADO
-- [x] ~~Validación robusta de archivos~~ ✅ COMPLETADO
-- [ ] Implementar JWT real con refresh tokens
-- [ ] Agregar validación de contraseñas robusta
-- [ ] Implementar 2FA para administradores
-- [ ] Agregar logging de seguridad
-
-### 💳 **Pagos (Prioridad Alta)**
-- [ ] Probar flujo completo de pagos en producción
-- [ ] Implementar manejo de webhooks de MercadoPago
-- [ ] Agregar notificaciones de pago por email
-- [ ] Implementar reembolsos
-
-### 📧 **Notificaciones (Prioridad Media)**
-- [ ] Email de confirmación de pedidos
-- [ ] Notificaciones de stock bajo
-- [ ] Email de bienvenida para nuevos usuarios
-- [ ] Notificaciones de estado de pedido
-
-### 📊 **Analytics (Prioridad Media)**
-- [ ] Tracking de ventas
-- [ ] Estadísticas de productos más vendidos
-- [ ] Reportes de inventario
-- [ ] Dashboard de métricas
-
-### 🔍 **SEO (Prioridad Baja)**
-- [ ] Meta tags para SEO
-- [ ] Open Graph tags
-- [ ] Schema.org markup
-- [ ] Sitemap.xml
-
-## 🐛 Solución de Problemas
-
-### Error "No se puede conectar al servidor"
-- Verificar que el backend esté ejecutándose
-- Comprobar la URL de la API
-- Revisar la consola del navegador
-
-### Las imágenes no cargan
-- Verificar que las imágenes estén en el repositorio
-- Comprobar las rutas en la base de datos
-- Revisar permisos de archivos
-
-### Error de autenticación
-- Verificar credenciales de usuario
-- Comprobar que la base de datos esté creada
-- Revisar logs del servidor
-
-### Error de pagos
-- Verificar credenciales de MercadoPago
-- Comprobar configuración de URLs
-- Revisar webhooks
-
-## 📞 Soporte
-
-Para problemas técnicos:
-1. Revisa los logs en Railway
-2. Verifica las variables de entorno
-3. Comprueba que todas las dependencias estén en `requirements.txt`
-4. Consulta la documentación en `RAILWAY_DEPLOY.md`
+🌐 [Portfolio](https://matiabalo.up.railway.app/) · ✉️ [abalito95@gmail.com](mailto:abalito95@gmail.com)

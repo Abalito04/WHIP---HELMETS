@@ -10,7 +10,6 @@
 >
 > **ES:** Aplicación web de e-commerce completa para una tienda de cascos de moto. Desarrollada con Flask y desplegada en Railway, incluye autenticación de usuarios, carrito de compras, flujo de checkout e integración con MercadoPago.
 
-🌐 **Live Demo:** [whip-helmets.up.railway.app](https://whip-helmets.up.railway.app/)
 
 ---
 
